@@ -4,4 +4,27 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "alembic>=1.15.2",
+    "apscheduler>=3.11.0",
+    "faker>=37.1.0",
+    "fastapi>=0.115.12",
+    "langchain-community>=0.3.20",
+    "langfuse>=2.60.2",
+    "langgraph>=0.3.21",
+    "loguru>=0.7.3",
+    "markdown>=3.7",
+    "mcp[cli]>=1.6.0",
+    "openai>=1.70.0",
+    "openpyxl>=3.1.5",
+    "psycopg2-binary>=2.9.10",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
+    "ruamel-yaml>=0.18.10",
+    "sqlalchemy>=2.0.40",
+]
+
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple"
+name = "aliyun"
+default = true
