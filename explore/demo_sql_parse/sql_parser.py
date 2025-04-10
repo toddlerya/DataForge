@@ -33,7 +33,7 @@ def parse_sql(sql: str) -> Dict[str, List[str]]:
             if hasattr(token, 'get_real_name'):
                 result['tables'].append(token.get_real_name())
         elif token.is_keyword and token.value.upper() == 'FROM':
-            from_clause = True
+            pass
 
     # 提取列名
     select_seen = False
