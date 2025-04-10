@@ -1,10 +1,11 @@
-import re
-import sqlparse
-from typing import Dict, List, Optional
+from typing import Dict, List
+
+import sqlglot
+
 
 def parse_sql(sql: str) -> Dict[str, List[str]]:
     """
-    解析SQL语句，提取表名、查询列和WHERE条件
+    使用 sqlglot 解析SQL语句，提取表名、查询列和WHERE条件
 
     参数:
         sql: 要解析的SQL字符串
@@ -12,90 +13,31 @@ def parse_sql(sql: str) -> Dict[str, List[str]]:
     返回:
         包含解析结果的字典，键为'tables', 'columns', 'conditions'
     """
-    # 标准化SQL格式
-    formatted_sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
-    parsed = sqlparse.parse(formatted_sql)[0]
+    result = {"tables": [], "columns": [], "conditions": []}
 
-    result = {
-        'tables': [],
-        'columns': [],
-        'conditions': []
-    }
+    try:
+        parsed = sqlglot.parse_one(sql)
 
-    # 提取表名
-    from_clause = None
-    for token in parsed.tokens:
-        if isinstance(token, sqlparse.sql.IdentifierList):
-            for identifier in token.get_identifiers():
-                if hasattr(identifier, 'get_real_name'):
-                    result['tables'].append(identifier.get_real_name())
-        elif isinstance(token, sqlparse.sql.Identifier):
-            if hasattr(token, 'get_real_name'):
-                result['tables'].append(token.get_real_name())
-        elif token.is_keyword and token.value.upper() == 'FROM':
-            pass
+        # 提取表名
+        result["tables"] = [
+            table.name for table in parsed.find_all(sqlglot.expressions.Table)
+        ]
 
-    # 提取列名
-    select_seen = False
-    for token in parsed.tokens:
-        if token.is_keyword and token.value.upper() == 'SELECT':
-            select_seen = True
-            continue
-        if select_seen:
-            if isinstance(token, sqlparse.sql.IdentifierList):
-                for identifier in token.get_identifiers():
-                    result['columns'].append(str(identifier))
-            elif isinstance(token, sqlparse.sql.Identifier):
-                result['columns'].append(str(token))
-            elif token.is_keyword and token.value.upper() in ('FROM', 'WHERE'):
-                select_seen = False
+        # 提取列名
+        result["columns"] = [
+            col.name for col in parsed.find_all(sqlglot.expressions.Column)
+        ]
 
-    # 提取WHERE条件
-    where_clause = None
-    for token in parsed.tokens:
-        if token.is_keyword and token.value.upper() == 'WHERE':
-            where_clause = token
-            break
+        # 提取WHERE条件
+        where_clause = parsed.find(sqlglot.expressions.Where)
+        if where_clause:
+            result["conditions"].append(where_clause.sql())
 
-    if where_clause:
-        # 获取WHERE后面的所有token
-        where_idx = parsed.tokens.index(where_clause)
-        where_tokens = parsed.tokens[where_idx+1:]
-
-        # 组合条件表达式
-        condition = ' '.join(str(t) for t in where_tokens)
-        result['conditions'] = [condition.strip()]
+    except Exception as e:
+        print(f"解析SQL时出错: {e}")
 
     return result
 
-def simple_regex_parse(sql: str) -> Dict[str, List[str]]:
-    """
-    使用正则表达式简单解析SQL（备用方法）
-    """
-    result = {
-        'tables': [],
-        'columns': [],
-        'conditions': []
-    }
-
-    # 提取表名
-    table_pattern = r'(?:FROM|JOIN)\s+([\w\.]+)'
-    result['tables'] = re.findall(table_pattern, sql, re.IGNORECASE)
-
-    # 提取列名
-    select_pattern = r'SELECT\s+(.+?)\s+FROM'
-    select_match = re.search(select_pattern, sql, re.IGNORECASE|re.DOTALL)
-    if select_match:
-        columns = [col.strip() for col in select_match.group(1).split(',')]
-        result['columns'] = columns
-
-    # 提取WHERE条件
-    where_pattern = r'WHERE\s+(.+)'
-    where_match = re.search(where_pattern, sql, re.IGNORECASE)
-    if where_match:
-        result['conditions'] = [where_match.group(1).strip()]
-
-    return result
 
 if __name__ == "__main__":
     # 示例SQL
@@ -105,14 +47,14 @@ if __name__ == "__main__":
     WHERE price > 100 AND category = 'electronics'
     """
 
-    print("=== 使用sqlparse解析 ===")
-    parsed = parse_sql(example_sql)
-    print("表名:", parsed['tables'])
-    print("列名:", parsed['columns'])
-    print("条件:", parsed['conditions'])
+    # Spark SQL requires backticks (`) for delimited identifiers and uses `FLOAT` over `REAL`
+    spark_sql = """WITH baz AS (SELECT a, c FROM foo WHERE a = 1) SELECT f.a, b.b, baz.c, CAST("b"."a" AS REAL) d FROM foo f JOIN bar b ON f.a = b.a LEFT JOIN baz ON f.a = baz.a"""
 
-    print("\n=== 使用正则表达式解析 ===")
-    regex_parsed = simple_regex_parse(example_sql)
-    print("表名:", regex_parsed['tables'])
-    print("列名:", regex_parsed['columns'])
-    print("条件:", regex_parsed['conditions'])
+    # Translates the query into Spark SQL, formats it, and delimits all of its identifiers
+    print(sqlglot.transpile(spark_sql, write="spark", identify=True, pretty=True)[0])
+
+    print("=== 使用sqlglot解析 ===")
+    parsed = parse_sql(spark_sql)
+    print("表名:", parsed["tables"])
+    print("列名:", parsed["columns"])
+    print("条件:", parsed["conditions"])
