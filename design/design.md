@@ -1,5 +1,27 @@
 # 基于数据仓库的元数据定义解析与仿真数据生成设计
 
+
+```mermaid
+---
+config:
+  flowchart:
+    curve: linear
+---
+flowchart TD
+    __start__(["<p>__开始__</p>"]) --> metadata_info["数仓元数据"]
+    metadata_info --> data_gen_bot
+    human("人工检查")
+    data_gen_bot("数据生成机器人") -.-> data_faker_tools("仿真数据生成工具")
+    data_faker_tools --> data_gen_bot
+    data_gen_bot --> human -.-> |修正指令| data_gen_bot
+    human  --> __end__(["<p>__结束__</p>"])
+     __start__:::first
+     __end__:::last
+    classDef default fill:#f2f0ff,line-height:1.2
+    classDef first fill-opacity:0
+    classDef last fill:#bfb6fc
+```
+
 ## 1. 元数据定义解析
 
 ### 1.1 元数据采集

@@ -12,6 +12,7 @@ dependencies = [
     "langchain-community>=0.3.20",
     "langfuse>=2.60.2",
     "langgraph>=0.3.21",
+    "langgraph-cli[inmem]>=0.1.83",
     "loguru>=0.7.3",
     "markdown>=3.7",
     "mcp[cli]>=1.6.0",

@@ -1,0 +1,78 @@
+{
+  "table_name": "ods_hotel",
+  "cn_name": "酒店旅馆信息表",
+  "category": "核心业务表",
+  "description": "存储原始酒店旅馆信息",
+  "fields": [
+    {
+      "field_name": "md_id",
+      "data_type": "string",
+      "required": true,
+      "cn_name": "标识ID",
+      "category": "其他描述类",
+      "comment": "系统数据唯一标识ID",
+      "is_primary": true
+    },
+    {
+      "field_name": "col_source_place",
+      "data_type": "string",
+      "required": true,
+      "cn_name": "来源地",
+      "category": "其他描述类",
+      "dict_type": "administrative_division_dict",
+      "comment": "数据采集来源地"
+    },
+    {
+      "field_name": "collect_time",
+      "data_type": "long",
+      "required": true,
+      "cn_name": "采集时间",
+      "category": "时间信息类",
+      "comment": "日期时间（时间戳）"
+    },
+    {
+      "field_name": "hotel_name",
+      "data_type": "string",
+      "required": true,
+      "cn_name": "旅馆名称汉字首字母",
+      "category": "物品要素信息类",
+      "comment": "字段说明【旅馆名称】样例数据:如家酒店(RJJD)"
+    },
+    {
+      "field_name": "admi_rate",
+      "data_type": "string",
+      "required": false,
+      "cn_name": "入住率",
+      "category": "活动信息类",
+      "comment": "入住率"
+    },
+    {
+      "field_name": "company_no",
+      "data_type": "string",
+      "required": true,
+      "cn_name": "企业编码",
+      "category": "物品要素信息类",
+      "comment": "字段说明【旅馆所属企业编号】样例数据:PCS45002011082203232122"
+    }
+  ],
+  "indexes": [
+    {
+      "fields": ["company_no"]
+    }
+  ],
+  "lineage": {
+    "downstream": [
+      {
+        "table": "dwd_per_org_detail",
+        "cn_name": "企业从业人员明细表",
+        "key_field": "product_id"
+      },
+      {
+        "table": "inventory",
+        "relation": "one-to-one",
+        "key_field": "product_id",
+        "usage": "库存管理关联产品"
+      }
+    ]
+  }
+}
