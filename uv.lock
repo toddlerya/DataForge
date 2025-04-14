@@ -269,6 +269,7 @@ dependencies = [
     { name = "faker" },
     { name = "fastapi" },
     { name = "langchain-community" },
+    { name = "langchain-mcp-adapters" },
     { name = "langfuse" },
     { name = "langgraph" },
     { name = "langgraph-cli", extra = ["inmem"] },
@@ -292,6 +293,7 @@ requires-dist = [
     { name = "faker", specifier = ">=37.1.0" },
     { name = "fastapi", specifier = ">=0.115.12" },
     { name = "langchain-community", specifier = ">=0.3.20" },
+    { name = "langchain-mcp-adapters", specifier = ">=0.0.7" },
     { name = "langfuse", specifier = ">=2.60.2" },
     { name = "langgraph", specifier = ">=0.3.21" },
     { name = "langgraph-cli", extras = ["inmem"], specifier = ">=0.1.83" },
@@ -577,6 +579,19 @@ dependencies = [
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/73/bd/db939ba59f28a4ac73fa64281e21f5011ce61fd694c03b88946a554d8442/langchain_core-0.3.49.tar.gz", hash = "sha256:d9dbff9bac0021463a986355c13864d6a68c41f8559dbbd399a68e1ebd9b04b9" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/dd/35/27164f5f23517be8639b518130e6235293dae52c41988790e0b50dd7ba11/langchain_core-0.3.49-py3-none-any.whl", hash = "sha256:893ee42c9af13bf2a2d8c2ec15ba00a5c73cccde21a2bd005234ee0e78a2bdf8" },
+]
+
+[[package]]
+name = "langchain-mcp-adapters"
+version = "0.0.7"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "mcp" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/04/f5/dc7113d663995dcaf384312e3a6869ee254cd67b8d904a274d351a33d9b5/langchain_mcp_adapters-0.0.7.tar.gz", hash = "sha256:00cae7c832c1cf9e1faa8ed87973af2aa19d411aaf942860de680bec0f659fed" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/a6/32/b09799c5b6ce8c6842536116118664dd7ec5964e229b7cd449c8d598c68d/langchain_mcp_adapters-0.0.7-py3-none-any.whl", hash = "sha256:1e37ec79fc6afb58d1dea17733e08cc111ebc1992aed4b22c67de5e2bdcdb5c6" },
 ]
 
 [[package]]
