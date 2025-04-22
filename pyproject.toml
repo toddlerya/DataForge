@@ -1,0 +1,25 @@
+[project]
+name = "previewdataforge"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "langchain-community>=0.3.20",
+    "langchain-core>=0.3.49",
+    "langchain-mcp-adapters>=0.0.7",
+    "langchain-openai>=0.3.12",
+    "langfuse>=2.60.2",
+    "langgraph>=0.3.21",
+    "langgraph-cli[inmem]>=0.1.83",
+    "mcp[cli]>=1.6.0",
+    "requests>=2.32.3",
+    "setuptools>=78.1.0",
+    "sqlglot>=26.12.1",
+]
+
+
+[[tool.uv.index]]
+url = "http://172.16.111.6:8898/simple/"
+name = "fh-pypi"
+default = true

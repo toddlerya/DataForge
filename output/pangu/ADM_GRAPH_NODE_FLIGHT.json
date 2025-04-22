@@ -1,0 +1,32 @@
+[
+  {
+    "name": "航班唯一标识",
+    "ename": "FLIGHT",
+    "desc": "航班唯一标识"
+  },
+  {
+    "name": "航班号",
+    "ename": "FLIG_NO",
+    "desc": "航班号"
+  },
+  {
+    "name": "始发机场名称",
+    "ename": "DEP_AIR",
+    "desc": "始发机场名称"
+  },
+  {
+    "name": "终点机场名称",
+    "ename": "ARR_AIR",
+    "desc": "终点机场名称"
+  },
+  {
+    "name": "始发站行政区划代码",
+    "ename": "DEP_CITY_CODE",
+    "desc": "CODE_ADDR_PHY_0001\n若无法归一化，则填空"
+  },
+  {
+    "name": "终点站行政区划代码",
+    "ename": "ARR_CITY_CODE",
+    "desc": "CODE_ADDR_PHY_0001\n若无法归一化，则填空"
+  }
+]

@@ -1,0 +1,1021 @@
+version = 1
+revision = 1
+requires-python = ">=3.13"
+
+[[package]]
+name = "aiohappyeyeballs"
+version = "2.6.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/aiohappyeyeballs-2.6.1-py3-none-any.whl", hash = "sha256:f349ba8f4b75cb25c99c5c2d84e997e485204d2902a9597802b0371f09331fb8" },
+]
+
+[[package]]
+name = "aiohttp"
+version = "3.11.15"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "aiohappyeyeballs" },
+    { name = "aiosignal" },
+    { name = "attrs" },
+    { name = "frozenlist" },
+    { name = "multidict" },
+    { name = "propcache" },
+    { name = "yarl" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/aiohttp-3.11.15-cp313-cp313-win_amd64.whl", hash = "sha256:f30e6980ec5d6ad815a233e19e39fe27ea94b1081c31c8aa1df1b629da3737b8" },
+]
+
+[[package]]
+name = "aiosignal"
+version = "1.3.2"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "frozenlist" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/aiosignal-1.3.2-py2.py3-none-any.whl", hash = "sha256:45cde58e409a301715980c2b01d0c28bdde3770d8290b5eb2173759d9acb31a5" },
+]
+
+[[package]]
+name = "annotated-types"
+version = "0.7.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/annotated_types-0.7.0-py3-none-any.whl", hash = "sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53" },
+]
+
+[[package]]
+name = "anyio"
+version = "4.9.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "idna" },
+    { name = "sniffio" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/anyio-4.9.0-py3-none-any.whl", hash = "sha256:9f76d541cad6e36af7beb62e978876f3b41e3e04f2c1fbf0884604c0a9c4d93c" },
+]
+
+[[package]]
+name = "attrs"
+version = "25.3.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/attrs-25.3.0-py3-none-any.whl", hash = "sha256:427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3" },
+]
+
+[[package]]
+name = "backoff"
+version = "2.2.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8" },
+]
+
+[[package]]
+name = "blockbuster"
+version = "1.5.24"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "forbiddenfruit", marker = "implementation_name == 'cpython'" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/blockbuster-1.5.24-py3-none-any.whl", hash = "sha256:e703497b55bc72af09d60d1cd746c2f3ba7ce0c446fa256be6ccda5e7d403520" },
+]
+
+[[package]]
+name = "certifi"
+version = "2025.1.31"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/certifi-2025.1.31-py3-none-any.whl", hash = "sha256:ca78db4565a652026a4db2bcdf68f2fb589ea80d0be70e03929ed730746b84fe" },
+]
+
+[[package]]
+name = "cffi"
+version = "1.17.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "pycparser" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/cffi-1.17.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dd398dbc6773384a17fe0d3e7eeb8d1a21c2200473ee6806bb5e6a8e62bb73dd" },
+    { url = "http://172.16.111.6:8898/packages/cffi-1.17.1-cp313-cp313-win_amd64.whl", hash = "sha256:f6a16c31041f09ead72d69f583767292f750d24913dadacf5756b966aacb3f1a" },
+]
+
+[[package]]
+name = "charset-normalizer"
+version = "3.4.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/charset_normalizer-3.4.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:955f8851919303c92343d2f66165294848d57e9bba6cf6e3625485a70a038d11" },
+    { url = "http://172.16.111.6:8898/packages/charset_normalizer-3.4.1-cp313-cp313-win_amd64.whl", hash = "sha256:b1ac5992a838106edb89654e0aebfc24f5848ae2547d22c2c3f66454daa11971" },
+]
+
+[[package]]
+name = "click"
+version = "8.1.8"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/click-8.1.8-py3-none-any.whl", hash = "sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2" },
+]
+
+[[package]]
+name = "cloudpickle"
+version = "3.1.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/cloudpickle-3.1.1-py3-none-any.whl", hash = "sha256:c8c5a44295039331ee9dad40ba100a9c7297b6f988e50e87ccdf3765a668350e" },
+]
+
+[[package]]
+name = "colorama"
+version = "0.4.6"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6" },
+]
+
+[[package]]
+name = "cryptography"
+version = "43.0.3"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "cffi", marker = "platform_python_implementation != 'PyPy'" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/cryptography-43.0.3-cp39-abi3-win_amd64.whl", hash = "sha256:0c580952eef9bf68c4747774cde7ec1d85a6e61de97281f2dba83c7d2c806362" },
+]
+
+[[package]]
+name = "dataclasses-json"
+version = "0.6.7"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "marshmallow" },
+    { name = "typing-inspect" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/dataclasses_json-0.6.7-py3-none-any.whl", hash = "sha256:0dbf33f26c8d5305befd61b39d2b3414e8a407bedc2834dea9b8d642666fb40a" },
+]
+
+[[package]]
+name = "distro"
+version = "1.9.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2" },
+]
+
+[[package]]
+name = "forbiddenfruit"
+version = "0.1.4"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+sdist = { url = "http://172.16.111.6:8898/packages/forbiddenfruit-0.1.4.tar.gz", hash = "sha256:e3f7e66561a29ae129aac139a85d610dbf3dd896128187ed5454b6421f624253" }
+
+[[package]]
+name = "frozenlist"
+version = "1.5.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/frozenlist-1.5.0-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9b7dc0c4338e6b8b091e8faf0db3168a37101943e687f373dce00959583f7439" },
+    { url = "http://172.16.111.6:8898/packages/frozenlist-1.5.0-cp313-cp313-win_amd64.whl", hash = "sha256:11aabdd62b8b9c4b84081a3c246506d1cddd2dd93ff0ad53ede5defec7886b28" },
+]
+
+[[package]]
+name = "greenlet"
+version = "3.1.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/greenlet-3.1.1-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0153404a4bb921f0ff1abeb5ce8a5131da56b953eda6e14b88dc6bbc04d2049e" },
+    { url = "http://172.16.111.6:8898/packages/greenlet-3.1.1-cp313-cp313-win_amd64.whl", hash = "sha256:b42703b1cf69f2aa1df7d1030b9d77d3e584a70755674d60e710f0af570f3761" },
+]
+
+[[package]]
+name = "h11"
+version = "0.14.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761" },
+]
+
+[[package]]
+name = "httpcore"
+version = "1.0.7"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "certifi" },
+    { name = "h11" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/httpcore-1.0.7-py3-none-any.whl", hash = "sha256:a3fff8f43dc260d5bd363d9f9cf1830fa3a458b332856f34282de498ed420edd" },
+]
+
+[[package]]
+name = "httpx"
+version = "0.28.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "anyio" },
+    { name = "certifi" },
+    { name = "httpcore" },
+    { name = "idna" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad" },
+]
+
+[[package]]
+name = "httpx-sse"
+version = "0.4.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/httpx_sse-0.4.0-py3-none-any.whl", hash = "sha256:f329af6eae57eaa2bdfd962b42524764af68075ea87370a2de920af5341e318f" },
+]
+
+[[package]]
+name = "idna"
+version = "3.10"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3" },
+]
+
+[[package]]
+name = "jiter"
+version = "0.9.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/jiter-0.9.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3f22238da568be8bbd8e0650e12feeb2cfea15eda4f9fc271d3b362a4fa0604d" },
+    { url = "http://172.16.111.6:8898/packages/jiter-0.9.0-cp313-cp313-win_amd64.whl", hash = "sha256:c8ae3bf27cd1ac5e6e8b7a27487bf3ab5f82318211ec2e1346a5b058756361f7" },
+]
+
+[[package]]
+name = "jsonpatch"
+version = "1.33"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "jsonpointer" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/jsonpatch-1.33-py2.py3-none-any.whl", hash = "sha256:0ae28c0cd062bbd8b8ecc26d7d164fbbea9652a1a3693f3b956c1eae5145dade" },
+]
+
+[[package]]
+name = "jsonpointer"
+version = "3.0.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/jsonpointer-3.0.0-py2.py3-none-any.whl", hash = "sha256:13e088adc14fca8b6aa8177c044e12701e6ad4b28ff10e65f2267a90109c9942" },
+]
+
+[[package]]
+name = "jsonschema-rs"
+version = "0.29.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/jsonschema_rs-0.29.1-cp313-cp313-win_amd64.whl", hash = "sha256:1c4e5a61ac760a2fc3856a129cc84aa6f8fba7b9bc07b19fe4101050a8ecc33c" },
+]
+
+[[package]]
+name = "langchain"
+version = "0.3.22"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langchain-text-splitters" },
+    { name = "langsmith" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "sqlalchemy" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langchain-0.3.22-py3-none-any.whl", hash = "sha256:2e7f71a1b0280eb70af9c332c7580f6162a97fb9d5e3e87e9d579ad167f50129" },
+]
+
+[[package]]
+name = "langchain-community"
+version = "0.3.20"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "dataclasses-json" },
+    { name = "httpx-sse" },
+    { name = "langchain" },
+    { name = "langchain-core" },
+    { name = "langsmith" },
+    { name = "numpy" },
+    { name = "pydantic-settings" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "sqlalchemy" },
+    { name = "tenacity" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langchain_community-0.3.20-py3-none-any.whl", hash = "sha256:ea3dbf37fbc21020eca8850627546f3c95a8770afc06c4142b40b9ba86b970f7" },
+]
+
+[[package]]
+name = "langchain-core"
+version = "0.3.49"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "jsonpatch" },
+    { name = "langsmith" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "tenacity" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langchain_core-0.3.49-py3-none-any.whl", hash = "sha256:893ee42c9af13bf2a2d8c2ec15ba00a5c73cccde21a2bd005234ee0e78a2bdf8" },
+]
+
+[[package]]
+name = "langchain-mcp-adapters"
+version = "0.0.7"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "mcp" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langchain_mcp_adapters-0.0.7-py3-none-any.whl", hash = "sha256:1e37ec79fc6afb58d1dea17733e08cc111ebc1992aed4b22c67de5e2bdcdb5c6" },
+]
+
+[[package]]
+name = "langchain-openai"
+version = "0.3.12"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "openai" },
+    { name = "tiktoken" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langchain_openai-0.3.12-py3-none-any.whl", hash = "sha256:0fab64d58ec95e65ffbaf659470cd362e815685e15edbcb171641e90eca4eb86" },
+]
+
+[[package]]
+name = "langchain-text-splitters"
+version = "0.3.7"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "langchain-core" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langchain_text_splitters-0.3.7-py3-none-any.whl", hash = "sha256:31ba826013e3f563359d7c7f1e99b1cdb94897f665675ee505718c116e7e20ad" },
+]
+
+[[package]]
+name = "langfuse"
+version = "2.60.2"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "anyio" },
+    { name = "backoff" },
+    { name = "httpx" },
+    { name = "idna" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "wrapt" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langfuse-2.60.2-py3-none-any.whl", hash = "sha256:749c875b808a386fe4608f6ffa44474bb6f984b3a510596e1fb1a49f8c973064" },
+]
+
+[[package]]
+name = "langgraph"
+version = "0.3.21"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langgraph-checkpoint" },
+    { name = "langgraph-prebuilt" },
+    { name = "langgraph-sdk" },
+    { name = "xxhash" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langgraph-0.3.21-py3-none-any.whl", hash = "sha256:2ec761bf832f05d3a5211f0303063cf0900566200495c2cdd5545c7b3fec89ea" },
+]
+
+[[package]]
+name = "langgraph-api"
+version = "0.0.42"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "blockbuster" },
+    { name = "cloudpickle" },
+    { name = "cryptography" },
+    { name = "httpx" },
+    { name = "jsonschema-rs" },
+    { name = "langchain-core" },
+    { name = "langgraph" },
+    { name = "langgraph-checkpoint" },
+    { name = "langgraph-sdk" },
+    { name = "langsmith" },
+    { name = "orjson" },
+    { name = "pyjwt" },
+    { name = "sse-starlette" },
+    { name = "starlette" },
+    { name = "structlog" },
+    { name = "tenacity" },
+    { name = "uvicorn" },
+    { name = "watchfiles" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langgraph_api-0.0.42-py3-none-any.whl", hash = "sha256:19f69d9d39efde60a9bd3eeae6dc7dbe8d04b1b6fccf4ddf51d7e6b7187cc6ea" },
+]
+
+[[package]]
+name = "langgraph-checkpoint"
+version = "2.0.23"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "ormsgpack" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langgraph_checkpoint-2.0.23-py3-none-any.whl", hash = "sha256:e54d070124f685eab095bd87e4df35dc5eca11d1e28553d5803c28c5f571b4e0" },
+]
+
+[[package]]
+name = "langgraph-cli"
+version = "0.1.83"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "click" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langgraph_cli-0.1.83-py3-none-any.whl", hash = "sha256:8043ce7f474ed9f520fb7a0e0e6c341fae6fcb3c0d8f1b2236a49039bfa5a9a0" },
+]
+
+[package.optional-dependencies]
+inmem = [
+    { name = "langgraph-api", marker = "python_full_version < '4.0'" },
+    { name = "python-dotenv" },
+]
+
+[[package]]
+name = "langgraph-prebuilt"
+version = "0.1.7"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "langgraph-checkpoint" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langgraph_prebuilt-0.1.7-py3-none-any.whl", hash = "sha256:35eff90fb86edd0b026a6744942bc59bad4a2d82a482aa860ff8d081af423956" },
+]
+
+[[package]]
+name = "langgraph-sdk"
+version = "0.1.60"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "httpx" },
+    { name = "orjson" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langgraph_sdk-0.1.60-py3-none-any.whl", hash = "sha256:953df85b0a6cc3a106f0496ce8f950a65d88b3ba8198c3b4bb58a54469b256a9" },
+]
+
+[[package]]
+name = "langsmith"
+version = "0.3.21"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "httpx" },
+    { name = "orjson", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "requests" },
+    { name = "requests-toolbelt" },
+    { name = "zstandard" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/langsmith-0.3.21-py3-none-any.whl", hash = "sha256:1ff6b28a8cfb5a4ff4a45c812072f16abdbae544b5d67fa275388c504b5a73cc" },
+]
+
+[[package]]
+name = "markdown-it-py"
+version = "3.0.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "mdurl" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/markdown_it_py-3.0.0-py3-none-any.whl", hash = "sha256:355216845c60bd96232cd8d8c40e8f9765cc86f46880e43a8fd22dc1a1a8cab1" },
+]
+
+[[package]]
+name = "marshmallow"
+version = "3.26.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "packaging" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/marshmallow-3.26.1-py3-none-any.whl", hash = "sha256:3350409f20a70a7e4e11a27661187b77cdcaeb20abca41c1454fe33636bea09c" },
+]
+
+[[package]]
+name = "mcp"
+version = "1.6.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "anyio" },
+    { name = "httpx" },
+    { name = "httpx-sse" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "sse-starlette" },
+    { name = "starlette" },
+    { name = "uvicorn" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/mcp-1.6.0-py3-none-any.whl", hash = "sha256:7bd24c6ea042dbec44c754f100984d186620d8b841ec30f1b19eda9b93a634d0" },
+]
+
+[package.optional-dependencies]
+cli = [
+    { name = "python-dotenv" },
+    { name = "typer" },
+]
+
+[[package]]
+name = "mdurl"
+version = "0.1.2"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8" },
+]
+
+[[package]]
+name = "multidict"
+version = "6.3.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/multidict-6.3.0-cp313-cp313-win_amd64.whl", hash = "sha256:6b7e30e4246c2cd5e6c2c907486d235e4f3e8a39979744e9e0b8090629c62da4" },
+]
+
+[[package]]
+name = "mypy-extensions"
+version = "1.0.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/mypy_extensions-1.0.0-py3-none-any.whl", hash = "sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d" },
+]
+
+[[package]]
+name = "numpy"
+version = "2.2.4"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/numpy-2.2.4-cp313-cp313-win_amd64.whl", hash = "sha256:207a2b8441cc8b6a2a78c9ddc64d00d20c303d79fba08c577752f080c4007ee3" },
+]
+
+[[package]]
+name = "openai"
+version = "1.70.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "jiter" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/openai-1.70.0-py3-none-any.whl", hash = "sha256:f6438d053fd8b2e05fd6bef70871e832d9bbdf55e119d0ac5b92726f1ae6f614" },
+]
+
+[[package]]
+name = "orjson"
+version = "3.10.16"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/orjson-3.10.16-cp313-cp313-win_amd64.whl", hash = "sha256:fe0a145e96d51971407cb8ba947e63ead2aa915db59d6631a355f5f2150b56b7" },
+]
+
+[[package]]
+name = "ormsgpack"
+version = "1.9.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/ormsgpack-1.9.1-cp313-cp313-win_amd64.whl", hash = "sha256:a4bc63fb30db94075611cedbbc3d261dd17cf2aa8ff75a0fd684cd45ca29cb1b" },
+]
+
+[[package]]
+name = "packaging"
+version = "24.2"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/packaging-24.2-py3-none-any.whl", hash = "sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759" },
+]
+
+[[package]]
+name = "previewdataforge"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "langchain-community" },
+    { name = "langchain-core" },
+    { name = "langchain-mcp-adapters" },
+    { name = "langchain-openai" },
+    { name = "langfuse" },
+    { name = "langgraph" },
+    { name = "langgraph-cli", extra = ["inmem"] },
+    { name = "mcp", extra = ["cli"] },
+    { name = "requests" },
+    { name = "setuptools" },
+    { name = "sqlglot" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "langchain-community", specifier = ">=0.3.20" },
+    { name = "langchain-core", specifier = ">=0.3.49" },
+    { name = "langchain-mcp-adapters", specifier = ">=0.0.7" },
+    { name = "langchain-openai", specifier = ">=0.3.12" },
+    { name = "langfuse", specifier = ">=2.60.2" },
+    { name = "langgraph", specifier = ">=0.3.21" },
+    { name = "langgraph-cli", extras = ["inmem"], specifier = ">=0.1.83" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.6.0" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "setuptools", specifier = ">=78.1.0" },
+    { name = "sqlglot", specifier = ">=26.12.1" },
+]
+
+[[package]]
+name = "propcache"
+version = "0.3.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/propcache-0.3.1-cp313-cp313-win_amd64.whl", hash = "sha256:813fbb8b6aea2fc9659815e585e548fe706d6f663fa73dff59a1677d4595a037" },
+]
+
+[[package]]
+name = "pycparser"
+version = "2.22"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/pycparser-2.22-py3-none-any.whl", hash = "sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc" },
+]
+
+[[package]]
+name = "pydantic"
+version = "2.11.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "annotated-types" },
+    { name = "pydantic-core" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/pydantic-2.11.1-py3-none-any.whl", hash = "sha256:5b6c415eee9f8123a14d859be0c84363fec6b1feb6b688d6435801230b56e0b8" },
+]
+
+[[package]]
+name = "pydantic-core"
+version = "2.33.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "http://172.16.111.6:8898/packages/pydantic_core-2.33.0.tar.gz", hash = "sha256:40eb8af662ba409c3cbf4a8150ad32ae73514cd7cb1f1a2113af39763dd616b3" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/pydantic_core-2.33.0-cp313-cp313-win_amd64.whl", hash = "sha256:ca1103d70306489e3d006b0f79db8ca5dd3c977f6f13b2c59ff745249431a606" },
+]
+
+[[package]]
+name = "pydantic-settings"
+version = "2.8.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/pydantic_settings-2.8.1-py3-none-any.whl", hash = "sha256:81942d5ac3d905f7f3ee1a70df5dfb62d5569c12f51a5a647defc1c3d9ee2e9c" },
+]
+
+[[package]]
+name = "pygments"
+version = "2.19.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/pygments-2.19.1-py3-none-any.whl", hash = "sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c" },
+]
+
+[[package]]
+name = "pyjwt"
+version = "2.10.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/PyJWT-2.10.1-py3-none-any.whl", hash = "sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.1.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/python_dotenv-1.1.0-py3-none-any.whl", hash = "sha256:d7c01d9e2293916c18baf562d95698754b0dbbb5e74d457c45d4f6561fb9d55d" },
+]
+
+[[package]]
+name = "pyyaml"
+version = "6.0.2"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/PyYAML-6.0.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:70b189594dbe54f75ab3a1acec5f1e3faa7e8cf2f1e08d9b561cb41b845f69d5" },
+    { url = "http://172.16.111.6:8898/packages/PyYAML-6.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:8388ee1976c416731879ac16da0aff3f63b286ffdd57cdeb95f3f2e085687563" },
+]
+
+[[package]]
+name = "regex"
+version = "2024.11.6"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/regex-2024.11.6-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3cde6e9f2580eb1665965ce9bf17ff4952f34f5b126beb509fee8f4e994f143c" },
+    { url = "http://172.16.111.6:8898/packages/regex-2024.11.6-cp313-cp313-win_amd64.whl", hash = "sha256:2b3361af3198667e99927da8b84c1b010752fa4b1115ee30beaa332cabc3ef1a" },
+]
+
+[[package]]
+name = "requests"
+version = "2.32.3"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "certifi" },
+    { name = "charset-normalizer" },
+    { name = "idna" },
+    { name = "urllib3" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/requests-2.32.3-py3-none-any.whl", hash = "sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6" },
+]
+
+[[package]]
+name = "requests-toolbelt"
+version = "1.0.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "http://172.16.111.6:8898/packages/requests-toolbelt-1.0.0.tar.gz", hash = "sha256:7681a0a3d047012b5bdc0ee37d7f8f07ebe76ab08caeccfc3921ce23c88d5bc6" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/requests_toolbelt-1.0.0-py2.py3-none-any.whl", hash = "sha256:cccfdd665f0a24fcf4726e690f65639d272bb0637b9b92dfd91a5568ccf6bd06" },
+]
+
+[[package]]
+name = "rich"
+version = "14.0.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "markdown-it-py" },
+    { name = "pygments" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/rich-14.0.0-py3-none-any.whl", hash = "sha256:1c9491e1951aac09caffd42f448ee3d04e58923ffe14993f6e83068dc395d7e0" },
+]
+
+[[package]]
+name = "setuptools"
+version = "78.1.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/setuptools-78.1.0-py3-none-any.whl", hash = "sha256:3e386e96793c8702ae83d17b853fb93d3e09ef82ec62722e61da5cd22376dcd8" },
+]
+
+[[package]]
+name = "shellingham"
+version = "1.5.4"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/shellingham-1.5.4-py2.py3-none-any.whl", hash = "sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686" },
+]
+
+[[package]]
+name = "sniffio"
+version = "1.3.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2" },
+]
+
+[[package]]
+name = "sqlalchemy"
+version = "2.0.40"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "greenlet", marker = "(python_full_version < '3.14' and platform_machine == 'AMD64') or (python_full_version < '3.14' and platform_machine == 'WIN32') or (python_full_version < '3.14' and platform_machine == 'aarch64') or (python_full_version < '3.14' and platform_machine == 'amd64') or (python_full_version < '3.14' and platform_machine == 'ppc64le') or (python_full_version < '3.14' and platform_machine == 'win32') or (python_full_version < '3.14' and platform_machine == 'x86_64')" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/sqlalchemy-2.0.40-cp313-cp313-win_amd64.whl", hash = "sha256:641ee2e0834812d657862f3a7de95e0048bdcb6c55496f39c6fa3d435f6ac6ad" },
+]
+
+[[package]]
+name = "sqlglot"
+version = "26.12.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/sqlglot-26.12.1-py3-none-any.whl", hash = "sha256:46c3b55c914310240f576ccb5ee652df36f18ec1553ac7174f409e291224cf55" },
+]
+
+[[package]]
+name = "sse-starlette"
+version = "2.1.3"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "anyio" },
+    { name = "starlette" },
+    { name = "uvicorn" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/sse_starlette-2.1.3-py3-none-any.whl", hash = "sha256:8ec846438b4665b9e8c560fcdea6bc8081a3abf7942faa95e5a744999d219772" },
+]
+
+[[package]]
+name = "starlette"
+version = "0.46.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "anyio" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/starlette-0.46.1-py3-none-any.whl", hash = "sha256:77c74ed9d2720138b25875133f3a2dae6d854af2ec37dceb56aef370c1d8a227" },
+]
+
+[[package]]
+name = "structlog"
+version = "25.2.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/structlog-25.2.0-py3-none-any.whl", hash = "sha256:0fecea2e345d5d491b72f3db2e5fcd6393abfc8cd06a4851f21fcd4d1a99f437" },
+]
+
+[[package]]
+name = "tenacity"
+version = "9.0.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/tenacity-9.0.0-py3-none-any.whl", hash = "sha256:93de0c98785b27fcf659856aa9f54bfbd399e29969b0621bc7f762bd441b4539" },
+]
+
+[[package]]
+name = "tiktoken"
+version = "0.9.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "regex" },
+    { name = "requests" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/tiktoken-0.9.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cc156cb314119a8bb9748257a2eaebd5cc0753b6cb491d26694ed42fc7cb3139" },
+    { url = "http://172.16.111.6:8898/packages/tiktoken-0.9.0-cp313-cp313-win_amd64.whl", hash = "sha256:5ea0edb6f83dc56d794723286215918c1cde03712cbbafa0348b33448faf5b95" },
+]
+
+[[package]]
+name = "tqdm"
+version = "4.67.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2" },
+]
+
+[[package]]
+name = "typer"
+version = "0.15.2"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "click" },
+    { name = "rich" },
+    { name = "shellingham" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/typer-0.15.2-py3-none-any.whl", hash = "sha256:46a499c6107d645a9c13f7ee46c5d5096cae6f5fc57dd11eccbbb9ae3e44ddfc" },
+]
+
+[[package]]
+name = "typing-extensions"
+version = "4.13.1"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/typing_extensions-4.13.1-py3-none-any.whl", hash = "sha256:4b6cf02909eb5495cfbc3f6e8fd49217e6cc7944e145cdda8caa3734777f9e69" },
+]
+
+[[package]]
+name = "typing-inspect"
+version = "0.9.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "mypy-extensions" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/typing_inspect-0.9.0-py3-none-any.whl", hash = "sha256:9ee6fc59062311ef8547596ab6b955e1b8aa46242d854bfc78f4f6b0eff35f9f" },
+]
+
+[[package]]
+name = "typing-inspection"
+version = "0.4.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/typing_inspection-0.4.0-py3-none-any.whl", hash = "sha256:50e72559fcd2a6367a19f7a7e610e6afcb9fac940c650290eed893d61386832f" },
+]
+
+[[package]]
+name = "urllib3"
+version = "2.3.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/urllib3-2.3.0-py3-none-any.whl", hash = "sha256:1cee9ad369867bfdbbb48b7dd50374c0967a0bb7710050facf0dd6911440e3df" },
+]
+
+[[package]]
+name = "uvicorn"
+version = "0.34.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "click" },
+    { name = "h11" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/uvicorn-0.34.0-py3-none-any.whl", hash = "sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4" },
+]
+
+[[package]]
+name = "watchfiles"
+version = "1.0.4"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "anyio" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/watchfiles-1.0.4-cp313-cp313-win_amd64.whl", hash = "sha256:d6097538b0ae5c1b88c3b55afa245a66793a8fec7ada6755322e465fb1a0e8cc" },
+]
+
+[[package]]
+name = "wrapt"
+version = "1.17.2"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/wrapt-1.17.2-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8112e52c5822fc4253f3901b676c55ddf288614dc7011634e2719718eaa187dc" },
+    { url = "http://172.16.111.6:8898/packages/wrapt-1.17.2-cp313-cp313-win_amd64.whl", hash = "sha256:69606d7bb691b50a4240ce6b22ebb319c1cfb164e5f6569835058196e0f3a845" },
+]
+
+[[package]]
+name = "xxhash"
+version = "3.5.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/xxhash-3.5.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:07fda5de378626e502b42b311b049848c2ef38784d0d67b6f30bb5008642f8eb" },
+    { url = "http://172.16.111.6:8898/packages/xxhash-3.5.0-cp313-cp313-win_amd64.whl", hash = "sha256:80babcc30e7a1a484eab952d76a4f4673ff601f54d5142c26826502740e70b43" },
+]
+
+[[package]]
+name = "yarl"
+version = "1.18.3"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "idna" },
+    { name = "multidict" },
+    { name = "propcache" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/yarl-1.18.3-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:41f7ce59d6ee7741af71d82020346af364949314ed3d87553763a2df1829cc58" },
+    { url = "http://172.16.111.6:8898/packages/yarl-1.18.3-cp313-cp313-win_amd64.whl", hash = "sha256:578e281c393af575879990861823ef19d66e2b1d0098414855dd367e234f5b3c" },
+]
+
+[[package]]
+name = "zstandard"
+version = "0.23.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "cffi", marker = "platform_python_implementation == 'PyPy'" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/zstandard-0.23.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6f77fa49079891a4aab203d0b1744acc85577ed16d767b52fc089d83faf8d8ed" },
+    { url = "http://172.16.111.6:8898/packages/zstandard-0.23.0-cp313-cp313-win_amd64.whl", hash = "sha256:f3513916e8c645d0610815c257cbfd3242adfd5c4cfa78be514e5a3ebb42a41b" },
+]

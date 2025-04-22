@@ -1,0 +1,137 @@
+[
+  {
+    "name": "md5主键",
+    "ename": "MD_ID",
+    "desc": "MD5(DOMAIN)"
+  },
+  {
+    "name": "域名",
+    "ename": "DOMAIN",
+    "desc": "域名（二级域名，ipv4、ipv6保留原格式，部分二级域名会带有国家后缀，也认定为二级域名）\n例：\nbaidu.com\nbaidu.com.cn\n12.12.12.12"
+  },
+  {
+    "name": "注册域名ID",
+    "ename": "REGISTRY_DOMAIN_ID",
+    "desc": "注册域名ID"
+  },
+  {
+    "name": "注册商WHOIS服务器",
+    "ename": "REGISTRAR_WHOIS_SERVER",
+    "desc": "注册商WHOIS服务器"
+  },
+  {
+    "name": "注册商网址",
+    "ename": "REGISTRAR_URL",
+    "desc": "注册商网址"
+  },
+  {
+    "name": "更新时间",
+    "ename": "UPDATED_TIME",
+    "desc": "更新时间"
+  },
+  {
+    "name": "建立时间",
+    "ename": "CREATION_TIME",
+    "desc": "建立时间"
+  },
+  {
+    "name": "到期时间",
+    "ename": "EXPIRATION_TIME",
+    "desc": "到期时间"
+  },
+  {
+    "name": "注册商",
+    "ename": "REGISTRAR",
+    "desc": "注册商"
+  },
+  {
+    "name": "注册机构IANA ID",
+    "ename": "REGISTRAR_IANA_ID",
+    "desc": "注册机构IANA ID"
+  },
+  {
+    "name": "注册服务商联系电子邮件",
+    "ename": "REGISTRAR_CONTACT_EMAIL",
+    "desc": "注册服务商联系电子邮件"
+  },
+  {
+    "name": "注册服务商联系电话",
+    "ename": "REGISTRAR_CONTACT_PHONE",
+    "desc": "注册服务商联系电话"
+  },
+  {
+    "name": "注册单位名称",
+    "ename": "REGISTRANT_ORGANIZATION",
+    "desc": "注册单位名称"
+  },
+  {
+    "name": "注册省",
+    "ename": "REGISTRANT_PROVINCE",
+    "desc": "注册省"
+  },
+  {
+    "name": "注册国家",
+    "ename": "REGISTRANT_COUNTRY",
+    "desc": "注册国家"
+  },
+  {
+    "name": "注册人电子邮件",
+    "ename": "REGISTRANT_EMAIL",
+    "desc": "注册人电子邮件"
+  },
+  {
+    "name": "管理员单位名称",
+    "ename": "ADMIN_ORGANIZATION",
+    "desc": "管理员单位名称"
+  },
+  {
+    "name": "管理员省",
+    "ename": "ADMIN_PROVINCE",
+    "desc": "管理员省"
+  },
+  {
+    "name": "管理员国家",
+    "ename": "ADMIN_COUNTRY",
+    "desc": "管理员国家"
+  },
+  {
+    "name": "管理员联系电子邮件",
+    "ename": "ADMIN_EMAIL",
+    "desc": "管理员联系电子邮件"
+  },
+  {
+    "name": "技术单位名称",
+    "ename": "TECH_ORGANIZATION",
+    "desc": "技术单位名称"
+  },
+  {
+    "name": "技术单位省",
+    "ename": "TECH_PROVINCE",
+    "desc": "技术单位省"
+  },
+  {
+    "name": "技术单位国家",
+    "ename": "TECH_COUNTRY",
+    "desc": "技术单位国家"
+  },
+  {
+    "name": "技术单位联系电子邮件",
+    "ename": "TECH_EMAIL",
+    "desc": "技术单位联系电子邮件"
+  },
+  {
+    "name": "入库时间",
+    "ename": "CREATE_TIME",
+    "desc": "入库时间"
+  },
+  {
+    "name": "最后更新时间",
+    "ename": "LAST_TIME",
+    "desc": "最后更新时间"
+  },
+  {
+    "name": "注册人",
+    "ename": "REGISTRANT",
+    "desc": "注册人"
+  }
+]
