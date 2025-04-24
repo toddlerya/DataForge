@@ -1,0 +1,97 @@
+[
+  {
+    "name": "唯一主键",
+    "ename": "MD_ID",
+    "desc": "MD5(证件类型\\t证件号码\\t起飞日期\\t出发机场\\t航班号\\t到达机场\\t系统来源\\t发现地)"
+  },
+  {
+    "name": "证件类型",
+    "ename": "CERT_TYPE",
+    "desc": ""
+  },
+  {
+    "name": "证件号码",
+    "ename": "CERT_NUM",
+    "desc": "根据证件类型做校验，如果不属于国内公民身份的5种则不校验"
+  },
+  {
+    "name": "姓名",
+    "ename": "NAME",
+    "desc": ""
+  },
+  {
+    "name": "航班号",
+    "ename": "FLIG_NUM",
+    "desc": ""
+  },
+  {
+    "name": "座位号",
+    "ename": "SEAT_NUM",
+    "desc": ""
+  },
+  {
+    "name": "舱号",
+    "ename": "CAB_NO",
+    "desc": ""
+  },
+  {
+    "name": "起飞日期",
+    "ename": "DEP_DATE",
+    "desc": ""
+  },
+  {
+    "name": "起飞时间",
+    "ename": "DEP_DATE_FS",
+    "desc": "绝对秒"
+  },
+  {
+    "name": "到达时间",
+    "ename": "ARR_TIME",
+    "desc": "绝对秒"
+  },
+  {
+    "name": "出发机场",
+    "ename": "DEPARTURE_AIR",
+    "desc": "机场三字码"
+  },
+  {
+    "name": "到达机场",
+    "ename": "ARR_AIR",
+    "desc": "机场三字码"
+  },
+  {
+    "name": "登机口",
+    "ename": "BOARD_GATE",
+    "desc": ""
+  },
+  {
+    "name": "交易单号",
+    "ename": "TRADE_NUM",
+    "desc": ""
+  },
+  {
+    "name": "系统来源",
+    "ename": "DATA_SOUR",
+    "desc": "ODS的来源系统"
+  },
+  {
+    "name": "发现地",
+    "ename": "DIS_PLACE",
+    "desc": "ODS的来源地"
+  },
+  {
+    "name": "发现时间",
+    "ename": "DIS_TIME",
+    "desc": "绝对秒数"
+  },
+  {
+    "name": "溯源信息",
+    "ename": "TRAC_INF",
+    "desc": ""
+  },
+  {
+    "name": "机票状态",
+    "ename": "AIR_TIC_STAT",
+    "desc": ""
+  }
+]

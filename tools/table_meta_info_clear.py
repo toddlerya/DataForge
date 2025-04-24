@@ -24,9 +24,11 @@ def transform_entity_detail_info(raw_data: dict) -> list[dict]:
             {
                 "name": item_field.get("name", "").strip(),
                 "ename": item_field.get("ename", "").strip(),
+                # "desc": [item_field.get("desc", "").strip()
+                #          if item_field.get("desc", "").strip() != item_field.get("name", "").strip() else ""][0]
                 # "elementName": item_field.get("elementName", "").strip(),
                 # "identifier": item_field.get("identifier", "").strip(),
-                # "desc": item_field.get("desc", "").strip(),
+                "desc": item_field.get("desc", "").strip(),
                 # "fieldDir": item_field.get("fieldDir", "").strip(),
                 # "fieldSen": item_field.get("fieldSen", "").strip(),
             }
@@ -60,8 +62,12 @@ if __name__ == '__main__':
         {
             "input": "export_data/pangu/ADM_GRAPH_NODE_FLIGHT.json",
             "output": "output/pangu/ADM_GRAPH_NODE_FLIGHT.json"
+        },
+        {
+            "input": "export_data/pangu/DWS_PER_RES_DAY_DCFLIGHT.json",
+            "output": "output/pangu/DWS_PER_RES_DAY_DCFLIGHT.json"
         }
     ]
-    bash_path = pathlib.Path(r"F:\GITLAB\PreviewDataForge")
+    bash_path = pathlib.Path(r"F:\GITLAB\DataForge")
     for item in io_pair:
         clear(input_file=bash_path.joinpath(item.get("input")), output_file=bash_path.joinpath(item.get("output")))
