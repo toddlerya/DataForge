@@ -31,6 +31,7 @@ def transform_entity_detail_info(raw_data: dict) -> list[dict]:
                 "desc": item_field.get("desc", "").strip(),
                 # "fieldDir": item_field.get("fieldDir", "").strip(),
                 # "fieldSen": item_field.get("fieldSen", "").strip(),
+                "dic": item_field.get("dic", "").strip()
             }
         )
 

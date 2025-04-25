@@ -167,3 +167,115 @@ GROUP BY FLIG_NO,
          DEP_CITY_CODE,
          ARR_CITY_CODE
 ```
+
+### 获取盘古字典信息
+
+https://172.21.4.42:11018/standard/standard/dictionary/list?keyword=%E7%BD%91%E7%AB%99%E8%A7%84%E6%A8%A1%E7%AD%89%E7%BA%A7%E7%B1%BB%E5%9E%8B&parentCode=-1
+
+```json
+{
+  "status" : 200,
+  "data" : [ {
+    "id" : "FHWACODE_0198",
+    "name" : "网站规模等级类型",
+    "description" : "",
+    "parentId" : "-1",
+    "parentName" : null,
+    "nlevel" : "1",
+    "whenSubmit" : 0,
+    "whoSubmit" : null,
+    "code" : 82366,
+    "parentCode" : -1,
+    "flag" : 1,
+    "status" : 1,
+    "gabTabCode" : null,
+    "gabTabName" : null,
+    "userDefine" : 0,
+    "gabDicList" : null,
+    "isParent" : 0
+  } ],
+  "msg" : "OK"
+}
+```
+
+https://172.21.4.42:11018/standard/standard/dictionary/all?id=FHWACODE_0198&nlevel=1&code=82366&keyword=&userDefine=0&pagesize=10&pageno=1
+
+```json
+{
+  "status" : 200,
+  "data" : {
+    "pageno" : 1,
+    "pagesize" : 10,
+    "pages" : 1,
+    "totalrows" : 3,
+    "start_time" : null,
+    "end_time" : null,
+    "from" : 1,
+    "to" : 3,
+    "sort" : "",
+    "orderby" : null,
+    "datas" : [ {
+      "nlevel" : null,
+      "code" : 91722,
+      "flag" : 1,
+      "isParent" : 0,
+      "whenSubmit" : 0,
+      "validBean" : true,
+      "whoSubmit" : null,
+      "description" : "",
+      "gabDicList" : null,
+      "parentId" : null,
+      "gabTabName" : null,
+      "parentName" : null,
+      "userDefine" : 0,
+      "parentCode" : 0,
+      "name" : "超大型",
+      "dicFlag" : 0,
+      "id" : "1",
+      "gabTabCode" : null,
+      "status" : 1
+    }, {
+      "nlevel" : null,
+      "code" : 91723,
+      "flag" : 1,
+      "isParent" : 0,
+      "whenSubmit" : 0,
+      "validBean" : true,
+      "whoSubmit" : null,
+      "description" : "",
+      "gabDicList" : null,
+      "parentId" : null,
+      "gabTabName" : null,
+      "parentName" : null,
+      "userDefine" : 0,
+      "parentCode" : 0,
+      "name" : "大型",
+      "dicFlag" : 0,
+      "id" : "2",
+      "gabTabCode" : null,
+      "status" : 1
+    }, {
+      "nlevel" : null,
+      "code" : 91724,
+      "flag" : 1,
+      "isParent" : 0,
+      "whenSubmit" : 0,
+      "validBean" : true,
+      "whoSubmit" : null,
+      "description" : "",
+      "gabDicList" : null,
+      "parentId" : null,
+      "gabTabName" : null,
+      "parentName" : null,
+      "userDefine" : 0,
+      "parentCode" : 0,
+      "name" : "中小型",
+      "dicFlag" : 0,
+      "id" : "3",
+      "gabTabCode" : null,
+      "status" : 1
+    } ]
+  },
+  "msg" : "OK"
+}
+```

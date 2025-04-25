@@ -12,8 +12,11 @@ dependencies = [
     "langfuse>=2.60.2",
     "langgraph>=0.3.21",
     "langgraph-cli[inmem]>=0.1.83",
+    "loguru>=0.7.3",
     "mcp[cli]>=1.6.0",
+    "openpyxl>=3.1.5",
     "requests>=2.32.3",
+    "ruamel-yaml>=0.18.10",
     "setuptools>=78.1.0",
     "sqlglot>=26.12.1",
 ]

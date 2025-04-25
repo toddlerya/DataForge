@@ -1,0 +1,380 @@
+[
+  {
+    "name": "ID",
+    "ename": "ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "业务类型",
+    "ename": "BUSINESSTYPE",
+    "desc": "",
+    "dic": "数据操作类型"
+  },
+  {
+    "name": "网站接入服务商管辖地",
+    "ename": "ASP_ASPABROAD",
+    "desc": "",
+    "dic": "网络接入服务商所属地类型"
+  },
+  {
+    "name": "网站接入服务商所属地省",
+    "ename": "ASP_ASPPROCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站接入服务商所属地市",
+    "ename": "ASP_ASPCITCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站接入服务商所属地区县",
+    "ename": "ASP_ASPCONCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站接入服务商名称",
+    "ename": "ASP_ASPNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "所属服务商ID（主键）",
+    "ename": "BID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "所属服务商名称",
+    "ename": "BNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "所属主体ID（主键）",
+    "ename": "BUD_BUDUNITID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位法人姓名",
+    "ename": "BUD_MASTERNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位办公室电话",
+    "ename": "BUD_OFFTEL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位负责人所在省",
+    "ename": "BUD_RPBADSPVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位负责人所在地市",
+    "ename": "BUD_RPBADSCTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位负责人所在区县",
+    "ename": "BUD_RPBADSCRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位负责人常住地详细地址",
+    "ename": "BUD_RPBADSSTR",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位负责人证件编码",
+    "ename": "BUD_RPBCFTNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位负责人证件类型",
+    "ename": "BUD_RPBCFTTYPE",
+    "desc": "",
+    "dic": "常用证件代码"
+  },
+  {
+    "name": "主办单位负责人邮件",
+    "ename": "BUD_RPBMAIL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位负责人手机",
+    "ename": "BUD_RPBMOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位负责人姓名",
+    "ename": "BUD_RPBNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位办公地址省份",
+    "ename": "BUD_UITADRPVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位办公地址市区",
+    "ename": "BUD_UITADRCTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位办公地址县区",
+    "ename": "BUD_UITADRCRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位办公详细地址",
+    "ename": "BUD_UITADRSTR",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位证件号码",
+    "ename": "BUD_UITCFTNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位证件类型",
+    "ename": "BUD_UITCFTTYPE",
+    "desc": "",
+    "dic": "主办单位证件类型分类"
+  },
+  {
+    "name": "主办单位名称",
+    "ename": "BUD_UITNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位性质",
+    "ename": "BUD_UNITPTY",
+    "desc": "",
+    "dic": "主办单位性质主分类"
+  },
+  {
+    "name": "核验状态",
+    "ename": "CHECK_STATUS",
+    "desc": "",
+    "dic": "核验状态"
+  },
+  {
+    "name": "联系人办公室电话",
+    "ename": "CONTACT_OFFTEL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联系人证件号码",
+    "ename": "CONTACT_RPBCFTNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联系人证件类型",
+    "ename": "CONTACT_RPBCFTTYPE",
+    "desc": "",
+    "dic": "常用证件代码"
+  },
+  {
+    "name": "联系人手机号码",
+    "ename": "CONTACT_RPBMOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联系人姓名",
+    "ename": "CONTACT_RPBNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建时间",
+    "ename": "CREATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "归属地省份",
+    "ename": "PVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "归属地城市",
+    "ename": "CTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "归属地县区",
+    "ename": "CRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "注册人ID",
+    "ename": "CYBUSRID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否备案",
+    "ename": "DONE",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "备案时间",
+    "ename": "DONETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商管辖地",
+    "ename": "DSP_ASPABROAD",
+    "desc": "",
+    "dic": "网络接入服务商所属地类型"
+  },
+  {
+    "name": "域名注册服务商所属地省",
+    "ename": "DSP_ASPPROCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商所属地市",
+    "ename": "DSP_ASPCITCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商所属地区县",
+    "ename": "DSP_ASPCONCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商名称",
+    "ename": "DSP_ASPNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "已通过安全评估的版本号列表",
+    "ename": "EVALLIST",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否是交互式网站",
+    "ename": "INTERACTIVE",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "网站IP列表",
+    "ename": "IPS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名",
+    "ename": "MAINDMN",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "工信部备案号",
+    "ename": "MOINUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联网备案号",
+    "ename": "POLNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "负责人办公室电话",
+    "ename": "RPB_OFFTEL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "负责人证件号码",
+    "ename": "RPB_RPBCFTNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "负责人证件类型",
+    "ename": "RPB_RPBCFTTYPE",
+    "desc": "",
+    "dic": "常用证件代码"
+  },
+  {
+    "name": "负责人手机号码",
+    "ename": "RPB_RPBMOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "负责人人姓名",
+    "ename": "RPB_RPBNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "所属IDC或者应用市场归属地省",
+    "ename": "U_CRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "所属IDC或者应用市场归属地市",
+    "ename": "U_CTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "所属IDC或者应用市场归属地县",
+    "ename": "U_PVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "更新时间",
+    "ename": "UPDATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站名称",
+    "ename": "WEBNM",
+    "desc": "",
+    "dic": ""
+  }
+]

@@ -1,0 +1,590 @@
+[
+  {
+    "name": "ID",
+    "ename": "ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "业务类型",
+    "ename": "BUSINESSTYPE",
+    "desc": "",
+    "dic": "数据操作类型"
+  },
+  {
+    "name": "网站接入方式",
+    "ename": "ACCTYPE",
+    "desc": "",
+    "dic": "网站接入方式"
+  },
+  {
+    "name": "网站分级",
+    "ename": "ACTIVESIGN",
+    "desc": "",
+    "dic": "网站规模等级类型"
+  },
+  {
+    "name": "活跃用户数",
+    "ename": "ACTIVEUSERNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商所属地",
+    "ename": "ASP_ABROAD",
+    "desc": "",
+    "dic": "网络接入服务商所属地类型"
+  },
+  {
+    "name": "网络接入服务商地址",
+    "ename": "ASP_ADDRESS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商机构代码",
+    "ename": "ASP_CODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商所属国家",
+    "ename": "ASP_COUNTRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商创建时间",
+    "ename": "ASP_CREATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商境内：省",
+    "ename": "ASP_PVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商境内：市",
+    "ename": "ASP_CTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商境内：县",
+    "ename": "ASP_CRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商接入商主键",
+    "ename": "ASP_ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商法人姓名",
+    "ename": "ASP_LEGALNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商名称",
+    "ename": "ASP_NAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商境内：省中文名称",
+    "ename": "ASP_PVSNOTE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商安全员姓名",
+    "ename": "ASP_SECRESPAMAN",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商境外：所属州",
+    "ename": "ASP_STATE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网络接入服务商状态",
+    "ename": "ASP_STATUS",
+    "desc": "",
+    "dic": "网络接入服务商状态"
+  },
+  {
+    "name": "网络接入服务商境外：服务商联系电话",
+    "ename": "ASP_TEL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人id",
+    "ename": "AUDITID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人姓名",
+    "ename": "AUDIT_NAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人单位代码",
+    "ename": "AUDIT_UNITCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人单位名称",
+    "ename": "AUDIT_UNITNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "审核时间",
+    "ename": "AUDITTIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "所属主体id",
+    "ename": "BUDUNITID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名证书有效开始日期",
+    "ename": "CERT_BEGIN",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名证书有效截止日期",
+    "ename": "CERT_END",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否提供管制物品服务",
+    "ename": "COTITEM",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "勾选管制服务后上传附件ID",
+    "ename": "COTITEMFILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建时间",
+    "ename": "CREATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建人ID",
+    "ename": "CREATEUSER_ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建人用户证件类型",
+    "ename": "CREATEUSER_IDCARDTYPE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建人用户证件号",
+    "ename": "CREATEUSER_IDCARD",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建人手机号码",
+    "ename": "CREATEUSER_MOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建人姓名",
+    "ename": "CREATEUSER_NAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站归属地-省",
+    "ename": "PVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站归属地-市",
+    "ename": "CTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站归属地-县",
+    "ename": "CRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "注册人id",
+    "ename": "CYBUSRID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商所属地",
+    "ename": "DSP_ABROAD",
+    "desc": "",
+    "dic": "网络接入服务商所属地类型"
+  },
+  {
+    "name": "域名注册服务商地址",
+    "ename": "DSP_ADDRESS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商机构代码",
+    "ename": "DSP_CODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商所属国家",
+    "ename": "DSP_COUNTRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商创建时间",
+    "ename": "DSP_CREATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商境内：省",
+    "ename": "DSP_PVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商境内：省中文名称",
+    "ename": "DSP_PVSNOTE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商境内：市",
+    "ename": "DSP_CTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商境内：县",
+    "ename": "DSP_CRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商主键",
+    "ename": "DSP_ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商法人姓名",
+    "ename": "DSP_LEGALNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商名称",
+    "ename": "DSP_NAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商安全员姓名",
+    "ename": "DSP_SECRESPAMAN",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商境外：所属州",
+    "ename": "DSP_STATE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名注册服务商境外：服务商联系电话",
+    "ename": "DSP_TEL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件反面文件",
+    "ename": "EMERGENCYER_IDECARDBACKID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件正面文件",
+    "ename": "EMERGENCYER_IDECARDFRONTID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件手持文件",
+    "ename": "EMERGENCYER_IDECARDGROUPID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件有效期",
+    "ename": "EMERGENCYER_IDECARDVALID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件号码",
+    "ename": "EMERGENCYER_RPBCFTNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件类型",
+    "ename": "EMERGENCYER_RPBCFTTYPE",
+    "desc": "",
+    "dic": "常用证件代码"
+  },
+  {
+    "name": "应急联络人证件类型中文名称",
+    "ename": "EMERGENCYER_RPBCFTTYPENOTE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人电子邮箱",
+    "ename": "EMERGENCYER_RPBMAIL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人手机号",
+    "ename": "EMERGENCYER_RPBMOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人姓名",
+    "ename": "EMERGENCYER_RPBNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否是交互式网站",
+    "ename": "INTERACTIVE",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "互联网监管对象分类",
+    "ename": "INTERACTIVENAME",
+    "desc": "",
+    "dic": "监管对象分类"
+  },
+  {
+    "name": "ip",
+    "ename": "IP",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站语种",
+    "ename": "LANGUAGE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主域名",
+    "ename": "MAINDMN",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "工信部备案号",
+    "ename": "MOINUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联网备案号",
+    "ename": "POLNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联网备案号前缀（如京公网安备）",
+    "ename": "PREFIX",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否涉及前置审核内容",
+    "ename": "PROAUD",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "勾选前置许可后上传附件ID",
+    "ename": "PROAUDFILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "机房地址",
+    "ename": "ROOMADR",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件反面文件",
+    "ename": "SAFETYER_IDECARDBACKID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件正面文件",
+    "ename": "SAFETYER_IDECARDFRONTID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件手持文件",
+    "ename": "SAFETYER_IDECARDGROUPID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件有效期",
+    "ename": "SAFETYER_IDECARDVALID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件号码",
+    "ename": "SAFETYER_RPBCFTNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件类型",
+    "ename": "SAFETYER_RPBCFTTYPE",
+    "desc": "",
+    "dic": "常用证件代码"
+  },
+  {
+    "name": "安全负责人证件类型中文名称",
+    "ename": "SAFETYER_RPBCFTTYPENOTE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人电子邮箱",
+    "ename": "SAFETYER_RPBMAIL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人手机号",
+    "ename": "SAFETYER_RPBMOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人姓名",
+    "ename": "SAFETYER_RPBNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站备案业务审核状态",
+    "ename": "STATUS",
+    "desc": "",
+    "dic": "网站备案业务审核状态"
+  },
+  {
+    "name": "主办单位名称",
+    "ename": "UNITNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主办单位性质",
+    "ename": "UNITPTY",
+    "desc": "",
+    "dic": "主办单位性质主分类"
+  },
+  {
+    "name": "主办单位性质-子级",
+    "ename": "UNITPTY_SUB",
+    "desc": "",
+    "dic": "网站主办单位性质代码"
+  },
+  {
+    "name": "最后更新时间",
+    "ename": "UPDATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "市值",
+    "ename": "VALUE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "从域名",
+    "ename": "WEBSITESTR",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站名称",
+    "ename": "WEBNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站开通日期",
+    "ename": "WEBOPENTIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "域名证书文件名",
+    "ename": "YMZSID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "实地检查审核时上传附件",
+    "ename": "INTERACTIVEFILE",
+    "desc": "",
+    "dic": ""
+  }
+]

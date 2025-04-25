@@ -1,0 +1,692 @@
+{
+  "DATA": {
+    "ITEM": [
+      {
+        "_attributes": {
+          "key": "I010058",
+          "eng": "id",
+          "chn": "ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I020039",
+          "eng": "businessType",
+          "chn": "业务类型"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020010",
+          "eng": "acctype",
+          "chn": "网站接入方式"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H220037",
+          "eng": "activeSign",
+          "chn": "网站分级"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020023",
+          "eng": "activeUserNum",
+          "chn": "活跃用户数"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H200001",
+          "eng": "asp_abroad",
+          "chn": "网络接入服务商所属地"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020007",
+          "eng": "asp_address",
+          "chn": "网络接入服务商地址"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020001",
+          "eng": "asp_code",
+          "chn": "网络接入服务商机构代码"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B030001",
+          "eng": "asp_country",
+          "chn": "网络接入服务商所属国家"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "D010007",
+          "eng": "asp_createtime",
+          "chn": "网络接入服务商创建时间"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B030820",
+          "eng": "asp_pvs",
+          "chn": "网络接入服务商境内：省"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B030822",
+          "eng": "asp_cty",
+          "chn": "网络接入服务商境内：市"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B030821",
+          "eng": "asp_cry",
+          "chn": "网络接入服务商境内：县"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000655",
+          "eng": "asp_id",
+          "chn": "网络接入服务商接入商主键"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020001",
+          "eng": "asp_legalnm",
+          "chn": "网络接入服务商法人姓名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E010002",
+          "eng": "asp_name",
+          "chn": "网络接入服务商名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B020001",
+          "eng": "asp_pvsNote",
+          "chn": "网络接入服务商境内：省中文名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020008",
+          "eng": "asp_secrespaman",
+          "chn": "网络接入服务商安全员姓名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000724",
+          "eng": "asp_state",
+          "chn": "网络接入服务商境外：所属州"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000789",
+          "eng": "asp_status",
+          "chn": "网络接入服务商状态"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000936",
+          "eng": "asp_tel",
+          "chn": "网络接入服务商境外：服务商联系电话"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I010071",
+          "eng": "auditid",
+          "chn": "备案审批人id"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020012",
+          "eng": "audit_name",
+          "chn": "备案审批人姓名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B030002",
+          "eng": "audit_unitcode",
+          "chn": "备案审批人单位代码"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B030003",
+          "eng": "audit_unitname",
+          "chn": "备案审批人单位名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I010066",
+          "eng": "audittime",
+          "chn": "审核时间"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H220019",
+          "eng": "budunitid",
+          "chn": "所属主体id"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000894",
+          "eng": "cert_begin",
+          "chn": "域名证书有效开始日期"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000893",
+          "eng": "cert_end",
+          "chn": "域名证书有效截止日期"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I060554",
+          "eng": "cotitem",
+          "chn": "是否提供管制物品服务"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I060114",
+          "eng": "cotitemFile",
+          "chn": "勾选管制服务后上传附件ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "C110002",
+          "eng": "createtime",
+          "chn": "创建时间"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "D020012",
+          "eng": "createuser_id",
+          "chn": "创建人ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020003",
+          "eng": "createuser_idcardtype",
+          "chn": "创建人用户证件类型"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020004",
+          "eng": "createuser_idcard",
+          "chn": "创建人用户证件号"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020005",
+          "eng": "createuser_mobile",
+          "chn": "创建人手机号码"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I010001",
+          "eng": "createuser_name",
+          "chn": "创建人姓名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "F010035",
+          "eng": "pvs",
+          "chn": "网站归属地-省"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B020031",
+          "eng": "cty",
+          "chn": "网站归属地-市"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000423",
+          "eng": "cry",
+          "chn": "网站归属地-县"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H100008",
+          "eng": "cybusrid",
+          "chn": "注册人id"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I040026",
+          "eng": "dsp_abroad",
+          "chn": "域名注册服务商所属地"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000787",
+          "eng": "dsp_address",
+          "chn": "域名注册服务商地址"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E010003",
+          "eng": "dsp_code",
+          "chn": "域名注册服务商机构代码"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H090014",
+          "eng": "dsp_country",
+          "chn": "域名注册服务商所属国家"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H140023",
+          "eng": "dsp_createtime",
+          "chn": "域名注册服务商创建时间"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H140011",
+          "eng": "dsp_pvs",
+          "chn": "域名注册服务商境内：省"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "F010034",
+          "eng": "dsp_pvsNote",
+          "chn": "域名注册服务商境内：省中文名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B040031",
+          "eng": "dsp_cty",
+          "chn": "域名注册服务商境内：市"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "F010032",
+          "eng": "dsp_cry",
+          "chn": "域名注册服务商境内：县"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "J010030",
+          "eng": "dsp_id",
+          "chn": "域名注册服务商主键"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K001616",
+          "eng": "dsp_legalnm",
+          "chn": "域名注册服务商法人姓名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020024",
+          "eng": "dsp_name",
+          "chn": "域名注册服务商名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B050028",
+          "eng": "dsp_secrespaman",
+          "chn": "域名注册服务商安全员姓名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000206",
+          "eng": "dsp_state",
+          "chn": "域名注册服务商境外：所属州"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000433",
+          "eng": "dsp_tel",
+          "chn": "域名注册服务商境外：服务商联系电话"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "J080002",
+          "eng": "emergencyer_idecardbackid",
+          "chn": "应急联络人证件反面ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "J080003",
+          "eng": "emergencyer_idecardfrontid",
+          "chn": "应急联络人证件正面ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "J080001",
+          "eng": "emergencyer_idecardgroupid",
+          "chn": "应急联络人证件手持ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H010023",
+          "eng": "emergencyer_idecardvalid",
+          "chn": "应急联络人证件有效期"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020019",
+          "eng": "emergencyer_rpbcftnum",
+          "chn": "应急联络人证件号码"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020018",
+          "eng": "emergencyer_rpbcfttype",
+          "chn": "应急联络人证件类型"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K001711",
+          "eng": "emergencyer_rpbcfttypeNote",
+          "chn": "应急联络人证件类型中文名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I060412",
+          "eng": "emergencyer_rpbmail",
+          "chn": "应急联络人电子邮箱"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B070003",
+          "eng": "emergencyer_rpbmobile",
+          "chn": "应急联络人手机号"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020021",
+          "eng": "emergencyer_rpbnm",
+          "chn": "应急联络人姓名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "J060022",
+          "eng": "interactive",
+          "chn": "是否是交互式网站"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I020028",
+          "eng": "interactiveName",
+          "chn": "互联网监管对象分类"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "F020001",
+          "eng": "ip",
+          "chn": "ip"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B030020",
+          "eng": "language",
+          "chn": "网站语种"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G010001",
+          "eng": "maindmn",
+          "chn": "主域名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020007",
+          "eng": "moinum",
+          "chn": "工信部备案号"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020008",
+          "eng": "polnum",
+          "chn": "联网备案号"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "F020033",
+          "eng": "prefix",
+          "chn": "联网备案号前缀（如京公网安备）"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I060208",
+          "eng": "proaud",
+          "chn": "是否涉及前置审核内容"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H010045",
+          "eng": "proaudFile",
+          "chn": "勾选前置许可后上传附件ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020009",
+          "eng": "roomAdr",
+          "chn": "机房地址"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I090507",
+          "eng": "safetyer_idecardbackid",
+          "chn": "安全负责人证件反面ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "J040009",
+          "eng": "safetyer_idecardfrontid",
+          "chn": "安全负责人证件正面ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "J040005",
+          "eng": "safetyer_idecardgroupid",
+          "chn": "安全负责人证件手持ID"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K001833",
+          "eng": "safetyer_idecardvalid",
+          "chn": "安全负责人证件有效期"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020014",
+          "eng": "safetyer_rpbcftnum",
+          "chn": "安全负责人证件号码"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020013",
+          "eng": "safetyer_rpbcfttype",
+          "chn": "安全负责人证件类型"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "J030007",
+          "eng": "safetyer_rpbcfttypeNote",
+          "chn": "安全负责人证件类型中文名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I060407",
+          "eng": "safetyer_rpbmail",
+          "chn": "安全负责人电子邮箱"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020015",
+          "eng": "safetyer_rpbmobile",
+          "chn": "安全负责人手机号"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020012",
+          "eng": "safetyer_rpbnm",
+          "chn": "安全负责人姓名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "C080002",
+          "eng": "status",
+          "chn": "网站备案业务审核状态"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I120012",
+          "eng": "unitnm",
+          "chn": "主办单位名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "H220036",
+          "eng": "unitpty",
+          "chn": "主办单位性质"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "K000331",
+          "eng": "unitpty_sub",
+          "chn": "主办单位性质-子级"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "B050013",
+          "eng": "updatetime",
+          "chn": "最后更新时间"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "E020030",
+          "eng": "value",
+          "chn": "市值"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G010008",
+          "eng": "webSiteStr",
+          "chn": "从域名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020006",
+          "eng": "webnm",
+          "chn": "网站名称"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G020022",
+          "eng": "webopentime",
+          "chn": "网站开通日期"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "G040101",
+          "eng": "ymzsid",
+          "chn": "域名证书文件名"
+        }
+      },
+      {
+        "_attributes": {
+          "key": "I060114",
+          "eng": "interactiveFile",
+          "chn": "实地检查审核时上传附件"
+        }
+      }
+    ]
+  }
+}

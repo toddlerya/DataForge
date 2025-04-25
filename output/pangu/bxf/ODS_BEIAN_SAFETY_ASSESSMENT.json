@@ -1,0 +1,320 @@
+[
+  {
+    "name": "ID",
+    "ename": "ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "业务类型",
+    "ename": "BUSINESSTYPE",
+    "desc": "",
+    "dic": "数据操作类型"
+  },
+  {
+    "name": "投诉举报机制的描述",
+    "ename": "ACCUSATIONDESC",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "投诉举报机制的途径",
+    "ename": "ACCUSATIONLIST",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "APP ID或者小程序ID",
+    "ename": "APPID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "APP所在索引",
+    "ename": "APPINDEX",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "APP或者小程序名称",
+    "ename": "APPNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应用类型",
+    "ename": "APPTYPES",
+    "desc": "",
+    "dic": "监管对象分类"
+  },
+  {
+    "name": "评估方法",
+    "ename": "ASSESSPARTY",
+    "desc": "",
+    "dic": "安全评估方法类型"
+  },
+  {
+    "name": "所属主体ID（主键）",
+    "ename": "BUDUNITID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "开展评估的情况",
+    "ename": "CASES",
+    "desc": "",
+    "dic": "开展评估的情况分类"
+  },
+  {
+    "name": "日志信息",
+    "ename": "CLOGINFOS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "提交评估时间",
+    "ename": "CREATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "地址：省",
+    "ename": "PVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "地址：地市",
+    "ename": "CTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "地址：县",
+    "ename": "CRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "当前APP所属的系统创建者ID",
+    "ename": "CYBUSRID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否已延期当面核验或实地检查",
+    "ename": "DELAYED",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "不通过原因",
+    "ename": "DENYREASON",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "评估时间",
+    "ename": "EVALTIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全评估对象类型（网站、APP、小程序、其他）",
+    "ename": "EVALTYPE",
+    "desc": "",
+    "dic": "网络应用种类"
+  },
+  {
+    "name": "审核意见",
+    "ename": "FAILREASON",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否建立投诉举报机制",
+    "ename": "HASACCUSATION",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "是否有安全管理负责人",
+    "ename": "HASSMP",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "是否配置了WAF",
+    "ename": "HASWAF",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "用户真实身份核验及注册信息留存措施",
+    "ename": "IDINFOS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "对违法有害信息的防范处置和有关记录保存措施",
+    "ename": "ILLEGALINFO",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "包含的交互式服务",
+    "ename": "INTERACTIVENAME",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "主域名",
+    "ename": "MAINDMN",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否要进行当面核验或实地检查",
+    "ename": "RECHECK",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "个人信息保护以及防范违法有害信息传播扩展、社会动员功能失控风险的技术措施",
+    "ename": "RISKGUARDINFO",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "自评估报告",
+    "ename": "SIGNFILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全管理负责人",
+    "ename": "SMP",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全评估业务审核状态",
+    "ename": "STATUS",
+    "desc": "",
+    "dic": "网站备案业务审核状态"
+  },
+  {
+    "name": "建立为监管部门和执法部门依法履职提供技术、数据支持和协助的工作机制的情况",
+    "ename": "SUPPORTDESC",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "第三方检测报告（附件ID）",
+    "ename": "THIRDPARTFILES",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "第三方评估机构地址",
+    "ename": "THIRDPARTYADDR",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "第三方评估机构名称",
+    "ename": "THIRDPARTYNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "第三方报告（附件ID）",
+    "ename": "TRIFILES",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "APP唯一性标识",
+    "ename": "UNIQUEID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "主体名称",
+    "ename": "UNITNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "更新人",
+    "ename": "UPDATEUSER",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "针对的版本（APP或者小程序）",
+    "ename": "VERSIONS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "APP版本记录ID",
+    "ename": "VID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "APP版本记录所在INDEX",
+    "ename": "VINDEX",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站ID",
+    "ename": "WEBID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "网站名称",
+    "ename": "WEBNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否联合网信办开展检查",
+    "ename": "WITHWXB",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "备案审批人ID",
+    "ename": "AUDITID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人姓名",
+    "ename": "AUDIT_NAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人单位代码",
+    "ename": "AUDIT_UNITCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人单位名称",
+    "ename": "AUDIT_UNITNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "审核时间",
+    "ename": "AUDITTIME",
+    "desc": "",
+    "dic": ""
+  }
+]

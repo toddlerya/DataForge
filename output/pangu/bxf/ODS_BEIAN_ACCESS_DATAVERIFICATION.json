@@ -1,0 +1,116 @@
+[
+  {
+    "name": "ID",
+    "ename": "ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "业务类型",
+    "ename": "BUSINESSTYPE",
+    "desc": "",
+    "dic": "数据操作类型"
+  },
+  {
+    "name": "是否对其进行行政执法",
+    "ename": "ADMINISTRATIVE",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "创建时间",
+    "ename": "CREATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "数据类型",
+    "ename": "DATATYPE",
+    "desc": "",
+    "dic": "网络应用种类"
+  },
+  {
+    "name": "操作人ID（主键）",
+    "ename": "OPERATEID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "操作人手机",
+    "ename": "OPERATEMOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "操作人姓名",
+    "ename": "OPERATENAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "操作人所属地区",
+    "ename": "OPERATEORG",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "操作人所属地区名称",
+    "ename": "OPERATEORGNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "操作人电话",
+    "ename": "OPERATETEL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "转移原因",
+    "ename": "REASON",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "监督检查及执法情况简述",
+    "ename": "SITUATION",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "核验状态",
+    "ename": "STATUS",
+    "desc": "",
+    "dic": "网站备案业务审核状态"
+  },
+  {
+    "name": "是否监督检查",
+    "ename": "SUPERVISE",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "目标省份",
+    "ename": "TARGETPVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "目标城市",
+    "ename": "TARGETCTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "目标区县",
+    "ename": "TARGETCRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "对象ID",
+    "ename": "TARGETID",
+    "desc": "",
+    "dic": ""
+  }
+]

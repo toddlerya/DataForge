@@ -173,6 +173,14 @@ wheels = [
 ]
 
 [[package]]
+name = "et-xmlfile"
+version = "2.0.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/et_xmlfile-2.0.0-py3-none-any.whl", hash = "sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa" },
+]
+
+[[package]]
 name = "forbiddenfruit"
 version = "0.1.4"
 source = { registry = "http://172.16.111.6:8898/simple/" }
@@ -506,6 +514,18 @@ wheels = [
 ]
 
 [[package]]
+name = "loguru"
+version = "0.7.3"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "win32-setctime", marker = "sys_platform == 'win32'" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/loguru-0.7.3-py3-none-any.whl", hash = "sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c" },
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 source = { registry = "http://172.16.111.6:8898/simple/" }
@@ -602,9 +622,21 @@ wheels = [
 ]
 
 [[package]]
+name = "openpyxl"
+version = "3.1.5"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+dependencies = [
+    { name = "et-xmlfile" },
+]
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/openpyxl-3.1.5-py2.py3-none-any.whl", hash = "sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2" },
+]
+
+[[package]]
 name = "orjson"
 version = "3.10.16"
 source = { registry = "http://172.16.111.6:8898/simple/" }
+sdist = { url = "http://172.16.111.6:8898/packages/orjson-3.10.16.tar.gz", hash = "sha256:d2aaa5c495e11d17b9b93205f5fa196737ee3202f000aaebf028dc9a73750f10" }
 wheels = [
     { url = "http://172.16.111.6:8898/packages/orjson-3.10.16-cp313-cp313-win_amd64.whl", hash = "sha256:fe0a145e96d51971407cb8ba947e63ead2aa915db59d6631a355f5f2150b56b7" },
 ]
@@ -637,8 +669,11 @@ dependencies = [
     { name = "langfuse" },
     { name = "langgraph" },
     { name = "langgraph-cli", extra = ["inmem"] },
+    { name = "loguru" },
     { name = "mcp", extra = ["cli"] },
+    { name = "openpyxl" },
     { name = "requests" },
+    { name = "ruamel-yaml" },
     { name = "setuptools" },
     { name = "sqlglot" },
 ]
@@ -652,8 +687,11 @@ requires-dist = [
     { name = "langfuse", specifier = ">=2.60.2" },
     { name = "langgraph", specifier = ">=0.3.21" },
     { name = "langgraph-cli", extras = ["inmem"], specifier = ">=0.1.83" },
+    { name = "loguru", specifier = ">=0.7.3" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.6.0" },
+    { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "ruamel-yaml", specifier = ">=0.18.10" },
     { name = "setuptools", specifier = ">=78.1.0" },
     { name = "sqlglot", specifier = ">=26.12.1" },
 ]
@@ -740,6 +778,7 @@ wheels = [
 name = "pyyaml"
 version = "6.0.2"
 source = { registry = "http://172.16.111.6:8898/simple/" }
+sdist = { url = "http://172.16.111.6:8898/packages/pyyaml-6.0.2.tar.gz", hash = "sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e" }
 wheels = [
     { url = "http://172.16.111.6:8898/packages/PyYAML-6.0.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:70b189594dbe54f75ab3a1acec5f1e3faa7e8cf2f1e08d9b561cb41b845f69d5" },
     { url = "http://172.16.111.6:8898/packages/PyYAML-6.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:8388ee1976c416731879ac16da0aff3f63b286ffdd57cdeb95f3f2e085687563" },
@@ -793,6 +832,14 @@ wheels = [
 ]
 
 [[package]]
+name = "ruamel-yaml"
+version = "0.18.10"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/ruamel.yaml-0.18.10-py3-none-any.whl", hash = "sha256:30f22513ab2301b3d2b577adc121c6471f28734d3d9728581245f1e76468b4f1" },
+]
+
+[[package]]
 name = "setuptools"
 version = "78.1.0"
 source = { registry = "http://172.16.111.6:8898/simple/" }
@@ -826,6 +873,7 @@ dependencies = [
 ]
 wheels = [
     { url = "http://172.16.111.6:8898/packages/sqlalchemy-2.0.40-cp313-cp313-win_amd64.whl", hash = "sha256:641ee2e0834812d657862f3a7de95e0048bdcb6c55496f39c6fa3d435f6ac6ad" },
+    { url = "http://172.16.111.6:8898/packages/sqlalchemy-2.0.40-py3-none-any.whl", hash = "sha256:32587e2e1e359276957e6fe5dad089758bc042a971a8a09ae8ecf7a8fe23d07a" },
 ]
 
 [[package]]
@@ -974,6 +1022,14 @@ dependencies = [
 ]
 wheels = [
     { url = "http://172.16.111.6:8898/packages/watchfiles-1.0.4-cp313-cp313-win_amd64.whl", hash = "sha256:d6097538b0ae5c1b88c3b55afa245a66793a8fec7ada6755322e465fb1a0e8cc" },
+]
+
+[[package]]
+name = "win32-setctime"
+version = "1.1.0"
+source = { registry = "http://172.16.111.6:8898/simple/" }
+wheels = [
+    { url = "http://172.16.111.6:8898/packages/win32_setctime-1.1.0-py3-none-any.whl", hash = "sha256:231db239e959c2fe7eb1d7dc129f11172354f98361c4fa2d6d2d7e278baa8aad" },
 ]
 
 [[package]]

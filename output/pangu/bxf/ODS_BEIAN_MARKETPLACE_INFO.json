@@ -1,0 +1,284 @@
+[
+  {
+    "name": "ID",
+    "ename": "ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "业务类型",
+    "ename": "BUSINESSTYPE",
+    "desc": "",
+    "dic": "数据操作类型"
+  },
+  {
+    "name": "所属主体ID（主键）",
+    "ename": "BUDUNITID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联系人姓名",
+    "ename": "CONTACTOR",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联系人身份证号",
+    "ename": "CONTACTORIDNO",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "联系人手机号",
+    "ename": "CONTACTORPHONE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建时间",
+    "ename": "CREATETIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "创建人ID（主键）",
+    "ename": "CREATEUSER_ID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "地址：省",
+    "ename": "PVS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "地址：地市",
+    "ename": "CTY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "地址：县",
+    "ename": "CRY",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件反面文件",
+    "ename": "EMERGENCYER_IDECARDBACKID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件正面文件",
+    "ename": "EMERGENCYER_IDECARDFRONTID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件手持文件",
+    "ename": "EMERGENCYER_IDECARDGROUPID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件有效期",
+    "ename": "EMERGENCYER_IDECARDVALID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件号码",
+    "ename": "EMERGENCYER_RPBCFTNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人证件类型",
+    "ename": "EMERGENCYER_RPBCFTTYPE",
+    "desc": "",
+    "dic": "常用证件代码"
+  },
+  {
+    "name": "应急联络人证件类型中文名",
+    "ename": "EMERGENCYER_RPBCFTTYPENOTE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人电子邮箱",
+    "ename": "EMERGENCYER_RPBMAIL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应急联络人手机号",
+    "ename": "EMERGENCYER_RPBMOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "工信部备案号",
+    "ename": "GXBRECORDNO",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "是否为主应用市场",
+    "ename": "ISMASTER",
+    "desc": "",
+    "dic": "判断标识"
+  },
+  {
+    "name": "APP LOGO",
+    "ename": "LOGO",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "市场名称",
+    "ename": "MARKETNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "上线时间",
+    "ename": "ONLINEDATE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "接入单位名称",
+    "ename": "ORGNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "应用运行平台",
+    "ename": "PLATFORMS",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案号前缀",
+    "ename": "PREFIX",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "注册号（备案号）",
+    "ename": "REGNO",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "注册状态",
+    "ename": "REGSTATUS",
+    "desc": "",
+    "dic": "注册状态"
+  },
+  {
+    "name": "注册完成时间",
+    "ename": "REGTIME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件反面",
+    "ename": "SAFETYER_IDECARDBACKID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件正面",
+    "ename": "SAFETYER_IDECARDFRONTID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件手持",
+    "ename": "SAFETYER_IDECARDGROUPID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件有效期",
+    "ename": "SAFETYER_IDECARDVALID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件号码",
+    "ename": "SAFETYER_RPBCFTNUM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人证件类型",
+    "ename": "SAFETYER_RPBCFTTYPE",
+    "desc": "",
+    "dic": "常用证件代码"
+  },
+  {
+    "name": "安全负责人证件类型中文名",
+    "ename": "SAFETYER_RPBCFTTYPENOTE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人电子邮箱",
+    "ename": "SAFETYER_RPBMAIL",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "安全负责人手机号",
+    "ename": "SAFETYER_RPBMOBILE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "业务审核状态",
+    "ename": "STATUS",
+    "desc": "",
+    "dic": "网站备案业务审核状态"
+  },
+  {
+    "name": "单位名称",
+    "ename": "UNITNM",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人ID",
+    "ename": "AUDITID",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人姓名",
+    "ename": "AUDIT_NAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人单位代码",
+    "ename": "AUDIT_UNITCODE",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "备案审批人单位名称",
+    "ename": "AUDIT_UNITNAME",
+    "desc": "",
+    "dic": ""
+  },
+  {
+    "name": "审核时间",
+    "ename": "AUDITTIME",
+    "desc": "",
+    "dic": ""
+  }
+]

@@ -12,20 +12,26 @@ import pathlib
 import requests
 import json
 
+import urllib3
+from urllib3.exceptions import InsecureRequestWarning
 
-def crawl(entity_id: str, cookie: str):
+from tools.pang_config import pangu_headers
+
+urllib3.disable_warnings(InsecureRequestWarning)
+
+
+def crawl(entity_id: str):
     """
     根据entity_id采集盘古元数据信息
     Args:
         entity_id:
-        cookie:
     Returns:
 
     """
     url = f"https://172.21.4.42:11018/catalog/catalog/query/getEntityDetail"
     payload = {"entityId": entity_id}
-    headers = {"Cookie": cookie}
-    r = requests.get(url=url, params=payload, headers=headers, verify=False)
+
+    r = requests.get(url=url, params=payload, headers=pangu_headers, verify=False)
     if r.status_code != 200:
         raise r.raise_for_status()
     resp_json = r.json()
@@ -34,81 +40,100 @@ def crawl(entity_id: str, cookie: str):
 
 if __name__ == '__main__':
     from tools.table_meta_info_clear import clear
+    from tools.pang_config import bash_path
+    from tools.crawl_dict_info import get_dict_values_by_keyword
 
-    bash_path = pathlib.Path(r"F:\GITLAB\DataForge")
-    cookie_data = "contextPath=/catalog; userToken=a4d587b8de914f50a4064ea25a72f66b; appToken=18a687bb7b9d4e4db6fb70bf99eb81e8; JSESSIONID=463E06C3DD672252069C91EB61629BE9; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; JSESSIONID=49DADF6B91C261DA761666BEC2C988D8; userToken=a4d587b8de914f50a4064ea25a72f66b; appToken=18a687bb7b9d4e4db6fb70bf99eb81e8; sessiongovern=79A1E553E6334C24C7C1A58A522D8453"
+    # table_entity_info获取方式 select id, name, ename from base_entity_info where positionid = 3 -- positionid=3: ORC;
+    # positionid=4: FRC and ename in ('ODS_BEIAN_MAINBODY_INFO', 'ODS_BEIAN_WEBSITE_INFO', 'ODS_BEIAN_APPINFO',
+    # 'ODS_BEIAN_MIMIAPP_INFO', 'ODS_BEIAN_MARKETPLACE_INFO', 'ODS_BEIAN_SERVICE_PROVIDER_INFO',
+    # 'ODS_BEIAN_SAFETY_ASSESSMENT', 'ODS_BEIAN_ACCESS_WEBSITE', 'ODS_BEIAN_ACCESS_APP', 'ODS_BEIAN_ACCESS_MINIAPP',
+    # 'ODS_BEIAN_ACCESS_DATAVERIFICATION', 'ODS_BEIAN_APPLICANT_INFO');
     table_entity_info = [
         {
-            "template_id": 3874,
-            "name": "网站信息",
-            "ename": "ODS_BEIAN_WEBSITE_INFO"
-        },
-        {
-            "template_id": 3875,
-            "name": "安全评估信息",
-            "ename": "ODS_BEIAN_SAFETY_ASSESSMENT"
-        },
-        {
-            "template_id": 3876,
-            "name": "接入APP信息",
-            "ename": "ODS_BEIAN_ACCESS_APP"
-        },
-        {
-            "template_id": 3877,
-            "name": "申请人信息",
-            "ename": "ODS_BEIAN_APPLICANT_INFO"
-        },
-        {
-            "template_id": 3878,
-            "name": "服务商信息",
-            "ename": "ODS_BEIAN_SERVICE_PROVIDER_INFO"
-        },
-        {
-            "template_id": 3879,
-            "name": "应用市场信息",
-            "ename": "ODS_BEIAN_MARKETPLACE_INFO"
-        },
-        {
-            "template_id": 3880,
-            "name": "接入网站信息",
-            "ename": "ODS_BEIAN_ACCESS_WEBSITE"
-        },
-        {
-            "template_id": 3881,
-            "name": "接入小程序信息",
-            "ename": "ODS_BEIAN_ACCESS_MINIAPP"
-        },
-        {
-            "template_id": 3882,
-            "name": "接入数据核验信息",
-            "ename": "ODS_BEIAN_ACCESS_DATAVERIFICATION"
-        },
-        {
-            "template_id": 3883,
+            "id": 3514,
             "name": "主体信息",
             "ename": "ODS_BEIAN_MAINBODY_INFO"
         },
         {
-            "template_id": 3884,
+            "id": 3515,
+            "name": "网站信息",
+            "ename": "ODS_BEIAN_WEBSITE_INFO"
+        },
+        {
+            "id": 3516,
             "name": "APP信息",
             "ename": "ODS_BEIAN_APPINFO"
         },
         {
-            "template_id": 3885,
+            "id": 3517,
             "name": "小程序信息",
             "ename": "ODS_BEIAN_MIMIAPP_INFO"
+        },
+        {
+            "id": 3518,
+            "name": "应用市场信息",
+            "ename": "ODS_BEIAN_MARKETPLACE_INFO"
+        },
+        {
+            "id": 3519,
+            "name": "服务商信息",
+            "ename": "ODS_BEIAN_SERVICE_PROVIDER_INFO"
+        },
+        {
+            "id": 3520,
+            "name": "安全评估信息",
+            "ename": "ODS_BEIAN_SAFETY_ASSESSMENT"
+        },
+        {
+            "id": 3521,
+            "name": "接入网站信息",
+            "ename": "ODS_BEIAN_ACCESS_WEBSITE"
+        },
+        {
+            "id": 3522,
+            "name": "接入APP信息",
+            "ename": "ODS_BEIAN_ACCESS_APP"
+        },
+        {
+            "id": 3523,
+            "name": "接入小程序信息",
+            "ename": "ODS_BEIAN_ACCESS_MINIAPP"
+        },
+        {
+            "id": 3524,
+            "name": "接入数据核验信息",
+            "ename": "ODS_BEIAN_ACCESS_DATAVERIFICATION"
+        },
+        {
+            "id": 3525,
+            "name": "申请人信息",
+            "ename": "ODS_BEIAN_APPLICANT_INFO"
         }
     ]
+    fhwa_dict_code_data = dict()
     for item in table_entity_info:
         print(item)
-        data = crawl(entity_id=item.get("template_id"), cookie=cookie_data)
-        print(data)
+        data = crawl(entity_id=item.get("id"))
         if data.get("status", 0) != 200:
             print(data)
             continue
+        # 存储字段信息
         save_data_file = bash_path.joinpath("export_data", "pangu", "bxf", f'{item.get("ename")}.json')
         with open(save_data_file, mode="w",
                   encoding="utf-8") as w:
             json.dump(data, w, ensure_ascii=False)
         clear_data_file = bash_path.joinpath("output", "pangu", "bxf", f'{item.get("ename")}.json')
         clear(input_file=save_data_file, output_file=clear_data_file)
+        # 获取表字段涉及的字典信息
+        for field in data.get("data", {}).get("fieldInfoList", [{}]):
+            field_dic = field.get("dic", "")
+            if field_dic != "":
+                fhwa_dict_result = get_dict_values_by_keyword(keyword=field_dic)
+                fhwa_dict_code = fhwa_dict_result.get("fhwa_code", "")
+                with open(bash_path.joinpath("export_data", "pangu", "dict_code", f"{field_dic}_{fhwa_dict_code}.json"),
+                          mode="w",
+                          encoding="utf-8") as dict_w:
+                    json.dump(fhwa_dict_result, dict_w, ensure_ascii=False)
+                with open(bash_path.joinpath("output", "pangu", "dict_code", f"{field_dic}_{fhwa_dict_code}.json"),
+                          mode="w", encoding="utf-8") as dict_w_brief:
+                    json.dump(fhwa_dict_result.get("brief_data", {}), dict_w_brief, ensure_ascii=False)
