@@ -126,7 +126,7 @@ if __name__ == '__main__':
         clear(input_file=save_data_file, output_file=clear_data_file)
         # 获取表字段涉及的字典信息
         for field in data.get("data", {}).get("fieldInfoList", [{}]):
-            field_dic = field.get("dic", "")
+            field_dic: str = field.get("dic", "").strip()
             if field_dic != "":
                 fhwa_dict_result = get_dict_values_by_keyword(keyword=field_dic)
                 fhwa_dict_code = fhwa_dict_result.get("fhwa_code", "")

@@ -25,6 +25,8 @@ def get_dict_fh_code_by_keyword(keyword: str) -> dict:
 
     """
     url = "https://172.21.4.42:11018/standard/standard/dictionary/list"
+    if keyword == "主办单位性质-子级":
+        keyword = "主办单位性质子分类"
     payload = {
         "keyword": keyword,
         "parentCode": -1
