@@ -2,7 +2,92 @@
 
 ## 一图概览
 
-[Meriad在线编辑](https://mermaid.live/edit#pako:eNqFVX9v20QY_iqnQ0KbFFdJmjaNQWhZkmbdkqw05R_qCV3si2Pq3EWOrS5ElSgqG2WUFXUgYFlDgKlFiLVCGp2alX4YYjt8C85nx0nXdfyRH--v533e51772lCmCoYiFARBIqZm6lgEWWSieWqoGAggvTDon7mdrvPtkbP9zH3Udb7YsY-f2p8fS0SmpKqpokQA0CldFUENESVroDXiucwarjMwQo060nkOalHLFAHWVz2T_fBSAOqY9copKm6KoIr0JvbdhDFb1JHMYIhZNg1kYrUlgsJCKZde-qicyxdzpeWyRDj1qk7X5BoyTLCc9cvLy-ml5WvtZg01GA1ZM2QdRxiJCtZFIMGmyZIluO4n50rZy1NZMExMX2uDIK9iMG7NibzYP59uMJ0G_d1h78Dt7zp7m4OznrNxKEkkHsZ8JZ0_--7OvUG_b3_ZK79fkCAIGlwPeVzAH578PuifDg83PKytB07nxH54zP7bnSP7xWfuy-_cnzbcP7bGWJkQq46IhXRBIw3LnEAcvPiR9Xe6T4eHP59jkf2_SoetROexvw9sWntn290_Gsv5BpVY9loNG9h50hv0_2L0P6Ya8Q1GPhAsJDJ_xXm44_56Mjzcdg56zpOzq74_Hxu3oIoyOdOFfQ0RxrD5lZXQGyz1Dwd37vjBG-HwDYPKY-6FQtHpbDPBApAFURQbGlnN6KjZHNMxsHxOqQkmaZWtsl98ZXB65j46KCCi5g3UqNnP9tyvj66OKd5cKWYWhddMwykEVG_xJH-xXO8Y79knu0GswGMfZOft-6cewNb-sPfVuerbPIMd_HD_F2fvPHIxFEHXiCC39EskDs-8xCTlnuHfu_b9kwk9F1ck6M05b40ebffxN87zB85ml3PeHLxkqxMkL12-__4EllL1B_L78Oes48s28eADQXgPZMDbIHgbZIAwxTz5YL15ODCaVkX1TmD83gtWbzIp7xsx_rPg-zBRRj1DDAkySX0h3e5v_37_XILBsoB3OYObjNMt9imwz23vf3CQHDgdnAs3csExcmMpWApuXH9Tf1-W0eGMmntlRf5d8sFL2QsgHkUWuhHWeHwXR1HZ2_IsroJw5UFV03XxrWqqGqlSYgprWFNrplihuvLOKzVavUENExFzshBXZpXZ19TCCGRXQh1pCruY2h6SBPltIkFvDRRcRZZuerOts1RkmbTcIjIUTcPCEWhQS62NDKuhsGsjqyGmTn3kbCDyIaWhiRXNpEbRvwf5dRiBquE1DwCZRNjIUIuYUIwneT0U2_CuZ8WmEsnUTCqRnE7GYzPTiQhsQXEmNRVNTidic4l4NB6PpdYj8BPeMDqVnE3GZ-amE7PRuWhybv0_Xxzu2w)
+[Meriad在线编辑](https://mermaid.live/edit#pako:eNqdWAtv2lYU_iuWJ0WrBBGEhIA3TQNsOlYCKZB1DybkwuWxGBsZsyxLIjVV0q5ro2ZLu77SJmxrG61aEm1q04W2-S8bNvRf7Fzb2NhASCpFIvY933eOv3se114gs0IOkRTpdDrTvFSSOEQRNCuxYUEsIMJJBCLNxlFrc0u5va-s7bZubSk_rMsHj-XVgzSfFfh8qUCleYLgBGGWIoosn6NFdo7Ht6QiKgMZL4hlllNt2HmhJlEE4mbxJfyoUIIoI_DF5AqoShF5lqsi7TYPkU1zbBZoeCkpiayECvMUEWNSF-KJc5lkZGo6ynyu2WbnsxwKioidLfEFbIstp-I0E83EEzSTSPPqA-Y5YS5bZEWJSNEaMJkKJFIfL1SLbAWCzZZE4HFAqBcRRxFpsiqBcZpc0oyZGD3YFBYNw0hseiaVSQWCUYaiqJkqEiN8pSaFOLZaNRjKLF9jOWcJr3TxKCD25gNN6XZ9R15faz3dtzEnz0dPzdt8eV_-sa5sPW7v_Qr4NEnolNHoVBLY4MfKUxGFbLWLAAyUzTXgSKf592mEKlWEZv-7tHz-AuLPGAFOBxJJJhOKRzPTifjUNKjAwD4FUlgICZUrHGyj7ofQHeWEbJcb-c87yu5z5e62vL8i15_Jq6vKzfXW74ftvTVlp648PBroCjxAzOWKZOMXcrmT8ZuamNSBs5BwwMwWIAutAnEl3imirHQseQDjTOJkAGdthg6kAl8Z5tsHzTfXtQp7--BKmvwa_JXKFUGUWN2nBj7LxN5VVb2Kn19v793uruUebTuBmr5OJutQB1bqcOCcpgIIzMTsAhODFR7kx6azya8pDg7ooHX7hhKre9HDRwf7cOFAs_PcsXTyn3flyzvy4YaFNAFShFLxxBeZJJP4jEkAebwmJZH4LRKtPiS2MECMbrk7Fdo-fNZsvG7vLUOFKteuK5uH8s0D-F_e3JdfXm69-qW1vWzKNUOHM6FPmNC5UwZQy-Xlq69xANeetus3dO8GrSrYFINVi4eSfZiJwdRA2mxstHC_ugKima0HmmKrsaE8WpF_vqH81WitX2k2GrAGTe2M6VptvmoFR2LhOLguI4nt3TRrleB-q5Zk86iuLO-ZbJ_Gg7jpnoZLCw1Adi7Mo_aXxOkEAVz76W_Ko3W7ypgwFI_RkVQkHusbnY1prohEpDysNxsvNIZvhBLffW1sq6aGdvPfS0_gz0jeaCB2diacxJUVZflCuFZFw5-hY9l68BOUhrKype7vSvPVvvk48ZmUOuM65WDU2vHJAiXQfrMhXz2U7-2YZHpSv2OXUVmV7frbP27Y-kvX6YFwOj_qnvjWtVFjEbZJNTX3n-g5LagG1qrpV0mqmTXDiRFLkvamrd1359LInDQ_ZIKDC5tPzGE3t91U52ffoUp8iC3x6QOI-7XC_ig1bnOKdqK2PIpNjN7AR_rNUpXavG9c2mZVzyA_3rDPgvnkg02whX2I4We1pvW7Hge6M3vQ8crm42THgL7EveXYJ7VOt4FYHhtZ_8EPUJudBWvux6IWtDZGW_dX9Ce5uyevP1Ea9faLv6ErEl2tc7F7avbpNvZdti6aHt9eut8-uiqvPoYpp50RFi3HDfue6_hRg6D5ck3jUO68aDXuQQtsHu0qt_6RG4ft3d3Fvuk10luivQcdVSlLO1bv4DcdfnDmjtgiHektYdwUO_OjQ5XFaUWjPGG2aCJf4jjqvbw_78gLvOScQ6VCUaIuClzuAxvIelzWgV6G9vjd4fBQtKVmdHCQYbw-n284uKsqdKjPQ0-6mBNArdO_E3Uo5Ge8Qd9QdOeNTccxPtrjc_tcQ3HG-cAAAuwkQH0SdwQK-twAHQ6zHA90sMvlCYaZicmhYOtLro6mA7R3gvEFetGkgywjscyWciRFLmCuNKl-iUiTuD3lUJ6tcTDH0_wSmLI1SUjO81mSksQacpCiUCsUSUr9COEga5Uc5ARdYgsiW-6YVFj-S0EwLlGuJAnilPYRRf2W4iALIvauMyI-B9sr1HiJpMbGx1UCklogv4PLSf-oy-Oe8LkmvW6v3-uH1XmS8oyN-sf8_kkXmPu8bs_EkoP8XnXpGvWNeTze8XG_d8zjdk363Uv_Awp3lrQ)
+
+
+```mermaid
+---
+title: DataForge - AI仿真数据生成工具
+config:
+  look: handDrawn
+  theme: normal
+  layout: elk
+  elk:
+    mergeEdges: false
+    nodePlacementStrategy: NETWORK_SIMPLEX
+    cycleBreakingStragy: MODEL_ORDER
+---
+
+flowchart TD
+    START@{shape: circle, label: "start"}
+    END@{shape: circle, label: "END"}
+    INPUT_TABLE:::UserInputClass@{shape: manual-input, label: "期望生成表名称"}
+    INPUT_SQL:::UserInputClass@{shape: manual-input, label: "业务查询SQL" }
+    LLMS:::LLMClass@{shape: procs, label: "LLM服务\n(Deepseek、QWen)"}
+    PARSE_COL_PROMPT_TEMPLATE:::templateClass@{ shape: doc, label: "字段映射填充提示词模板"}
+    PARSE_COL_PROMPT:::promptClass@{ shape: odd, label: "字段映射填充提示词" }
+    PARSE_COL_AGNET:::agentClass@{shape: lin-rect, label: "字段映射填充Agent" }
+    SAMPLE_DATA["字段样例数据集"]:::importantClass
+    GEN_PROMPT_TEMPLATE:::templateClass@{ shape: doc, label: "仿真测试数据生成提示词模板" }
+    GEN_PROMPT:::promptClass@{ shape: odd, label: "仿真测试数据生成提示词" }
+    GEN_FAKE_DATA_AGENT:::agentClass@{ shape: lin-rect, label: "仿真测试数据生成Agent" }
+    FAKE_DATA_SAMPLE:::DBClass@{shape: rect, label: "仿真测试数据集"}
+    FAKE_DATA_DB:::DBClass@{shape: lin-cyl, label: "仿真测试数据存储库"}
+    FAKER_FACTORY_SERVER:::OutServerClass@{shape: tag-rect, label: "仿真数据生成服务\n身份证、手机号、地市编码" }
+    UDF_CHECKER:::OutServerClass@{shape: tag-rect, label: "udf函数执行服务" }
+    DATA_META_DOCS:::OutServerClass@{ shape: tag-rect, label: "数仓知识库服务\n(表结构和治理任务SQL)" }
+    TABLE_COL_INFO:::metaClass@{shape: lin-doc, label: "表字段信息" }
+    JOB_SQL_INFO:::metaClass@{shape: lin-doc, label: "治理SQL信息" }
+    SQL_PARSER:::OutServerClass@{ shape: tag-rect, label: "SQL解析服务" }
+    SQL_CONDITION:::metaClass@{shape: rect, label: "where条件
+    join条件
+    udf函数字段
+    ……"}
+    LANGUFSE:::LangFuseClass@{ shape: tag-rect, label: "LangFuse监测感知评估" }
+    OUTPUT_SERVER:::DBClass@{ shape: tag-rect, label: "数据输出器" }
+    CHECKER_AGENT:::agentClass@{ shape: lin-rect, label: "仿真数据校验Agent" }
+
+
+    START --> INPUT_TABLE
+    START -.-> INPUT_SQL --> SQL_PARSER
+    INPUT_TABLE --> DATA_META_DOCS
+    DATA_META_DOCS --> TABLE_COL_INFO & JOB_SQL_INFO
+    JOB_SQL_INFO --> SQL_PARSER --> SQL_CONDITION
+
+    PARSE_COL_PROMPT_TEMPLATE & TABLE_COL_INFO --> PARSE_COL_PROMPT --> PARSE_COL_AGNET
+    PARSE_COL_AGNET <--> LLMS & FAKER_FACTORY_SERVER
+    PARSE_COL_AGNET --> SAMPLE_DATA
+
+    SQL_CONDITION & JOB_SQL_INFO & TABLE_COL_INFO & GEN_PROMPT_TEMPLATE --> GEN_PROMPT --> GEN_FAKE_DATA_AGENT
+    SAMPLE_DATA --> GEN_FAKE_DATA_AGENT
+    GEN_FAKE_DATA_AGENT <--> LLMS
+    GEN_FAKE_DATA_AGENT --> FAKE_DATA_SAMPLE
+
+
+    CHECKER__PROMPT_TEMPLATE:::templateClass@{ shape: doc, label: "数据校验提示词模板"}
+    CHECKER__PROMPT:::promptClass@{ shape: odd, label: "数据校验提示词" }
+    CHECKER__PROMPT_TEMPLATE & SQL_CONDITION & JOB_SQL_INFO & TABLE_COL_INFO --> CHECKER__PROMPT
+    FAKE_DATA_SAMPLE & CHECKER__PROMPT --> CHECKER_AGENT <-->|校验生成的数据是否满足udf where条件| UDF_CHECKER
+    CHECKER_AGENT <--> LLMS
+    CHECKER_AGENT -->|校验通过入库存储| FAKE_DATA_DB
+
+    CHECKER_AGENT -.->|校验不通过时给出修改建议| GEN_FAKE_DATA_AGENT & PARSE_COL_AGNET
+
+    FAKE_DATA_DB --> OUTPUT_SERVER --> END
+
+    GEN_FAKE_DATA_AGENT & CHECKER_AGENT & PARSE_COL_AGNET -.-> LANGUFSE
+
+    classDef agentClass fill:#f9f,font-weight:bold;
+    classDef importantClass fill:#6ED391FF,font-weight:bold;
+    classDef templateClass fill:#BEE6888F,font-weight:bold;
+    classDef promptClass fill:#83D70E8F,font-weight:bold;
+    classDef OutServerClass fill:#6CC9E6B8,font-weight:bold;
+    classDef LLMClass fill:#E8D38180,font-weight:bold;
+    classDef metaClass fill:#E8818180,font-weight:bold;
+    classDef DBClass fill:#BB81E880,font-weight:bold;
+    classDef LangFuseClass fill:#003BFE57,font-weight:bold;
+    classDef UserInputClass fill:#DAD65E8A,font-weight:bold;
+```
 
 ```mermaid
 ---

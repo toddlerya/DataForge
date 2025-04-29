@@ -1,0 +1,79 @@
+---
+title: DataForge - AI仿真数据生成工具
+config:
+  look: handDrawn
+  theme: normal
+  layout: elk
+  elk:
+    mergeEdges: false
+    nodePlacementStrategy: NETWORK_SIMPLEX
+    cycleBreakingStragy: MODEL_ORDER
+---
+flowchart TD
+    START@{shape: circle, label: "start"}
+    END@{shape: circle, label: "END"}
+    INPUT_TABLE:::UserInputClass@{shape: manual-input, label: "期望生成表名称"}
+    INPUT_SQL:::UserInputClass@{shape: manual-input, label: "业务查询SQL" }
+    LLMS:::LLMClass@{shape: procs, label: "LLM服务\n(Deepseek、QWen)"}
+    PARSE_COL_PROMPT_TEMPLATE:::templateClass@{ shape: doc, label: "字段映射填充提示词模板"}
+    PARSE_COL_PROMPT:::promptClass@{ shape: odd, label: "字段映射填充提示词" }
+    PARSE_COL_AGNET:::agentClass@{shape: lin-rect, label: "字段映射填充Agent" }
+    SAMPLE_DATA["字段样例数据集"]:::importantClass
+    GEN_PROMPT_TEMPLATE:::templateClass@{ shape: doc, label: "仿真测试数据生成提示词模板" }
+    GEN_PROMPT:::promptClass@{ shape: odd, label: "仿真测试数据生成提示词" }
+    GEN_FAKE_DATA_AGENT:::agentClass@{ shape: lin-rect, label: "仿真测试数据生成Agent" }
+    FAKE_DATA_SAMPLE:::DBClass@{shape: rect, label: "仿真测试数据集"}
+    FAKE_DATA_DB:::DBClass@{shape: lin-cyl, label: "仿真测试数据存储库"}
+    FAKER_FACTORY_SERVER:::OutServerClass@{shape: tag-rect, label: "仿真数据生成服务\n身份证、手机号、地市编码" }
+    UDF_CHECKER:::OutServerClass@{shape: tag-rect, label: "udf函数执行服务" }
+    DATA_META_DOCS:::OutServerClass@{ shape: tag-rect, label: "数仓知识库服务\n(表结构和治理任务SQL)" }
+    TABLE_COL_INFO:::metaClass@{shape: lin-doc, label: "表字段信息" }
+    JOB_SQL_INFO:::metaClass@{shape: lin-doc, label: "治理SQL信息" }
+    SQL_PARSER:::OutServerClass@{ shape: tag-rect, label: "SQL解析服务" }
+    SQL_CONDITION:::metaClass@{shape: rect, label: "where条件
+    join条件
+    udf函数字段
+    ……"}
+    LANGUFSE:::LangFuseClass@{ shape: tag-rect, label: "LangFuse监测感知评估" }
+    OUTPUT_SERVER:::DBClass@{ shape: tag-rect, label: "数据输出器" }
+    CHECKER_AGENT:::agentClass@{ shape: lin-rect, label: "仿真数据校验Agent" }
+    
+    START --> INPUT_TABLE 
+    START -.-> INPUT_SQL --> SQL_PARSER 
+    INPUT_TABLE --> DATA_META_DOCS
+    DATA_META_DOCS --> TABLE_COL_INFO & JOB_SQL_INFO
+    JOB_SQL_INFO --> SQL_PARSER --> SQL_CONDITION
+
+    PARSE_COL_PROMPT_TEMPLATE & TABLE_COL_INFO --> PARSE_COL_PROMPT --> PARSE_COL_AGNET
+    PARSE_COL_AGNET <--> LLMS & FAKER_FACTORY_SERVER
+    PARSE_COL_AGNET --> SAMPLE_DATA
+
+    SQL_CONDITION & JOB_SQL_INFO & TABLE_COL_INFO & GEN_PROMPT_TEMPLATE --> GEN_PROMPT --> GEN_FAKE_DATA_AGENT
+    SAMPLE_DATA --> GEN_FAKE_DATA_AGENT
+    GEN_FAKE_DATA_AGENT <--> LLMS
+    GEN_FAKE_DATA_AGENT --> FAKE_DATA_SAMPLE
+
+
+    CHECKER__PROMPT_TEMPLATE:::templateClass@{ shape: doc, label: "数据校验提示词模板"}
+    CHECKER__PROMPT:::promptClass@{ shape: odd, label: "数据校验提示词" }
+    CHECKER__PROMPT_TEMPLATE & SQL_CONDITION & JOB_SQL_INFO & TABLE_COL_INFO --> CHECKER__PROMPT
+    FAKE_DATA_SAMPLE & CHECKER__PROMPT --> CHECKER_AGENT <-->|校验生成的数据是否满足udf where条件| UDF_CHECKER
+    CHECKER_AGENT <--> LLMS
+    CHECKER_AGENT -->|校验通过入库存储| FAKE_DATA_DB
+
+    CHECKER_AGENT -.->|校验不通过时给出修改建议| GEN_FAKE_DATA_AGENT & PARSE_COL_AGNET
+
+    FAKE_DATA_DB --> OUTPUT_SERVER --> END
+
+    GEN_FAKE_DATA_AGENT & CHECKER_AGENT & PARSE_COL_AGNET -.-> LANGUFSE
+
+    classDef agentClass fill:#f9f,font-weight:bold;
+    classDef importantClass fill:#6ED391FF,font-weight:bold;
+    classDef templateClass fill:#BEE6888F,font-weight:bold;
+    classDef promptClass fill:#83D70E8F,font-weight:bold;
+    classDef OutServerClass fill:#6CC9E6B8,font-weight:bold;
+    classDef LLMClass fill:#E8D38180,font-weight:bold;
+    classDef metaClass fill:#E8818180,font-weight:bold;
+    classDef DBClass fill:#BB81E880,font-weight:bold;
+    classDef LangFuseClass fill:#003BFE57,font-weight:bold;
+    classDef UserInputClass fill:#DAD65E8A,font-weight:bold;
