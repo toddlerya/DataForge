@@ -10,10 +10,12 @@ import uuid
 import json
 
 import chainlit as cl
+import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
 from agent.field_map_fill_agent.mapping_agent import mapping_graph
+
 
 # 加载 .env 文件
 load_dotenv()
@@ -26,7 +28,12 @@ os.environ["CHAINLIT_MAX_MESSAGE_SIZE"] = "10"  # 以MB为单位
 async def start_chat():
     # Store thread ID in user session for later use
     cl.user_session.set("thread_id", str(uuid.uuid4()))
-    await cl.Message(content="你想构造的数据库表名是什么？").send()
+
+    text_content = "目前支持的表为盘古或数据域管理的表."
+    elements = [
+        cl.Text(name="说明", content=text_content, display="inline")
+    ]
+    await cl.Message(content="你想构造的数据库表名是什么？", elements=elements).send()
 
 
 @cl.step(type="tool", name="查询表元数据信息")
@@ -71,11 +78,18 @@ async def main(message: cl.Message):
             raw_fields_info = await get_table_metadata(table_en_name)
 
             # 发送响应给用户
-            await cl.Message(
-                content=f"# {cl.user_session.get('table_en_name')}表字段配置信息:\n"
-                        f"{json.dumps(raw_fields_info, ensure_ascii=False, indent=2)}",
-                language="python",
-            ).send()
+            if len(raw_fields_info) > 1:
+                df = pd.DataFrame(raw_fields_info)[["ename", "name", "desc"]]
+                elements = [cl.Dataframe(data=df, display="inline",
+                                         name=f"{cl.user_session.get('table_en_name')}表字段信息")]
+                await cl.Message(content=f"{cl.user_session.get('table_en_name')}表字段信息",
+                                 elements=elements).send()
+            else:
+                await cl.Message(
+                    content=f"# {cl.user_session.get('table_en_name')}表字段配置信息:\n"
+                            f"{json.dumps(raw_fields_info, ensure_ascii=False, indent=2)}",
+                    language="python",
+                ).send()
 
             await cl.Message(
                 content="上述表元数据信息是否正确？如果正确，请输入“正确”，即将开始数据生成任务。"
