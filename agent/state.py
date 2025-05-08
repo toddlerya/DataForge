@@ -22,7 +22,7 @@ class TableRawFiled(BaseModel):
     cn_name: str = Field(description="字段中文名称", default="")
     en_name: str = Field(description="字段英文名称", default="")
     desc: str = Field(description="字段描述", default="")
-    field_type: str = Field(description="字段类型", default="")
+    field_type: str = Field(description="字段类型", default="string")
 
 
 class DataForgeState(MessagesState):

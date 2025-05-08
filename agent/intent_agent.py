@@ -52,15 +52,15 @@ def should_continue(state: DataForgeState):
     return END
 
 
-builder = StateGraph(DataForgeState)
-builder.add_node("analyze_agent", analyze_agent)
-builder.add_node("confirm", confirm)
-builder.add_edge(START, "analyze_agent")
-builder.add_edge("analyze_agent", "confirm")
-builder.add_conditional_edges("confirm", should_continue, ["analyze_agent", END])
+intent_builder = StateGraph(DataForgeState)
+intent_builder.add_node("analyze_agent", analyze_agent)
+intent_builder.add_node("confirm", confirm)
+intent_builder.add_edge(START, "analyze_agent")
+intent_builder.add_edge("analyze_agent", "confirm")
+intent_builder.add_conditional_edges("confirm", should_continue, ["analyze_agent", END])
 
 memory = MemorySaver()
-intent_graph = builder.compile(interrupt_before=["confirm"], checkpointer=memory)
+intent_graph = intent_builder.compile(interrupt_before=["confirm"], checkpointer=memory)
 
 
 if __name__ == "__main__":

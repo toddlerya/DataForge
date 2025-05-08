@@ -15,6 +15,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
+from agent.graph import data_forge_graph
 from agent.intent_agent import intent_graph
 from agent.state import TableRawFiled, UserIntentSchema
 
@@ -69,7 +70,7 @@ async def get_table_metadata(table_en_name: str) -> List[TableRawFiled]:
 @cl.step(type="llm", name="意图分析")
 async def input_intent_analyze(user_input: str, thread: dict) -> UserIntentSchema:
     # 调用大模型对用户输入信息进行意图识别拆解
-    event = await cl.make_async(intent_graph.invoke)(
+    event = await cl.make_async(data_forge_graph.invoke)(
         {"user_input": user_input}, thread, stream_mode="values"
     )
     return event["user_intent"]
@@ -81,11 +82,8 @@ async def main(message: cl.Message):
     logger.info(thread_id + ":" + message.content)
     thread = {"configurable": {"thread_id": thread_id}}
 
-    if message.command == "Picture":
-        # User is using the Picture command
-        pass
-
     if message.content.strip() == "正确":
+        await cl.Message(content="正在获取表元数据信息...").send()
         start_time = time.time()
         intent_graph.update_state(thread, {"confirmed": True}, as_node="confirm")
 
@@ -110,7 +108,7 @@ async def main(message: cl.Message):
                 elements = [
                     cl.Dataframe(
                         data=df,
-                        display="inline",
+                        display="page",
                         name=f"{each_table_en_name}表字段信息",
                     )
                 ]
@@ -124,16 +122,17 @@ async def main(message: cl.Message):
                     f"{json.dumps(each_table_raw_fields_info, ensure_ascii=False, indent=2)}",
                     language="python",
                 ).send()
-        # event = await cl.make_async(mapping_graph.invoke)(
-        #     None, thread, stream_mode="values"
-        # )
-        # raw_fields_info = event.get("raw_fields_info", [])
+        await cl.Message(content="准备生成测试数据...").send()
+        event = await cl.make_async(data_forge_graph.invoke)(
+            None, thread, stream_mode="values"
+        )
+        faker_data = event["faker_data"]
         logger.info("完成")
         end_time = time.time()
         elapsed_time = end_time - start_time
-        cost_msg = f"程序逻辑运行耗时: {elapsed_time:.2f} 秒"
+        cost_msg = f"运行耗时: {elapsed_time:.2f} 秒"
         logger.info(cost_msg)
-        await cl.Message(content="准备生成测试数据...").send()
+        await cl.Message(content=faker_data, language="python").send()
     else:
         try:
             user_input = message.content.strip()
