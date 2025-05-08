@@ -4,18 +4,17 @@
 # @FileName: intent_agent.py
 # @Project:  DataForge
 
+from langchain_core.messages import HumanMessage, SystemMessage
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
-from langchain_core.messages import HumanMessage, SystemMessage
-
-from agent.input_analyze_agent.state import UserIntentSchema, UserIntentState
 from agent.llm import chat_llm
 from agent.prompt import prompt_intent_analyse
+from agent.state import DataForgeState, UserIntentSchema
 
 
-def analyze_agent(state: UserIntentState) -> dict:
+def analyze_agent(state: DataForgeState) -> dict:
     user_input = state.get("user_input", "")
     messages = state.get("messages", [])
     logger.debug(f"user_input: {user_input} messages: {messages}")
@@ -36,12 +35,12 @@ def analyze_agent(state: UserIntentState) -> dict:
     return {"user_intent": user_intent}
 
 
-def confirm(state: UserIntentState):
+def confirm(state: DataForgeState):
     """No-op node that should be interrupted on"""
     pass
 
 
-def should_continue(state: UserIntentState):
+def should_continue(state: DataForgeState):
     """Return the next node to execute"""
 
     # Check if human feedback
@@ -53,7 +52,7 @@ def should_continue(state: UserIntentState):
     return END
 
 
-builder = StateGraph(UserIntentState)
+builder = StateGraph(DataForgeState)
 builder.add_node("analyze_agent", analyze_agent)
 builder.add_node("confirm", confirm)
 builder.add_edge(START, "analyze_agent")
@@ -68,7 +67,8 @@ if __name__ == "__main__":
     print(intent_graph.get_graph().draw_mermaid())
     thread = {"configurable": {"thread_id": "4895b601-c056-4af3-a1f3-6dfa03837744"}}
     event = intent_graph.invoke(
-        {"user_input": """数据库表名称:
+        {
+            "user_input": """数据库表名称:
 adm_test
 ods_test
 期望表约束条件:
@@ -76,5 +76,8 @@ adm_test: from_city_code != to_city_code and datetime = 20250508 and ods_test.ph
 ods_test: idcard is not null and phone is not null
 期望生成数据条数:
 adm_test: 10
-ods_test: 20"""}, thread, stream_mode="values"
+ods_test: 20"""
+        },
+        thread,
+        stream_mode="values",
     )

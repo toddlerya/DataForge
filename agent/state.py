@@ -1,19 +1,35 @@
+#!/usr/bin/env python
 # coding: utf-8
-# @Time:     2025/5/7 10:18
-# @Author:   toddlerya
-# @FileName: state.py
-# @Project:  DataForge
+# @File    :   state.py
+# @Time    :   2025/05/08 15:43:55
+# @Author  :   toddlerya
+# @Desc    :   None
 
-from typing import List, Dict
 
-from pydantic import BaseModel, Field
+from typing import Dict, List
+
 from langgraph.graph import MessagesState
+from pydantic import BaseModel, Field
+
+
+class UserIntentSchema(BaseModel):
+    table_en_names: List[str] = Field(description="表英文名称")
+    table_conditions: Dict[str, str] = Field(description="表字段的约束条件")
+    table_data_count: Dict[str, int] = Field(description="表期望生成的数据条数")
 
 
 class TableRawFiled(BaseModel):
-    cn_name: str = Field(description="字段中文名称")
-    en_name: str = Field(description="字段英文名称")
-    desc: str = Field(description="字段描述")
+    cn_name: str = Field(description="字段中文名称", default="")
+    en_name: str = Field(description="字段英文名称", default="")
+    desc: str = Field(description="字段描述", default="")
+    field_type: str = Field(description="字段类型", default="")
+
+
+class DataForgeState(MessagesState):
+    user_input: str
+    user_intent: UserIntentSchema
+    table_metadata: List[TableRawFiled]
+    confirmed: bool
 
 
 class TableFieldMapping(BaseModel):

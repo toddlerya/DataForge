@@ -3,11 +3,11 @@
 # @Author:   toddlerya
 # @FileName: mapping_agent.py
 # @Project:  DataForge
-from loguru import logger
-from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
+from loguru import logger
 
-from agent.field_map_fill_agent.state import FieldMappingState
+from agent.state import FieldMappingState
 
 
 def create_table_raw_field_info(state: FieldMappingState):
