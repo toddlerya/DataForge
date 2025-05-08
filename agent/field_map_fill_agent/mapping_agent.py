@@ -18,9 +18,7 @@ def create_table_raw_field_info(state: FieldMappingState):
     from agent.field_map_fill_agent.mock_data import MockTableMetadata
 
     if table_en_name.upper() in MockTableMetadata().__dir__():
-        raw_fields_info = MockTableMetadata().__getattribute__(
-            table_en_name.upper()
-        )
+        raw_fields_info = MockTableMetadata().__getattribute__(table_en_name.upper())
     else:
         raw_fields_info = "未查询到该表的字段配置信息"
     return {"raw_fields_info": raw_fields_info}

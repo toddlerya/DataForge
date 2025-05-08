@@ -8,11 +8,17 @@
 import os
 
 from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
+
+
+# 加载 .env 文件
+load_dotenv()
 
 chat_llm = ChatOpenAI(
     base_url=os.getenv("SILICONFLOW_BASE_URL"),
     api_key=os.getenv("SILICONFLOW_API_KEY"),
-    model="Qwen/Qwen3-8B",
+    # model="Qwen/Qwen3-8B",
+    model="THUDM/GLM-4-9B-0414",
     # model="Qwen/Qwen3-235B-A22B",
     temperature=0,
 )

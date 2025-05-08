@@ -12,6 +12,7 @@ dependencies = [
     "chromadb>=0.6.3",
     "faker>=37.1.0",
     "fastapi>=0.115.12",
+    "httpx>=0.28.1",
     "langchain>=0.3.22",
     "langchain-community>=0.3.20",
     "langchain-mcp-adapters>=0.0.7",
