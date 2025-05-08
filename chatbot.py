@@ -15,6 +15,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
+from agent.gen_faker_data_agent import gen_faker_data_graph
 from agent.graph import data_forge_graph
 from agent.intent_agent import intent_graph
 from agent.state import TableRawFiled, UserIntentSchema
@@ -123,7 +124,7 @@ async def main(message: cl.Message):
                     language="python",
                 ).send()
         await cl.Message(content="准备生成测试数据...").send()
-        event = await cl.make_async(data_forge_graph.invoke)(
+        event = await cl.make_async(gen_faker_data_graph.invoke)(
             None, thread, stream_mode="values"
         )
         faker_data = event["faker_data"]
