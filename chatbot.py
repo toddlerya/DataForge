@@ -18,7 +18,7 @@ from loguru import logger
 from agent.gen_faker_data_agent import gen_faker_data_graph
 from agent.graph import data_forge_graph
 from agent.intent_agent import intent_graph
-from agent.state import TableRawFiled, UserIntentSchema
+from agent.state import TableRawFieldSchema, UserIntentSchema
 
 # 加载 .env 文件
 load_dotenv()
@@ -48,7 +48,7 @@ async def start_chat():
 
 
 @cl.step(type="tool", name="查询表元数据信息")
-async def get_table_metadata(table_en_name: str) -> List[TableRawFiled]:
+async def get_table_metadata(table_en_name: str) -> List[TableRawFieldSchema]:
     # 查询知识库获取表的字段配置信息
     # 模拟查询
     from agent.mock_data import MockTableMetadata
@@ -57,13 +57,13 @@ async def get_table_metadata(table_en_name: str) -> List[TableRawFiled]:
     if table_en_name.upper() in MockTableMetadata().__dir__():
         raw_fields_info = MockTableMetadata().__getattribute__(table_en_name.upper())
         raw_fields_data = [
-            TableRawFiled(**ele).model_dump()
+            TableRawFieldSchema(**ele).model_dump()
             for ele in raw_fields_info
             if isinstance(ele, dict)
         ]
     else:
         raw_fields_info = ["未查询到该表的字段配置信息"]
-        raw_fields_data = [TableRawFiled().model_dump()]
+        raw_fields_data = [TableRawFieldSchema().model_dump()]
     cl.user_session.set("raw_fields_data", raw_fields_data)
     return raw_fields_data
 

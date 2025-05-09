@@ -10,14 +10,17 @@ from langgraph.graph import END, START, StateGraph
 
 from agent.gen_faker_data_agent import gen_faker_data_builder
 from agent.intent_agent import intent_builder
+from agent.mapping_agent import mapping_builder
 from agent.state import DataForgeState
 
 builder = StateGraph(DataForgeState)
 builder.add_node("input_intent_agent", intent_builder.compile())
+builder.add_node("input_mapping_agent", mapping_builder.compile())
 builder.add_node("input_gen_faker_data_agent", gen_faker_data_builder.compile())
 
 builder.add_edge(START, "input_intent_agent")
-builder.add_edge("input_intent_agent", "input_gen_faker_data_agent")
+builder.add_edge("input_intent_agent", "input_mapping_agent")
+builder.add_edge("input_mapping_agent", "input_gen_faker_data_agent")
 builder.add_edge("input_gen_faker_data_agent", END)
 
 memory = MemorySaver()

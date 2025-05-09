@@ -11,11 +11,11 @@ from loguru import logger
 
 from agent.llm import chat_llm
 from agent.prompt import prompt_gen_faker_data
-from agent.state import DataForgeState
+from agent.state import DataForgeState, UserIntentSchema
 
 
 def gen_faker_data_agent(state: DataForgeState) -> dict:
-    user_intent = state.get("user_intent", {})
+    user_intent = state.get("user_intent", UserIntentSchema())
     table_en_names = user_intent.table_en_names
     table_conditions = user_intent.table_conditions
     table_data_count = user_intent.table_data_count
