@@ -71,8 +71,8 @@ if __name__ == "__main__":
                     "ODS_POL_EIV_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
                 },
                 table_data_count={
-                    "ADM_DOMAIN_WHOIS": 10,
-                    "ODS_POL_EIV_DOMAIN_WHOIS": 20,
+                    "ADM_DOMAIN_WHOIS": 2,
+                    "ODS_POL_EIV_DOMAIN_WHOIS": 3,
                 },
             ),
         },

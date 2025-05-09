@@ -33,13 +33,11 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
     logger.debug(f"table_en_names: {table_en_names}")
     logger.debug(f"table_conditions: {table_conditions}")
     logger.debug(f"table_data_count: {table_data_count}")
-    logger.debug(f"table_metadata_array: {table_metadata_array}")
     logger.debug(
         f"output_fields: {[ele.output_fields for ele in table_metadata_array]}"
     )
 
     # 生成测试数据
-    faker_data = []
     output_structure = list()
     for table_metadata in table_metadata_array:
         ouput_schema = create_model_from_dict(
@@ -51,7 +49,6 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
         __config__=ConfigDict(arbitrary_types_allowed=True),
         final_output=(Union[output_structure]),
     )
-    print(union_model.model_json_schema())
     structured_llm = chat_llm.with_structured_output(union_model)
     system_message = prompt_gen_faker_data.format(
         table_en_name_array=table_en_names,
@@ -60,39 +57,14 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
         table_data_count_array=table_data_count,
     )
     # logger.debug(f"system_message: {system_message}")
-    each_faker_data = structured_llm.invoke(
+    fake_data = structured_llm.invoke(
         [
             system_message,
             "请根据表字段信息生成测试数据",
         ]
     )
-    logger.debug(f"each_faker_data:  {each_faker_data}")
-    # for table_metadata in table_metadata_array:
-    #     output_structure = OutputDataStructureSchema()
-    #     ouput_schema = create_model_from_dict(
-    #         data=table_metadata.output_fields, model_name=table_metadata.table_en_name
-    #     )
-    #     output_structure.data = {table_metadata.table_en_name: [ouput_schema]}
-    #     structured_llm = chat_llm.with_structured_output(output_structure)
-    #     system_message = prompt_gen_faker_data.format(
-    #         table_en_name_array=table_en_names,
-    #         table_field_info_array=[ele.model_dump() for ele in table_metadata_array],
-    #         table_conditions_array=table_conditions,
-    #         table_data_count_array=table_data_count,
-    #     )
-    #     logger.debug(f"system_message: {system_message}")
-    #     each_faker_data = structured_llm.invoke(
-    #         [
-    #             system_message,
-    #             "请根据表字段信息生成测试数据",
-    #         ]
-    #     )
-    #     logger.debug(
-    #         f"each_faker_data:  {type(each_faker_data).__name__} {each_faker_data}"
-    #     )
-    #     logger.debug(f"each_faker_data json: {each_faker_data.model_dump_json()}")
-    #     faker_data.append(each_faker_data)
-    return {"faker_data": faker_data}
+    logger.debug(f"fake_data:  {fake_data.final_output}")
+    return {"fake_data": fake_data.final_output}
 
 
 gen_faker_data_builder = StateGraph(DataForgeState)
@@ -118,8 +90,8 @@ if __name__ == "__main__":
                     "ODS_POL_EIV_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
                 },
                 table_data_count={
-                    "ADM_DOMAIN_WHOIS": 10,
-                    "ODS_POL_EIV_DOMAIN_WHOIS": 20,
+                    "ADM_DOMAIN_WHOIS": 2,
+                    "ODS_POL_EIV_DOMAIN_WHOIS": 3,
                 },
             ),
             "table_metadata_array": [

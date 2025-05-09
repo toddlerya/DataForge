@@ -62,9 +62,9 @@ class OutputDataStructureSchema(BaseModel):
 class DataForgeState(MessagesState):
     user_input: str
     user_intent: UserIntentSchema
-    table_metadata_array: List[TableMetadataSchema]
-    faker_data: OutputDataStructureSchema
     confirmed: bool
+    table_metadata_array: List[TableMetadataSchema]
+    fake_data: OutputDataStructureSchema
 
 
 if __name__ == "__main__":
