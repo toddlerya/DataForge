@@ -7,9 +7,8 @@
 
 import os
 
-from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-
+from langchain_openai import ChatOpenAI
 
 # 加载 .env 文件
 load_dotenv()

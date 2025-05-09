@@ -69,15 +69,16 @@ if __name__ == "__main__":
     event = intent_graph.invoke(
         {
             "user_input": """数据库表名称:
-adm_test
-ods_test
+ADM_DOMAIN_WHOIS
+ODS_POL_EIV_DOMAIN_WHOIS
 期望表约束条件:
-adm_test: from_city_code != to_city_code and datetime = 20250508 and ods_test.phone = adm_test.phone
-ods_test: idcard is not null and phone is not null
+ADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL
+ODS_POL_EIV_DOMAIN_WHOIS: DOMAIN IS NOT NULL
 期望生成数据条数:
-adm_test: 10
-ods_test: 20"""
+ADM_DOMAIN_WHOIS: 10
+ODS_POL_EIV_DOMAIN_WHOIS: 20"""
         },
         thread,
         stream_mode="values",
     )
+    print(event)

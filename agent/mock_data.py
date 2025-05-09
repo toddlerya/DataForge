@@ -13,62 +13,10 @@ class MockTableMetadata:
             "cn_name": "系统数据唯一标识ID",
         },
         {
-            "desc": "参考数据来源系统字典，现场对标没有可以补充",
-            "en_name": "COL_SOUR_SYS",
-            "cn_name": "数据采集来源系统",
-        },
-        {
-            "desc": "参考数据来源系统字典对应的名称",
-            "en_name": "COL_SOUR_SYS_REMARK",
-            "cn_name": "数据采集来源系统备注",
-        },
-        {
-            "desc": "参考数据来源部门字典，现场对标没有可以补充",
-            "en_name": "COL_SOUR_DEP",
-            "cn_name": "数据采集来源部门",
-        },
-        {
-            "desc": "填入数据来源的六位行政区划代码",
-            "en_name": "COL_SOUR_PLAC",
-            "cn_name": "数据采集来源地",
-        },
-        {
-            "desc": "指数据接入到大数据平台的时间",
-            "en_name": "COLL_TIME",
-            "cn_name": "采集时间",
-        },
-        {
-            "desc": "从原始数据里面获取，填入STG表的原始表名",
-            "en_name": "COL_SOUR_TABLE",
-            "cn_name": "数据采集来源表名",
-        },
-        {
-            "desc": "从原始数据里面获取，填入STG表的主键值",
-            "en_name": "ORIG_DATA_ID",
-            "cn_name": "原始系统接入主键",
-        },
-        {
             "desc": "从原始数据里面获取，这里指业务的更新时间，选取数据的业务性质的更新时间，默认更新时间不可大于当前时间，对于无业务更新时间统一约定为-1",
             "en_name": "UPD_TIME",
             "cn_name": "更新时间",
         },
-        {
-            "desc": "从原始数据里面获取，指整条数据是否有效，从原始数据判断数据已经删除填写“1”，否则填“0”",
-            "en_name": "INFO_DELE_JUDGE_FLAG",
-            "cn_name": "信息删除_判断标识",
-        },
-        {
-            "desc": "数据敏感级别编码",
-            "en_name": "DATA_SENS_LEVE_NO",
-            "cn_name": "数据敏感级别编码",
-        },
-        {
-            "desc": "数据库回溯标识符",
-            "en_name": "DATBAS_RECSOU_TAG",
-            "cn_name": "数据库回溯标识符",
-        },
-        {"desc": "业务标签标识", "en_name": "BUS_TAG_FLAG", "cn_name": "业务标签标识"},
-        {"desc": "行为标签标识", "en_name": "BEH_TAG_FLAG", "cn_name": "行为标签标识"},
         {
             "desc": "字段说明：域名（二级域名，部分二级域名会带有国家后缀，也认定为二级域名）\n样例数据：www.qdsrmyy.com",
             "en_name": "DOMAIN",
@@ -115,17 +63,6 @@ class MockTableMetadata:
             "cn_name": "域名建立时间",
         },
         {
-            "desc": "字段说明：域名的更新时间\n样例数据：1612312997",
-            "en_name": "UPDATED_TIME",
-            "cn_name": "域名更新时间",
-        },
-        {
-            "desc": "字段说明：域名的到期时间\n样例数据：1646284971",
-            "en_name": "EXPIRATION_TIME",
-            "cn_name": "域名到期时间",
-        },
-        {"desc": "", "en_name": "REGISTRANT_ORGANIZATION", "cn_name": "注册单位名称"},
-        {
             "desc": "样例数据：JS",
             "en_name": "REGISTRANT_PROVINCE",
             "cn_name": "注册省名称",
@@ -140,17 +77,11 @@ class MockTableMetadata:
             "en_name": "REGISTRANT_EMAIL",
             "cn_name": "注册电子邮件",
         },
-        {"desc": "", "en_name": "ADMIN_ORGANIZATION", "cn_name": "管理员单位名称"},
-        {"desc": "", "en_name": "ADMIN_PROVINCE", "cn_name": "管理员省名称"},
-        {"desc": "", "en_name": "ADMIN_COUNTRY", "cn_name": "管理员国家名称"},
         {
             "desc": "样例数据：supervision@xinnet.com",
             "en_name": "ADMIN_EMAIL",
             "cn_name": "管理员电子邮件",
         },
-        {"desc": "", "en_name": "TECH_ORGANIZATION", "cn_name": "技术单位名称"},
-        {"desc": "", "en_name": "TECH_PROVINCE", "cn_name": "技术单位省名称"},
-        {"desc": "", "en_name": "TECH_COUNTRY", "cn_name": "技术单位国家名称"},
         {
             "desc": "样例数据：supervision@xinnet.com",
             "en_name": "TECH_EMAIL",
@@ -218,18 +149,6 @@ class MockTableMetadata:
             "desc": "管理员联系电子邮件",
             "en_name": "ADMIN_EMAIL",
             "cn_name": "管理员联系电子邮件",
-        },
-        {
-            "desc": "技术单位名称",
-            "en_name": "TECH_ORGANIZATION",
-            "cn_name": "技术单位名称",
-        },
-        {"desc": "技术单位省", "en_name": "TECH_PROVINCE", "cn_name": "技术单位省"},
-        {"desc": "技术单位国家", "en_name": "TECH_COUNTRY", "cn_name": "技术单位国家"},
-        {
-            "desc": "技术单位联系电子邮件",
-            "en_name": "TECH_EMAIL",
-            "cn_name": "技术单位联系电子邮件",
         },
         {"desc": "入库时间", "en_name": "CREATE_TIME", "cn_name": "入库时间"},
         {"desc": "最后更新时间", "en_name": "LAST_TIME", "cn_name": "最后更新时间"},

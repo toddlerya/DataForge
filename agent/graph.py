@@ -40,8 +40,10 @@ ADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL
 ODS_POL_EIV_DOMAIN_WHOIS: DOMAIN IS NOT NULL
 期望生成数据条数:
 ADM_DOMAIN_WHOIS: 10
-ODS_POL_EIV_DOMAIN_WHOIS: 20"""
+ODS_POL_EIV_DOMAIN_WHOIS: 20""",
+            "table_metadata_array": [],
         },
         thread,
         stream_mode="values",
     )
+    print(event)

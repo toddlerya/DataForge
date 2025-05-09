@@ -86,8 +86,9 @@ async def main(message: cl.Message):
     if message.content.strip() == "正确":
         await cl.Message(content="正在获取表元数据信息...").send()
         start_time = time.time()
-        intent_graph.update_state(thread, {"confirmed": True}, as_node="confirm")
-
+        intent_graph.update_state(
+            thread, {"confirmed": True, "table_metadata_array": []}, as_node="confirm"
+        )
         # 查询表的字段配置信息
         table_en_names = cl.user_session.get("user_intent").table_en_names
         for each_table_en_name in table_en_names:

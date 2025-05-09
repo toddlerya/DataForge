@@ -6,7 +6,7 @@
 # @Desc    :   None
 
 
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
@@ -37,8 +37,8 @@ class TableMetadataSchema(BaseModel):
     raw_fields_info: List[TableRawFieldSchema] = Field(
         description="原始字段信息", alias="raw_fields_info", default=[]
     )
-    output_fields: List[str] = Field(
-        description="输出字段信息", alias="output_fields", default=[]
+    output_fields: dict = Field(
+        description="输出字段信息", alias="output_fields", default={}
     )
     map_tool_fields_info: List[Dict[str, str]] = Field(
         description="映射生成工具字段信息", alias="map_fields_info", default=[]
@@ -55,8 +55,17 @@ class TableMetadataSchema(BaseModel):
     )
 
 
+class OutputDataStructureSchema(BaseModel):
+    data: Union[BaseModel]
+
+
 class DataForgeState(MessagesState):
     user_input: str
     user_intent: UserIntentSchema
-    table_metadata: List[TableMetadataSchema]
+    table_metadata_array: List[TableMetadataSchema]
+    faker_data: OutputDataStructureSchema
     confirmed: bool
+
+
+if __name__ == "__main__":
+    print(UserIntentSchema().__annotations__)

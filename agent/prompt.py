@@ -21,7 +21,6 @@ prompt_gen_faker_data = """你是数仓测试专家，你的任务是生成虚�
 {table_conditions_array}
 每张表所需的数据量:
 {table_data_count_array}
-要求输出结果为json格式
 """
 
 
