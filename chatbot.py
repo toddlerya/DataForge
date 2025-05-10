@@ -111,10 +111,11 @@ async def main(message: cl.Message):
                 ).send()
         else:
             await cl.Message(
-                content=f"# {table_metadata.table_en_name}表字段配置信息:\n"
-                f"{json.dumps([ele.model_dump() for ele in table_metadata.raw_fields_info], ensure_ascii=False, indent=2)}",
+                content=f"# 表字段配置信息:\n"
+                f"{json.dumps([ele.model_dump() for ele in table_metadata_array], ensure_ascii=False, indent=2)}",
                 language="python",
             ).send()
+
         await cl.Message(content="正在生成测试数据...").send()
         event = await cl.make_async(gen_faker_data_graph.invoke)(
             {
@@ -146,7 +147,6 @@ async def main(message: cl.Message):
                 elements=fake_elements,
                 content=f"{item_table_en_name}仿真测试数据",
             ).send()
-            cl.sleep(0.5)
         await cl.Message(
             content=f"仿真测试数据生成完成，耗时{elapsed_time:.2f}秒",
         ).send()
