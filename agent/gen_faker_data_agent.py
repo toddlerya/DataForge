@@ -84,14 +84,14 @@ if __name__ == "__main__":
         {
             "user_input": "数据库表名称:\nadm_test\nods_test\n期望表约束条件:\nadm_test: from_city_code != to_city_code and datetime = 20250508 and ods_test.phone = adm_test.phone\nods_test: idcard is not null and phone is not null\n期望生成数据条数:\nadm_test: 10\nods_test: 20",
             "user_intent": UserIntentSchema(
-                table_en_names=["ADM_DOMAIN_WHOIS", "ODS_POL_EIV_DOMAIN_WHOIS"],
+                table_en_names=["ADM_DOMAIN_WHOIS", "ODS_TC_DOMAIN_WHOIS"],
                 table_conditions={
                     "ADM_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
-                    "ODS_POL_EIV_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
+                    "ODS_TC_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
                 },
                 table_data_count={
                     "ADM_DOMAIN_WHOIS": 2,
-                    "ODS_POL_EIV_DOMAIN_WHOIS": 3,
+                    "ODS_TC_DOMAIN_WHOIS": 3,
                 },
             ),
             "table_metadata_array": [
@@ -298,7 +298,7 @@ if __name__ == "__main__":
                     human_update_count=-1,
                 ),
                 TableMetadataSchema(
-                    table_en_name="ODS_POL_EIV_DOMAIN_WHOIS",
+                    table_en_name="ODS_TC_DOMAIN_WHOIS",
                     table_cn_name="",
                     raw_fields_info=[
                         TableRawFieldSchema(

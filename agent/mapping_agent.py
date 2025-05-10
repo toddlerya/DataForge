@@ -63,16 +63,16 @@ if __name__ == "__main__":
     event = mapping_graph.invoke(
         {
             "table_metadata_array": [],
-            "user_input": "数据库表名称:\nADM_DOMAIN_WHOIS\nODS_POL_EIV_DOMAIN_WHOIS\n期望表约束条件:\nADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL\nODS_POL_EIV_DOMAIN_WHOIS: DOMAIN IS NOT NULL\n期望生成数据条数:\nADM_DOMAIN_WHOIS: 10\nODS_POL_EIV_DOMAIN_WHOIS: 20",
+            "user_input": "数据库表名称:\nADM_DOMAIN_WHOIS\nODS_TC_DOMAIN_WHOIS\n期望表约束条件:\nADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL\nODS_TC_DOMAIN_WHOIS: DOMAIN IS NOT NULL\n期望生成数据条数:\nADM_DOMAIN_WHOIS: 10\nODS_TC_DOMAIN_WHOIS: 20",
             "user_intent": UserIntentSchema(
-                table_en_names=["ADM_DOMAIN_WHOIS", "ODS_POL_EIV_DOMAIN_WHOIS"],
+                table_en_names=["ADM_DOMAIN_WHOIS", "ODS_TC_DOMAIN_WHOIS"],
                 table_conditions={
                     "ADM_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
-                    "ODS_POL_EIV_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
+                    "ODS_TC_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
                 },
                 table_data_count={
                     "ADM_DOMAIN_WHOIS": 2,
-                    "ODS_POL_EIV_DOMAIN_WHOIS": 3,
+                    "ODS_TC_DOMAIN_WHOIS": 3,
                 },
             ),
         },

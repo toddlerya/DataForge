@@ -15,5 +15,7 @@ wheels/
 # environments
 .env
 
-/.roo/
-/.files/
+
+.files
+
+data/output

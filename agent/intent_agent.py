@@ -70,13 +70,13 @@ if __name__ == "__main__":
         {
             "user_input": """数据库表名称:
 ADM_DOMAIN_WHOIS
-ODS_POL_EIV_DOMAIN_WHOIS
+ODS_TC_DOMAIN_WHOIS
 期望表约束条件:
 ADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL
-ODS_POL_EIV_DOMAIN_WHOIS: DOMAIN IS NOT NULL
+ODS_TC_DOMAIN_WHOIS: DOMAIN IS NOT NULL
 期望生成数据条数:
 ADM_DOMAIN_WHOIS: 2
-ODS_POL_EIV_DOMAIN_WHOIS: 3"""
+ODS_TC_DOMAIN_WHOIS: 3"""
         },
         thread,
         stream_mode="values",

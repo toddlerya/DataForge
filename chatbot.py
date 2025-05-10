@@ -5,7 +5,7 @@
 # @Project:  DataForge
 
 import json
-import os
+import pathlib
 import time
 import uuid
 from typing import List
@@ -24,9 +24,6 @@ from agent.state import TableMetadataSchema, UserIntentSchema
 load_dotenv()
 
 
-os.environ["CHAINLIT_MAX_MESSAGE_SIZE"] = "10"  # 以MB为单位
-
-
 @cl.on_chat_start
 async def start_chat():
 
@@ -36,13 +33,16 @@ async def start_chat():
     text_content = """目前支持的表为盘古或数据域管理的表。\n
 请输入需要构造的表名称，期望的表字段约束条件，期望生成的数据条数。\n
 ====输入内容示例====\n
-数据库表名称: \n1. adm_test\n2. ods_test\n
-期望表约束条件: \n
-1. adm_test: from_city_code != to_city_code and datetime = 20250508 and ods_test.phone = adm_test.phone\n
-2. ods_test: idcard is not null and phone is not null\n
-期望生成数据条数: \n
-1. adm_test: 10
-2. ods_test: 20"""
+数据库表名称:
+1. ADM_DOMAIN_WHOIS
+2. ODS_TC_DOMAIN_WHOIS\n
+期望表约束条件:
+1. ADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL AND ADM_DOMAIN_WHOIS.DOMAIN = ODS_TC_DOMAIN_WHOIS.DOMAIN AND ADM_DOMAIN_WHOIS.LAST_TIME >= '2025-04-08'
+2. ODS_TC_DOMAIN_WHOIS: DOMAIN IS NOT NULL AND ADM_DOMAIN_WHOIS.DOMAIN = ODS_TC_DOMAIN_WHOIS.DOMAIN\n
+期望生成数据条数:
+1. ADM_DOMAIN_WHOIS: 2
+2. ODS_TC_DOMAIN_WHOIS: 3
+"""
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(content="请输入测试数据构造需求", elements=elements).send()
 
@@ -97,16 +97,16 @@ async def main(message: cl.Message):
                         "field_type": "字段类型",
                     }
                 )
-                elements = [
+                table_metadata_elements = [
                     cl.Dataframe(
                         data=df,
-                        display="inline",
+                        display="side",
                         name=f"{table_metadata.table_en_name}表字段信息",
                     )
                 ]
                 await cl.Message(
                     content=f"{table_metadata.table_en_name}表字段信息",
-                    elements=elements,
+                    elements=table_metadata_elements,
                 ).send()
         else:
             await cl.Message(
@@ -130,22 +130,44 @@ async def main(message: cl.Message):
         elapsed_time = end_time - start_time
         cost_msg = f"运行耗时: {elapsed_time:.2f} 秒"
         logger.info(cost_msg)
-
-        fake_df = pd.DataFrame(fake_data)
-        fake_elements = [
-            cl.Dataframe(
-                data=fake_df,
-                content="仿真测试数据",
-                display="page",
-            )
-        ]
+        for item_table_en_name, item_fake_data in fake_data.items():
+            logger.info(f"表名称: {item_table_en_name}")
+            logger.info(f"生成数据: {item_fake_data}")
+            fake_df = pd.DataFrame(item_fake_data)
+            fake_elements = [
+                cl.Dataframe(
+                    data=fake_df,
+                    name=f"{item_table_en_name}仿真测试数据",
+                    display="side",
+                )
+            ]
+            await cl.Message(
+                elements=fake_elements,
+                content=f"{item_table_en_name}仿真测试数据",
+            ).send()
         await cl.Message(
             elements=fake_elements,
-            content=f"仿真测试数据生成完成，耗时{elapsed_time:.2f}秒，数据如下：",
+            content=f"仿真测试数据生成完成，耗时{elapsed_time:.2f}秒",
         ).send()
+        save_json_path = pathlib.Path(
+            "/Users/evi1/Codes/DataForge/data/output"
+        ).joinpath(f"fake_data_{thread_id}.json")
+        with open(
+            save_json_path,
+            "w",
+            encoding="utf-8",
+        ) as f:
+            json.dump(fake_data, f, ensure_ascii=False, indent=2)
+        download_json_elements = [
+            cl.File(
+                name=f"fake_data_{thread_id}.json",
+                path=str(save_json_path.absolute()),
+                display="inline",
+            ),
+        ]
         await cl.Message(
-            content=json.dumps(fake_data, ensure_ascii=False, indent=2),
-            language="python",
+            elements=download_json_elements,
+            content="下载生成的测试数据",
         ).send()
     else:
         try:

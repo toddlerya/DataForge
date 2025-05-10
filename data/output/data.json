@@ -60,7 +60,7 @@
         "REGISTRANT": "Jane Smith"
       }
     ],
-    "ODS_POL_EIV_DOMAIN_WHOIS": [
+    "ODS_TC_DOMAIN_WHOIS": [
       {
         "MD_ID": "9e107d9d372bb6826bd81d3542a419d63758ab9907927c12c0b4f8a71b9a5f3d",
         "DOMAIN": "example.net",

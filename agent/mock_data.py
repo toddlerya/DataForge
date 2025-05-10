@@ -6,7 +6,7 @@
 
 
 class MockTableMetadata:
-    ODS_POL_EIV_DOMAIN_WHOIS = [
+    ODS_TC_DOMAIN_WHOIS = [
         {
             "desc": "md5(SEARCH_URL,URL_DOMAIN,URL)",
             "en_name": "MD_ID",
@@ -107,9 +107,7 @@ class MockTableMetadata:
             "cn_name": "注册商WHOIS服务器",
         },
         {"desc": "注册商网址", "en_name": "REGISTRAR_URL", "cn_name": "注册商网址"},
-        {"desc": "更新时间", "en_name": "UPDATED_TIME", "cn_name": "更新时间"},
         {"desc": "建立时间", "en_name": "CREATION_TIME", "cn_name": "建立时间"},
-        {"desc": "到期时间", "en_name": "EXPIRATION_TIME", "cn_name": "到期时间"},
         {"desc": "注册商", "en_name": "REGISTRAR", "cn_name": "注册商"},
         {
             "desc": "注册机构IANA ID",
@@ -138,11 +136,6 @@ class MockTableMetadata:
             "en_name": "REGISTRANT_EMAIL",
             "cn_name": "注册人电子邮件",
         },
-        {
-            "desc": "管理员单位名称",
-            "en_name": "ADMIN_ORGANIZATION",
-            "cn_name": "管理员单位名称",
-        },
         {"desc": "管理员省", "en_name": "ADMIN_PROVINCE", "cn_name": "管理员省"},
         {"desc": "管理员国家", "en_name": "ADMIN_COUNTRY", "cn_name": "管理员国家"},
         {
@@ -150,7 +143,6 @@ class MockTableMetadata:
             "en_name": "ADMIN_EMAIL",
             "cn_name": "管理员联系电子邮件",
         },
-        {"desc": "入库时间", "en_name": "CREATE_TIME", "cn_name": "入库时间"},
         {"desc": "最后更新时间", "en_name": "LAST_TIME", "cn_name": "最后更新时间"},
         {"desc": "注册人", "en_name": "REGISTRANT", "cn_name": "注册人"},
     ]

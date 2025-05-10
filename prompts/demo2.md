@@ -1,6 +1,6 @@
 # 任务
 构造这两张表的测试数据
-1. fmdbmeta.ODS_POL_EIV_DOMAIN_WHOIS ( 域名分类信息表 )
+1. fmdbmeta.ODS_TC_DOMAIN_WHOIS ( 域名分类信息表 )
 2. fmdbmeta.ADM_DOMAIN_WHOIS ( 域名备案表 )
 
 # 要求
@@ -11,7 +11,7 @@
 # 参考信息
 ## 表结构元数据
 
-### fmdbmeta.ODS_POL_EIV_DOMAIN_WHOIS
+### fmdbmeta.ODS_TC_DOMAIN_WHOIS
 ```json
 [
    {
@@ -345,11 +345,11 @@
 
 ## 建表语句
 
-### fmdbmeta.ODS_POL_EIV_DOMAIN_WHOIS建表语句
+### fmdbmeta.ODS_TC_DOMAIN_WHOIS建表语句
 
 ```sql
 CREATE TABLE
-  fmdbmeta.ODS_POL_EIV_DOMAIN_WHOIS (
+  fmdbmeta.ODS_TC_DOMAIN_WHOIS (
     md_id STRING,
     col_sour_sys STRING,
     col_sour_sys_remark STRING,
@@ -445,7 +445,7 @@ CREATE TABLE
 -- SQL功能描述：WHOIS增量数据合并，更新策略为最新覆盖，部分域名没有做二级域名提取，合并之前一起做一下二级域名归一化
 -- SQL调度策略：周期
 -- 输入表策略：
--- 1、fmdbmeta.ODS_POL_EIV_DOMAIN_WHOIS ( 域名分类信息表 )：增量数据（nbapp）
+-- 1、fmdbmeta.ODS_TC_DOMAIN_WHOIS ( 域名分类信息表 )：增量数据（nbapp）
 -- 2、fmdbmeta.ADM_DOMAIN_WHOIS ( 域名备案表 )：全量数据（lastdir）
 -- 输出表策略：
 -- fmdbmeta.ADM_DOMAIN_WHOIS ：全量数据
@@ -541,7 +541,7 @@ SELECT
       COLL_TIME as CREATE_TIME,
       UPD_TIME as LAST_TIME
 FROM
-      fmdbmeta.ODS_POL_EIV_DOMAIN_WHOIS
+      fmdbmeta.ODS_TC_DOMAIN_WHOIS
     where
       daw_udf_check_not_empty(
         REGISTRY_DOMAIN_ID,
@@ -600,7 +600,7 @@ GROUP BY
     ]
   },
   {
-    "tables_name": "fmdbmeta.ODS_POL_EIV_DOMAIN_WHOIS",
+    "tables_name": "fmdbmeta.ODS_TC_DOMAIN_WHOIS",
     "filters": [
       "WHERE DAW_UDF_CHECK_NOT_EMPTY(REGISTRY_DOMAIN_ID, REGISTRAR_WHOIS_SERVER, REGISTRAR_URL, REGISTRAR) <> '0000'"
     ],
