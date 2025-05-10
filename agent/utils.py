@@ -5,9 +5,16 @@
 # @Author  :   toddlerya
 # @Desc    :   None
 
+import json
 from typing import Any
 
+import aiofiles
 from pydantic import BaseModel, create_model
+
+
+async def save_json_data_async(save_json_path, fake_data):
+    async with aiofiles.open(save_json_path, "w", encoding="utf-8") as f:
+        await f.write(json.dumps(fake_data, ensure_ascii=False, indent=2))
 
 
 def create_model_from_dict(

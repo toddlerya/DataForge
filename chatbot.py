@@ -4,9 +4,9 @@
 # @FileName: chatbot.py
 # @Project:  DataForge
 
+import asyncio
 import json
 import pathlib
-import time
 import uuid
 from typing import List
 
@@ -19,6 +19,7 @@ from agent.gen_faker_data_agent import gen_faker_data_graph
 from agent.intent_agent import intent_graph
 from agent.mapping_agent import mapping_graph
 from agent.state import TableMetadataSchema, UserIntentSchema
+from agent.utils import save_json_data_async
 
 # 加载 .env 文件
 load_dotenv()
@@ -79,7 +80,7 @@ async def main(message: cl.Message):
     cl.user_session.set("thread", thread)
     if message.content.strip() == "正确":
         await cl.Message(content="正在获取表元数据信息...").send()
-        start_time = time.time()
+        start_time = asyncio.get_event_loop().time()
         intent_graph.update_state(
             thread, {"confirmed": True, "table_metadata_array": []}, as_node="confirm"
         )
@@ -114,7 +115,7 @@ async def main(message: cl.Message):
                 f"{json.dumps([ele.model_dump() for ele in table_metadata.raw_fields_info], ensure_ascii=False, indent=2)}",
                 language="python",
             ).send()
-        await cl.Message(content="准备生成测试数据...").send()
+        await cl.Message(content="正在生成测试数据...").send()
         event = await cl.make_async(gen_faker_data_graph.invoke)(
             {
                 "user_input": cl.user_session.get("user_input"),
@@ -126,7 +127,7 @@ async def main(message: cl.Message):
         )
         fake_data = event["fake_data"]
         logger.info("完成")
-        end_time = time.time()
+        end_time = asyncio.get_event_loop().time()
         elapsed_time = end_time - start_time
         cost_msg = f"运行耗时: {elapsed_time:.2f} 秒"
         logger.info(cost_msg)
@@ -145,19 +146,15 @@ async def main(message: cl.Message):
                 elements=fake_elements,
                 content=f"{item_table_en_name}仿真测试数据",
             ).send()
+            cl.sleep(0.5)
         await cl.Message(
-            elements=fake_elements,
             content=f"仿真测试数据生成完成，耗时{elapsed_time:.2f}秒",
         ).send()
+        # 保存生成的测试数据
         save_json_path = pathlib.Path(
             "/Users/evi1/Codes/DataForge/data/output"
         ).joinpath(f"fake_data_{thread_id}.json")
-        with open(
-            save_json_path,
-            "w",
-            encoding="utf-8",
-        ) as f:
-            json.dump(fake_data, f, ensure_ascii=False, indent=2)
+        await save_json_data_async(save_json_path, fake_data)
         download_json_elements = [
             cl.File(
                 name=f"fake_data_{thread_id}.json",
@@ -167,7 +164,7 @@ async def main(message: cl.Message):
         ]
         await cl.Message(
             elements=download_json_elements,
-            content="下载生成的测试数据",
+            content="请下载生成的仿真测试数据",
         ).send()
     else:
         try:
