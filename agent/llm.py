@@ -24,7 +24,7 @@ web_llm = ChatOpenAI(
 
 
 ollama_llm = ChatOllama(
-    base_url=os.getenv("OLLAMA_BASE_URL"), model="qwen3:8b-q4_K_M", temperature=0
+    base_url=os.getenv("OLLAMA_BASE_URL"), model="qwen3:0.6b-fp16", temperature=0
 )
 
 chat_llm = web_llm
