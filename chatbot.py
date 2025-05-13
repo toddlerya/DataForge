@@ -27,7 +27,6 @@ load_dotenv()
 
 @cl.on_chat_start
 async def start_chat():
-
     if not cl.user_session.get("thread_id"):
         cl.user_session.set("thread_id", str(uuid.uuid4()))
 
@@ -112,7 +111,7 @@ async def main(message: cl.Message):
         else:
             await cl.Message(
                 content=f"# 表字段配置信息:\n"
-                f"{json.dumps([ele.model_dump() for ele in table_metadata_array], ensure_ascii=False, indent=2)}",
+                        f"{json.dumps([ele.model_dump() for ele in table_metadata_array], ensure_ascii=False, indent=2)}",
                 language="python",
             ).send()
 
@@ -151,9 +150,7 @@ async def main(message: cl.Message):
             content=f"仿真测试数据生成完成，耗时{elapsed_time:.2f}秒",
         ).send()
         # 保存生成的测试数据
-        save_json_path = pathlib.Path(
-            "/Users/evi1/Codes/DataForge/data/output"
-        ).joinpath(f"fake_data_{thread_id}.json")
+        save_json_path = pathlib.Path("F:\GITLAB\DataForge\data\output").joinpath(f"fake_data_{thread_id}.json")
         await save_json_data_async(save_json_path, fake_data)
         download_json_elements = [
             cl.File(

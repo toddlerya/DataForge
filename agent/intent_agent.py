@@ -31,6 +31,7 @@ def analyze_agent(state: DataForgeState) -> dict:
             HumanMessage(content="分析用户输入的信息并结构化输出"),
         ]
     )
+    state["messages"].append(user_input)
     logger.debug(f"user_intent: {user_intent}")
     return {"user_intent": user_intent}
 
