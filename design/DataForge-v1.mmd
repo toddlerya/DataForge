@@ -1,0 +1,59 @@
+---
+title: DataForge - AI仿真数据生成工具
+config:
+  look: handDrawn
+  theme: normal
+  layout: elk
+  elk:
+    mergeEdges: false
+    nodePlacementStrategy: LINEAR_SEGMENTS
+---
+flowchart TD
+    START@{shape: circle, label: "start"}
+    END@{shape: circle, label: "END"}
+    A@{ shape: braces, label: "1、数仓表结构信息\n2、数仓数据治理任务SQL" }
+    B@{shape: braces, label: "身份证、手机号、地市编码等" }
+    C@{shape: manual-input, label: "业务查询SQL" }
+    D@{shape: manual-input, label: "期望生成表名称"}
+    E@{ shape: braces, label: "表where条件、join条件等信息" }
+    F(提示词模板)
+    G1@{ shape: odd, label: "仿真数据生成提示词" }
+    G[[提示词生成器]]
+    H@{shape: procs, label: LLM服务}
+    I:::pinkClass@{ shape: rect, label: "数据生成Agent
+    (使用LangGraph实现)" }
+    J[MCP-仿真数据生成服务]
+    K[MCP-数仓知识库]
+    L[MCP-UDF函数执行服务]
+    O[MCP-SQL解析服务]
+    M@{shape: lin-cyl, label: "仿真数据"}
+    N[[数据输出器]]
+    P["LangFuse
+    监测感知评估"]
+    R@{shape: braces, label: "执行udf函数输出结果" }
+
+    START --> C & D
+    C -.-> G
+    D --> G
+    subgraph DataForge
+    F --> G
+    G --> G1 --> I
+    end
+
+    subgraph "MCP服务矩阵"
+    I <-.-> J & K & L & O & K
+    K --> A
+    O --> E
+    L --> R
+    J --> B
+    end
+
+    subgraph "输出数据"
+    I --> M --> N --> END
+    end
+
+    I <--> H
+    I -.-> P
+
+    classDef pinkClass fill:#f9f,font-weight:bold;
+    classDef importantClass fill:#eb6d6f,font-weight:bold;

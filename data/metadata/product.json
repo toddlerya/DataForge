@@ -1,0 +1,99 @@
+{
+  "table_name": "product",
+  "cn_name": "产品表",
+  "category": "核心业务表",
+  "description": "存储平台产品信息",
+  "fields": [
+    {
+      "field_name": "product_id",
+      "data_type": "bigint",
+      "required": true,
+      "cn_name": "产品ID",
+      "category": "标识信息",
+      "comment": "系统唯一产品标识",
+      "is_primary": true
+    },
+    {
+      "field_name": "product_name",
+      "data_type": "varchar(100)",
+      "required": true,
+      "cn_name": "产品名称",
+      "category": "基础信息",
+      "comment": "产品展示名称"
+    },
+    {
+      "field_name": "price",
+      "data_type": "decimal(10,2)",
+      "required": true,
+      "cn_name": "产品价格",
+      "category": "财务信息",
+      "comment": "产品单价(元)"
+    },
+    {
+      "field_name": "status",
+      "data_type": "varchar(20)",
+      "required": true,
+      "cn_name": "产品状态",
+      "category": "状态信息",
+      "dict_type": "product_status_dict",
+      "comment": "上架/下架/缺货"
+    },
+    {
+      "field_name": "creator_id",
+      "data_type": "bigint",
+      "required": true,
+      "cn_name": "创建人ID",
+      "category": "关联信息",
+      "comment": "关联user表的user_id",
+      "is_foreign": true,
+      "reference": "user.user_id"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_product_name",
+      "fields": ["product_name"]
+    },
+    {
+      "name": "idx_status",
+      "fields": ["status"]
+    }
+  ],
+  "lineage": {
+    "source": {
+      "system": "ERP系统",
+      "table": "T_PRODUCT_MASTER",
+      "field_mapping": [
+        {
+          "source_field": "PROD_ID",
+          "target_field": "product_id",
+          "transform": "direct"
+        },
+        {
+          "source_field": "PROD_NAME",
+          "target_field": "product_name",
+          "transform": "trim"
+        },
+        {
+          "source_field": "BASE_PRICE",
+          "target_field": "price",
+          "transform": "round(2)"
+        }
+      ]
+    },
+    "downstream": [
+      {
+        "table": "order_item",
+        "relation": "one-to-many",
+        "key_field": "product_id",
+        "usage": "订单明细关联产品信息"
+      },
+      {
+        "table": "inventory",
+        "relation": "one-to-one",
+        "key_field": "product_id",
+        "usage": "库存管理关联产品"
+      }
+    ]
+  }
+}

@@ -82,5 +82,28 @@ class Plan_Qwen2_5_Coder_32B(ModelServerSchema):
     auth_key = "x2590.2025"
 
 
+class Test_QWen3_4b_q4_K_M(ModelServerSchema):
+    """
+    测试部qwen3:4b-q8_0模型
+    """
+    base_url = "http://localhost:11434/v1"
+    model = "qwen3:4b-q4_K_M"
+    max_tokens = 8192
+    temperature = 0.6
+    auth_key = "x2590.2025"
+
+
+class Test_QWen3_8b_q4_K_M(ModelServerSchema):
+    """
+    测试部qwen3:8b-q4_K_M模型
+    """
+    base_url = "http://172.16.108.3:9999/v1"
+    model = "qwen3:8b-q4_K_M"
+    max_tokens = 8192
+    temperature = 0.6
+    auth_key = "x2590.2025"
+
+
+
 if __name__ == '__main__':
     print(Test_DeepSeek_R1_Distill_Qwen_14B_AWQ().to_dict())

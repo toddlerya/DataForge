@@ -1,0 +1,86 @@
+{
+  "table_name": "user",
+  "cn_name": "用户表",
+  "category": "核心业务表",
+  "description": "存储系统用户基本信息",
+  "fields": [
+    {
+      "field_name": "user_id",
+      "data_type": "bigint",
+      "required": true,
+      "cn_name": "用户ID",
+      "category": "标识信息",
+      "comment": "系统唯一用户标识",
+      "is_primary": true
+    },
+    {
+      "field_name": "username",
+      "data_type": "varchar(50)",
+      "required": true,
+      "cn_name": "用户名",
+      "category": "登录信息",
+      "comment": "用户登录账号"
+    },
+    {
+      "field_name": "user_type",
+      "data_type": "varchar(20)",
+      "required": true,
+      "cn_name": "用户类型",
+      "category": "分类信息",
+      "dict_type": "user_type_dict",
+      "comment": "区分普通用户/管理员用户"
+    },
+    {
+      "field_name": "register_time",
+      "data_type": "timestamp",
+      "required": true,
+      "cn_name": "注册时间",
+      "category": "时间信息",
+      "comment": "用户注册时间"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_username",
+      "fields": ["username"],
+      "unique": true
+    }
+  ],
+  "lineage": {
+    "source": {
+      "system": "CRM系统",
+      "table": "T_USER_MASTER",
+      "field_mapping": [
+        {
+          "source_field": "id",
+          "target_field": "user_id",
+          "transform": "direct"
+        },
+        {
+          "source_field": "login",
+          "target_field": "username",
+          "transform": "lowercase"
+        },
+        {
+          "source_field": "type",
+          "target_field": "user_type",
+          "transform": "map(crm_user_type_dict)"
+        }
+      ]
+    },
+    "downstream": [
+      {
+        "table": "order",
+        "relation": "one-to-many",
+        "key_field": "user_id",
+        "usage": "用户订单记录"
+      },
+      {
+        "table": "payment",
+        "relation": "one-to-many",
+        "key_field": "user_id",
+        "usage": "用户支付记录"
+      }
+    ]
+  }
+}

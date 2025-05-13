@@ -1,6 +1,5 @@
-# ide
-.idea
 .vscode
+.idea
 
 # Python-generated files
 __pycache__/
@@ -12,3 +11,11 @@ wheels/
 
 # Virtual environments
 .venv
+
+# environments
+.env
+
+
+.files
+
+data/output
