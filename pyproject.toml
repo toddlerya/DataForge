@@ -9,7 +9,6 @@ dependencies = [
     "alembic>=1.15.2",
     "apscheduler>=3.11.0",
     "chainlit>=2.5.5",
-    "chromadb>=0.6.3",
     "faker>=37.1.0",
     "fastapi>=0.115.12",
     "httpx>=0.28.1",
