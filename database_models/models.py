@@ -74,16 +74,16 @@ class TableMetaDataInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
         "comment": "表元数据信息",
     }
     __table_args_array__ = [
-        UniqueConstraint("uuid", name="uk_environment")
+        UniqueConstraint("uuid", name="uk_tb_meta")
     ]
     uuid = Column(String(length=36), nullable=False,
-                  comment="表唯一一ID, md5(table_en_name+source_code)")
+                  comment="表唯一ID, md5(table_en_name+source_code)")
     table_en_name = Column(String(length=128), nullable=False, default="", comment="表英文名称")
     table_cn_name = Column(String(length=256), nullable=False, default="", comment="表中文名称")
     table_description = Column(Text, nullable=True, default="", comment="表描述")
     position_type = Column(String(length=128), default="", comment="数据库类型")
     storage_type = Column(String(length=128), default="", comment="表数据格式")
-    fields_json = Column(JSON, nullable=False, comment="表字段信息")
+    table_fields = Column(JSON, nullable=False, comment="表字段信息")
     area_code = Column(String(length=64), nullable=True, default="", comment="地市来源")
     source = Column(String(length=64), nullable=True, default="", comment="数据来源")
 
@@ -100,3 +100,15 @@ class TableMetaDataInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
         return info_dict
 
 
+class TableExampleDataInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
+    __tablename__ = "table_example_data_info"
+    __table_args_map__ = {
+        "comment": "表样例数据信息",
+    }
+    __table_args_array__ = [
+        UniqueConstraint("uuid", name="uk_tb_example")
+    ]
+    uuid = Column(String(length=36), nullable=False,
+                  comment="数据唯一一ID, md5(table_en_name+source_code)")
+    table_uuid = Column(String(length=36), nullable=False, comment="表唯一ID，table_meta_data_info.uuid")
+    example_data = Column(JSON, nullable=False, comment="表样例数据")

@@ -27,4 +27,4 @@ ollama_llm = ChatOllama(
     base_url=os.getenv("OLLAMA_BASE_URL"), model="qwen3:0.6b-fp16", temperature=0
 )
 
-chat_llm = web_llm
+chat_llm = ollama_llm

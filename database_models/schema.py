@@ -16,3 +16,13 @@ class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     dict_key: str = Field(default="", description="字典")
     example: str = Field(default="", description="数据样例")
 
+
+class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+    table_en_name: str = Field(description="表英文名称", default="")
+    table_cn_name: str = Field(description="表中文名称", default="")
+    description: str = Field("", description="表描述")
+    table_fields: list[TableRawFieldSchema] = Field(..., description="表字段信息")
+    position_type: str = Field("", description="数据库类型")
+    storage_type: str = Field("", description="表数据格式")
+    area_code: str = Field("", description="地市来源")
+    source: str = Field("", description="数据来源")
