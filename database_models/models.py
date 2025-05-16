@@ -77,10 +77,10 @@ class TableMetaDataInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
         UniqueConstraint("uuid", name="uk_tb_meta")
     ]
     uuid = Column(String(length=36), nullable=False,
-                  comment="表唯一ID, md5(table_en_name+source_code)")
+                  comment="表唯一ID, md5(table_en_name+source_code+area_code)")
     table_en_name = Column(String(length=128), nullable=False, default="", comment="表英文名称")
     table_cn_name = Column(String(length=256), nullable=False, default="", comment="表中文名称")
-    table_description = Column(Text, nullable=True, default="", comment="表描述")
+    description = Column(Text, nullable=True, default="", comment="表描述")
     position_type = Column(String(length=128), default="", comment="数据库类型")
     storage_type = Column(String(length=128), default="", comment="表数据格式")
     table_fields = Column(JSON, nullable=False, comment="表字段信息")

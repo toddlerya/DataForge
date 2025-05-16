@@ -12,20 +12,25 @@ from loguru import logger
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
-from crawler.config import bdp_cookie, data_scope_resource_url, data_scope_resource_detail_url
+from config import bdp_cookie, data_scope_resource_url, data_scope_resource_detail_url
 from database_models.schema import TableRawFieldSchema, TableMetaDataSchema
 from database_models.sys_enum import MetaDataSource
+from database_models.models import TableMetaDataInfo
+from utils.db import Database
+from utils.file import get_md5
+from cruds.table_metadata import table_metadata_save
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class DataScopeCrawler:
-    def __init__(self, resource_url: str, detail_url: str, cookie: str, resource_count: int = 200):
+    def __init__(self, inner_db: Database, resource_url: str, detail_url: str, cookie: str, resource_count: int = 200):
         self.data_scope_resource_url = resource_url
         self.data_scope_resource_detail_url = detail_url
         self.resource_count = resource_count
         self.bdp_headers = {"Cookie": cookie}
         self.resource_elements = []
+        self.inner_db = inner_db
 
     @staticmethod
     def table_metadata_verify2model(table_metadata_fields: List[Dict], source: str) -> TableMetaDataSchema:
@@ -114,7 +119,7 @@ class DataScopeCrawler:
         except Exception as err:
             logger.error(err)
 
-    def crawl_detail(self, resource_id: str):
+    def crawl_detail(self, resource_id: str) -> TableMetaDataSchema:
         """
         获取资源详情
         Args:
@@ -155,15 +160,33 @@ class DataScopeCrawler:
         table_metadata_model = self.fill_one_example2model(table_metadata_model=table_metadata_model,
                                                            example_slice=examples)
         logger.debug(f"filled table_metadata_model: {table_metadata_model.model_dump_json()}")
+        return table_metadata_model
 
     def run(self):
         self.crawl_resource()
         for resource_element in self.resource_elements:
             resource_id = resource_element.get("id", "-1")
-            self.crawl_detail(resource_id=resource_id)
+            each_table_metadata_model = self.crawl_detail(resource_id=resource_id)
+            each_table_metadata_record = each_table_metadata_model.model_dump()
+            status, uuid = get_md5(f"{each_table_metadata_model.table_en_name}"
+                                   f"{each_table_metadata_model.source}"
+                                   f"{each_table_metadata_model.area_code}")
+            if status is False:
+                logger.error(f"计算表元数据UUID异常!")
+            else:
+                each_table_metadata_record.update({
+                    "uuid": uuid
+                })
+                save_status, save_message = table_metadata_save(record=each_table_metadata_record,
+                                                                db_handler=self.inner_db)
+                if save_status is False:
+                    logger.error(f"数据域元数据信息入库异常: {each_table_metadata_record} ERROR: save_message")
 
 
 if __name__ == '__main__':
-    dsc = DataScopeCrawler(resource_url=data_scope_resource_url, detail_url=data_scope_resource_detail_url,
+    db = Database()
+    dsc = DataScopeCrawler(inner_db=db,
+                           resource_url=data_scope_resource_url,
+                           detail_url=data_scope_resource_detail_url,
                            cookie=bdp_cookie)
     dsc.run()

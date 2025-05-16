@@ -6,25 +6,20 @@
 # @Desc    :   None
 
 
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Annotated
 
 from langgraph.graph import MessagesState
+from langgraph.graph.message import add_messages
+from langchain_core.messages import ToolMessage
 from pydantic import BaseModel, Field
+
+from database_models.schema import TableRawFieldSchema
 
 
 class UserIntentSchema(BaseModel):
-    table_en_names: List[str] = Field(description="表英文名称", default=[])
+    table_en_names: List[str] = Field(..., description="表英文名称, 不可为空")
     table_conditions: Dict[str, str] = Field(description="表字段的约束条件", default={})
-    table_data_count: Dict[str, int] = Field(
-        description="表期望生成的数据条数", default={}
-    )
-
-
-class TableRawFieldSchema(BaseModel):
-    cn_name: str = Field(description="字段中文名称", default="")
-    en_name: str = Field(description="字段英文名称", default="")
-    desc: str = Field(description="字段描述", default="")
-    field_type: str = Field(description="字段类型", default="")
+    table_data_count: Dict[str, int] = Field(..., description="表期望生成的数据条数，不可为空")
 
 
 class TableMetadataSchema(BaseModel):
@@ -64,6 +59,7 @@ class DataForgeState(MessagesState):
     user_intent: UserIntentSchema
     confirmed: bool
     table_metadata_array: List[TableMetadataSchema]
+    table_metadata_error: list[str]
     fake_data: OutputDataStructureSchema
 
 

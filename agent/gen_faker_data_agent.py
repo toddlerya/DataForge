@@ -11,20 +11,21 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 from pydantic import ConfigDict, create_model
+from langchain_core.output_parsers import JsonOutputParser
 
 from agent.llm import chat_llm
 from agent.prompt import prompt_gen_faker_data
 from agent.state import (
     DataForgeState,
     TableMetadataSchema,
-    TableRawFieldSchema,
     UserIntentSchema,
 )
+from database_models.schema import TableRawFieldSchema
 from agent.utils import create_model_from_dict
 
 
 def gen_faker_data_agent(state: DataForgeState) -> dict:
-    user_intent = state.get("user_intent", UserIntentSchema())
+    user_intent = state.get("user_intent")
     table_en_names = user_intent.table_en_names
     table_conditions = user_intent.table_conditions
     table_data_count = user_intent.table_data_count
@@ -40,15 +41,16 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
     # 生成测试数据
     output_structure = list()
     for table_metadata in table_metadata_array:
-        ouput_schema = create_model_from_dict(
+        output_schema = create_model_from_dict(
             data=table_metadata.output_fields, model_name=table_metadata.table_en_name
         )
-        output_structure.append(ouput_schema)
+        output_structure.append(output_schema)
     union_model = create_model(
         "output_structure",
         __config__=ConfigDict(arbitrary_types_allowed=True),
         final_output=(Union[output_structure]),
     )
+
     structured_llm = chat_llm.with_structured_output(union_model)
     system_message = prompt_gen_faker_data.format(
         table_en_name_array=table_en_names,
@@ -56,14 +58,17 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
         table_conditions_array=table_conditions,
         table_data_count_array=table_data_count,
     )
-    # logger.debug(f"system_message: {system_message}")
+    logger.debug(f"gen_faker_data_agent system_message: {system_message}")
+    # parser = JsonOutputParser(pydantic_object=union_model)
+    # chain = chat_llm | parser
     fake_data = structured_llm.invoke(
         [
             system_message,
             "请根据表字段信息生成测试数据",
         ]
     )
-    logger.debug(f"fake_data:  {fake_data.final_output}")
+    logger.debug(f"fake_data: {fake_data}")
+    logger.debug(f"fake_data.final_output:  {fake_data.final_output}")
     return {"fake_data": fake_data.final_output}
 
 

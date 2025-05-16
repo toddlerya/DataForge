@@ -124,3 +124,13 @@ HEADERS = {
 }
 
 PROXIES = {"http": None, "https": None}
+
+# 数据域和盘古配置
+data_scope_ip_port = "172.17.63.12:12018"
+data_scope_resource_url = f"https://{data_scope_ip_port}/offsite/v1/domain/page/resource"
+data_scope_resource_detail_url = f"https://{data_scope_ip_port}/offsite/v1/resource/detail"
+
+bdp_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=43718ebd203348a6ae20c546c1030a38; appToken=a3d452479d9c40e5be6be586d097c8c1"
+bdp_headers = {
+    "Cookie": bdp_cookie
+}

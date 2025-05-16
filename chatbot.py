@@ -25,6 +25,7 @@ from agent.utils import save_json_data_async
 load_dotenv()
 
 
+
 @cl.on_chat_start
 async def start_chat():
     if not cl.user_session.get("thread_id"):
@@ -54,11 +55,13 @@ async def get_table_metadata() -> List[TableMetadataSchema]:
             "user_input": cl.user_session.get("user_input"),
             "user_intent": cl.user_session.get("user_intent"),
             "table_metadata_array": [],
+            "table_metadata_error": []
         },
         cl.user_session.get("thread"),
         stream_mode="values",
     )
     cl.user_session.set("table_metadata_array", event["table_metadata_array"])
+    cl.user_session.set("table_metadata_error", event["table_metadata_error"])
     return event["table_metadata_array"]
 
 
@@ -81,11 +84,20 @@ async def main(message: cl.Message):
         await cl.Message(content="正在获取表元数据信息...").send()
         start_time = asyncio.get_event_loop().time()
         intent_graph.update_state(
-            thread, {"confirmed": True, "table_metadata_array": []}, as_node="confirm"
+            thread,
+            {"confirmed": True,
+             "table_metadata_array": [],
+             },
+            as_node="confirm"
         )
         # 查询表的字段配置信息
         table_metadata_array = await get_table_metadata()
-        if len(table_metadata_array) >= 1:
+        logger.debug(f"table_metadata_array: {table_metadata_array}")
+        table_metadata_error = cl.user_session.get("table_metadata_error")
+        if table_metadata_error:
+            logger.error(f"table_metadata_error: {table_metadata_error}")
+            await cl.Message(content=table_metadata_error).send()
+        elif len(table_metadata_array) >= 1:
             for table_metadata in table_metadata_array:
                 df = pd.DataFrame(
                     [ele.model_dump() for ele in table_metadata.raw_fields_info]
@@ -108,61 +120,55 @@ async def main(message: cl.Message):
                     content=f"{table_metadata.table_en_name}表字段信息",
                     elements=table_metadata_elements,
                 ).send()
-        else:
-            await cl.Message(
-                content=f"# 表字段配置信息:\n"
-                        f"{json.dumps([ele.model_dump() for ele in table_metadata_array], ensure_ascii=False, indent=2)}",
-                language="python",
-            ).send()
 
-        await cl.Message(content="正在生成测试数据...").send()
-        event = await cl.make_async(gen_faker_data_graph.invoke)(
-            {
-                "user_input": cl.user_session.get("user_input"),
-                "user_intent": cl.user_session.get("user_intent"),
-                "table_metadata_array": cl.user_session.get("table_metadata_array"),
-            },
-            thread,
-            stream_mode="values",
-        )
-        fake_data = event["fake_data"]
-        logger.info("完成")
-        end_time = asyncio.get_event_loop().time()
-        elapsed_time = end_time - start_time
-        cost_msg = f"运行耗时: {elapsed_time:.2f} 秒"
-        logger.info(cost_msg)
-        for item_table_en_name, item_fake_data in fake_data.items():
-            logger.info(f"表名称: {item_table_en_name}")
-            logger.info(f"生成数据: {item_fake_data}")
-            fake_df = pd.DataFrame(item_fake_data)
-            fake_elements = [
-                cl.Dataframe(
-                    data=fake_df,
-                    name=f"{item_table_en_name}仿真测试数据",
-                    display="side",
-                )
+            await cl.Message(content="正在生成测试数据...").send()
+            event = await cl.make_async(gen_faker_data_graph.invoke)(
+                {
+                    "user_input": cl.user_session.get("user_input"),
+                    "user_intent": cl.user_session.get("user_intent"),
+                    "table_metadata_array": cl.user_session.get("table_metadata_array"),
+                },
+                thread,
+                stream_mode="values",
+            )
+            fake_data = event["fake_data"]
+            logger.info("完成")
+            end_time = asyncio.get_event_loop().time()
+            elapsed_time = end_time - start_time
+            cost_msg = f"运行耗时: {elapsed_time:.2f} 秒"
+            logger.info(cost_msg)
+            for item_table_en_name, item_fake_data in fake_data.items():
+                logger.info(f"表名称: {item_table_en_name}")
+                logger.info(f"生成数据: {item_fake_data}")
+                fake_df = pd.DataFrame(item_fake_data)
+                fake_elements = [
+                    cl.Dataframe(
+                        data=fake_df,
+                        name=f"{item_table_en_name}仿真测试数据",
+                        display="side",
+                    )
+                ]
+                await cl.Message(
+                    elements=fake_elements,
+                    content=f"{item_table_en_name}仿真测试数据",
+                ).send()
+            await cl.Message(
+                content=f"仿真测试数据生成完成，耗时{elapsed_time:.2f}秒",
+            ).send()
+            # 保存生成的测试数据
+            save_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\output").joinpath(f"fake_data_{thread_id}.json")
+            await save_json_data_async(save_json_path, fake_data)
+            download_json_elements = [
+                cl.File(
+                    name=f"fake_data_{thread_id}.json",
+                    path=str(save_json_path.absolute()),
+                    display="inline",
+                ),
             ]
             await cl.Message(
-                elements=fake_elements,
-                content=f"{item_table_en_name}仿真测试数据",
+                elements=download_json_elements,
+                content="请下载生成的仿真测试数据",
             ).send()
-        await cl.Message(
-            content=f"仿真测试数据生成完成，耗时{elapsed_time:.2f}秒",
-        ).send()
-        # 保存生成的测试数据
-        save_json_path = pathlib.Path("F:\GITLAB\DataForge\data\output").joinpath(f"fake_data_{thread_id}.json")
-        await save_json_data_async(save_json_path, fake_data)
-        download_json_elements = [
-            cl.File(
-                name=f"fake_data_{thread_id}.json",
-                path=str(save_json_path.absolute()),
-                display="inline",
-            ),
-        ]
-        await cl.Message(
-            elements=download_json_elements,
-            content="请下载生成的仿真测试数据",
-        ).send()
     else:
         try:
             user_input = message.content.strip()

@@ -17,14 +17,13 @@ web_llm = ChatOpenAI(
     base_url=os.getenv("SILICONFLOW_BASE_URL"),
     api_key=os.getenv("SILICONFLOW_API_KEY"),
     # model="Qwen/Qwen3-8B",
-    model="fiberhome-chat",
-    # model="Qwen/Qwen3-235B-A22B",
-    temperature=0,
+    # model="fiberhome-chat",
+    model="qwq:latest",
+    temperature=0.4,
 )
 
-
 ollama_llm = ChatOllama(
-    base_url=os.getenv("OLLAMA_BASE_URL"), model="qwen3:0.6b-fp16", temperature=0
+    base_url=os.getenv("OLLAMA_BASE_URL"), model="qwen3:0.6b-fp16", temperature=0.4
 )
 
 chat_llm = ollama_llm
