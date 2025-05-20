@@ -13,7 +13,7 @@ from loguru import logger
 from pydantic import ConfigDict, create_model
 from langchain_core.output_parsers import JsonOutputParser
 
-from agent.llm import web_llm
+from agent.llm import ollama_llm
 from agent.prompt import prompt_gen_faker_data
 from agent.state import (
     DataForgeState,
@@ -34,9 +34,7 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
     logger.debug(f"table_en_names: {table_en_names}")
     logger.debug(f"table_conditions: {table_conditions}")
     logger.debug(f"table_data_count: {table_data_count}")
-    logger.debug(
-        f"raw_fields_info: {[ele.raw_fields_info for ele in table_metadata_array]}"
-    )
+
     # 生成测试数据
     output_table_metadata_slice = list()
     for table_metadata in table_metadata_array:
@@ -52,7 +50,7 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
     }
     output_data_schema = build_main_model(output_table_models)
 
-    structured_llm = web_llm.with_structured_output(output_data_schema)
+    structured_llm = ollama_llm.with_structured_output(output_data_schema)
     system_message = prompt_gen_faker_data.format(
         table_en_name_array=table_en_names,
         table_field_info_array=[ele.model_dump() for ele in table_metadata_array],
@@ -65,7 +63,7 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
     fake_data = structured_llm.invoke(
         [
             system_message,
-            "请根据表字段信息生成测试数据 /no think",
+            "请根据表字段信息生成测试数据",
         ]
     )
     logger.debug(f"fake_data: {type(fake_data)} {fake_data}")

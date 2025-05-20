@@ -9,7 +9,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from agent.llm import web_llm
+from agent.llm import ollama_llm
 from agent.prompt import prompt_intent_analyse
 from agent.state import DataForgeState, UserIntentSchema
 
@@ -18,8 +18,7 @@ def analyze_agent(state: DataForgeState) -> dict:
     user_input = state.get("user_input", "")
     messages = state.get("messages", [])
     logger.debug(f"user_input: {user_input} messages: {messages}")
-    logger.debug(f"UserIntentSchema..schema_json(): {UserIntentSchema.schema_json()}")
-    structured_llm = web_llm.with_structured_output(UserIntentSchema)
+    structured_llm = ollama_llm.with_structured_output(UserIntentSchema)
 
     system_message = prompt_intent_analyse.format(
         user_input=user_input, messages=messages

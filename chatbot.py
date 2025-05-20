@@ -101,12 +101,14 @@ async def main(message: cl.Message):
             for table_metadata in table_metadata_array:
                 df = pd.DataFrame(
                     [ele.model_dump() for ele in table_metadata.raw_fields_info]
-                )[["cn_name", "en_name", "desc", "field_type"]].rename(
+                )[["cn_name", "en_name", "desc", "field_type", "dict_key", "example"]].rename(
                     columns={
                         "cn_name": "中文名称",
                         "en_name": "英文名称",
                         "desc": "描述",
                         "field_type": "字段类型",
+                        "dict_key": "字典",
+                        "example": "样例数据"
                     }
                 )
                 table_metadata_elements = [
