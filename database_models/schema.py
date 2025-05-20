@@ -6,6 +6,7 @@
 # @Project  : DataForge
 
 from pydantic import BaseModel, Field
+from typing import Union, List
 
 
 class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
@@ -26,3 +27,4 @@ class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     storage_type: str = Field("", description="表数据格式")
     area_code: str = Field("", description="地市来源")
     source: str = Field("", description="数据来源")
+

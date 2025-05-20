@@ -13,7 +13,7 @@ from loguru import logger
 from pydantic import ConfigDict, create_model
 from langchain_core.output_parsers import JsonOutputParser
 
-from agent.llm import chat_llm
+from agent.llm import web_llm
 from agent.prompt import prompt_gen_faker_data
 from agent.state import (
     DataForgeState,
@@ -21,7 +21,7 @@ from agent.state import (
     UserIntentSchema,
 )
 from database_models.schema import TableRawFieldSchema
-from agent.utils import create_model_from_dict
+from agent.utils import create_table_model, build_main_model
 
 
 def gen_faker_data_agent(state: DataForgeState) -> dict:
@@ -35,23 +35,24 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
     logger.debug(f"table_conditions: {table_conditions}")
     logger.debug(f"table_data_count: {table_data_count}")
     logger.debug(
-        f"output_fields: {[ele.output_fields for ele in table_metadata_array]}"
+        f"raw_fields_info: {[ele.raw_fields_info for ele in table_metadata_array]}"
     )
-
     # 生成测试数据
-    output_structure = list()
+    output_table_metadata_slice = list()
     for table_metadata in table_metadata_array:
-        output_schema = create_model_from_dict(
-            data=table_metadata.output_fields, model_name=table_metadata.table_en_name
-        )
-        output_structure.append(output_schema)
-    union_model = create_model(
-        "output_structure",
-        __config__=ConfigDict(arbitrary_types_allowed=True),
-        final_output=(Union[output_structure]),
-    )
+        each_table_output_metadata = {
+            "table_name": table_metadata.table_en_name,
+            "fields": [ele.model_dump() for ele in table_metadata.raw_fields_info]
+        }
+        logger.debug(each_table_output_metadata)
+        output_table_metadata_slice.append(each_table_output_metadata)
+    output_table_models = {
+        table.get("table_name"): create_table_model(table_name=table.get("table_name"), fields=table.get("fields"))
+        for table in output_table_metadata_slice
+    }
+    output_data_schema = build_main_model(output_table_models)
 
-    structured_llm = chat_llm.with_structured_output(union_model)
+    structured_llm = web_llm.with_structured_output(output_data_schema)
     system_message = prompt_gen_faker_data.format(
         table_en_name_array=table_en_names,
         table_field_info_array=[ele.model_dump() for ele in table_metadata_array],
@@ -60,16 +61,16 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
     )
     logger.debug(f"gen_faker_data_agent system_message: {system_message}")
     # parser = JsonOutputParser(pydantic_object=union_model)
-    # chain = chat_llm | parser
+    # chain = web_llm | parser
     fake_data = structured_llm.invoke(
         [
             system_message,
-            "请根据表字段信息生成测试数据",
+            "请根据表字段信息生成测试数据 /no think",
         ]
     )
-    logger.debug(f"fake_data: {fake_data}")
-    logger.debug(f"fake_data.final_output:  {fake_data.final_output}")
-    return {"fake_data": fake_data.final_output}
+    logger.debug(f"fake_data: {type(fake_data)} {fake_data}")
+    logger.debug(f"fake_data.model_dump_json: {fake_data.model_dump_json()}")
+    return {"fake_data": fake_data.model_dump()}
 
 
 gen_faker_data_builder = StateGraph(DataForgeState)

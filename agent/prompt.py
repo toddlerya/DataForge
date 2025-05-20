@@ -28,7 +28,6 @@ prompt_gen_faker_data = """你是数仓测试专家，你的任务是生成虚�
 每张表所需的数据量:
 {table_data_count_array}
 注意：每条数据之间都应该有差异，同一个字段在每条数据不应出现重复的内容，你可以根据example信息来生成类似的数据
-/no think
 """
 
 

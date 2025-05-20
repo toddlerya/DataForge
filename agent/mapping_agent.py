@@ -47,10 +47,10 @@ def create_table_raw_field_info(state: DataForgeState):
                 if isinstance(ele, dict)
             ]
             # 创建输出字段结构
-            temp_output_fields = [ele.en_name for ele in raw_fields_data]
-            output_fields = dict(
-                zip(temp_output_fields, len(temp_output_fields) * [""])
-            )
+            # temp_output_fields = [ele.en_name for ele in raw_fields_data]
+            # output_fields = dict(
+            #     zip(temp_output_fields, len(temp_output_fields) * [""])
+            # )
         # if table_en_name.upper() in MockTableMetadata().__dir__():
         #     raw_fields_info = MockTableMetadata().__getattribute__(
         #         table_en_name.upper()
@@ -70,7 +70,7 @@ def create_table_raw_field_info(state: DataForgeState):
         #     raw_fields_data = [TableRawFieldSchema()]
         #     output_fields = {}
         table_metadata.raw_fields_info = raw_fields_data
-        table_metadata.output_fields = output_fields
+        # table_metadata.output_fields = output_fields
 
         state["table_metadata_array"].append(table_metadata)
 
@@ -84,25 +84,25 @@ memory = MemorySaver()
 mapping_graph = mapping_builder.compile(checkpointer=memory)
 
 if __name__ == "__main__":
-    print(mapping_graph.get_graph().draw_mermaid())
-    thread = {"configurable": {"thread_id": "4895b601-c056-4af3-a1f3-6dfa03837744"}}
-    event = mapping_graph.invoke(
-        {
-            "table_metadata_array": [],
-            "user_input": "数据库表名称:\nADM_DOMAIN_WHOIS\nODS_TC_DOMAIN_WHOIS\n期望表约束条件:\nADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL\nODS_TC_DOMAIN_WHOIS: DOMAIN IS NOT NULL\n期望生成数据条数:\nADM_DOMAIN_WHOIS: 10\nODS_TC_DOMAIN_WHOIS: 20",
-            "user_intent": UserIntentSchema(
-                table_en_names=["ADM_DOMAIN_WHOIS", "ODS_TC_DOMAIN_WHOIS"],
-                table_conditions={
-                    "ADM_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
-                    "ODS_TC_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
-                },
-                table_data_count={
-                    "ADM_DOMAIN_WHOIS": 2,
-                    "ODS_TC_DOMAIN_WHOIS": 3,
-                },
-            ),
-        },
-        thread,
-        stream_mode="values",
-    )
-    print(event)
+    print(mapping_graph.get_graph(xray=True).draw_mermaid())
+    # thread = {"configurable": {"thread_id": "4895b601-c056-4af3-a1f3-6dfa03837744"}}
+    # event = mapping_graph.invoke(
+    #     {
+    #         "table_metadata_array": [],
+    #         "user_input": "数据库表名称:\nADM_DOMAIN_WHOIS\nODS_TC_DOMAIN_WHOIS\n期望表约束条件:\nADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL\nODS_TC_DOMAIN_WHOIS: DOMAIN IS NOT NULL\n期望生成数据条数:\nADM_DOMAIN_WHOIS: 10\nODS_TC_DOMAIN_WHOIS: 20",
+    #         "user_intent": UserIntentSchema(
+    #             table_en_names=["ADM_DOMAIN_WHOIS", "ODS_TC_DOMAIN_WHOIS"],
+    #             table_conditions={
+    #                 "ADM_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
+    #                 "ODS_TC_DOMAIN_WHOIS": "DOMAIN IS NOT NULL",
+    #             },
+    #             table_data_count={
+    #                 "ADM_DOMAIN_WHOIS": 2,
+    #                 "ODS_TC_DOMAIN_WHOIS": 3,
+    #             },
+    #         ),
+    #     },
+    #     thread,
+    #     stream_mode="values",
+    # )
+    # print(event)

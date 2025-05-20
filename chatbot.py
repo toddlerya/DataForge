@@ -131,7 +131,7 @@ async def main(message: cl.Message):
                 thread,
                 stream_mode="values",
             )
-            fake_data = event["fake_data"]
+            fake_data: dict[list] = event["fake_data"]
             logger.info("完成")
             end_time = asyncio.get_event_loop().time()
             elapsed_time = end_time - start_time
