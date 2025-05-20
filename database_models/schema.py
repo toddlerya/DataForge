@@ -15,7 +15,7 @@ class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     desc: str = Field(default="", description="字段描述")
     field_type: str = Field(default="", description="字段类型")
     dict_key: str = Field(default="", description="字典")
-    example: str = Field(default="", description="数据样例")
+    example: str|int|float = Field(default="", description="数据样例")
 
 
 class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):

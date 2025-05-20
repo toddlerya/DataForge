@@ -92,7 +92,7 @@ class DataScopeCrawler:
             table_metadata_model.table_fields[index] = field
         return table_metadata_model
 
-    def crawl_resource(self):
+    def crawl_resource(self, resource_id: int):
         """
         获取数据域资源目录信息
         """
@@ -101,7 +101,7 @@ class DataScopeCrawler:
             "pageNo": 1,
             "keyword": "",
             "condition": {
-                "id": 3
+                "id": resource_id
             }
         }
         resp = requests.post(url=self.data_scope_resource_url, headers=self.bdp_headers, json=payload, verify=False)
@@ -163,24 +163,25 @@ class DataScopeCrawler:
         return table_metadata_model
 
     def run(self):
-        self.crawl_resource()
-        for resource_element in self.resource_elements:
-            resource_id = resource_element.get("id", "-1")
-            each_table_metadata_model = self.crawl_detail(resource_id=resource_id)
-            each_table_metadata_record = each_table_metadata_model.model_dump()
-            status, uuid = get_md5(f"{each_table_metadata_model.table_en_name}"
-                                   f"{each_table_metadata_model.source}"
-                                   f"{each_table_metadata_model.area_code}")
-            if status is False:
-                logger.error(f"计算表元数据UUID异常!")
-            else:
-                each_table_metadata_record.update({
-                    "uuid": uuid
-                })
-                save_status, save_message = table_metadata_save(record=each_table_metadata_record,
-                                                                db_handler=self.inner_db)
-                if save_status is False:
-                    logger.error(f"数据域元数据信息入库异常: {each_table_metadata_record} ERROR: save_message")
+        for rs_id in [1,2,3]:
+            self.crawl_resource(resource_id=rs_id)
+            for resource_element in self.resource_elements:
+                resource_id = resource_element.get("id", "-1")
+                each_table_metadata_model = self.crawl_detail(resource_id=resource_id)
+                each_table_metadata_record = each_table_metadata_model.model_dump()
+                status, uuid = get_md5(f"{each_table_metadata_model.table_en_name}"
+                                       f"{each_table_metadata_model.source}"
+                                       f"{each_table_metadata_model.area_code}")
+                if status is False:
+                    logger.error(f"计算表元数据UUID异常!")
+                else:
+                    each_table_metadata_record.update({
+                        "uuid": uuid
+                    })
+                    save_status, save_message = table_metadata_save(record=each_table_metadata_record,
+                                                                    db_handler=self.inner_db)
+                    if save_status is False:
+                        logger.error(f"数据域元数据信息入库异常: {each_table_metadata_record} ERROR: save_message")
 
 
 if __name__ == '__main__':
