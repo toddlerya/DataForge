@@ -24,32 +24,47 @@ from agent.utils import create_model_from_dict
 
 
 def gen_faker_data_agent(state: DataForgeState) -> dict:
-    user_intent = state.get("user_intent", UserIntentSchema())
+    user_intent = state.get("user_intent")
     table_en_names = user_intent.table_en_names
     table_conditions = user_intent.table_conditions
     table_data_count = user_intent.table_data_count
     table_metadata_array = state.get("table_metadata_array", [])
 
+    logger.debug(f"table_metadata_array: {table_metadata_array}")
     logger.debug(f"table_en_names: {table_en_names}")
     logger.debug(f"table_conditions: {table_conditions}")
     logger.debug(f"table_data_count: {table_data_count}")
     logger.debug(
         f"output_fields: {[ele.output_fields for ele in table_metadata_array]}"
     )
-
-    # 生成测试数据
-    output_structure = list()
-    for table_metadata in table_metadata_array:
-        ouput_schema = create_model_from_dict(
-            data=table_metadata.output_fields, model_name=table_metadata.table_en_name
-        )
-        output_structure.append(ouput_schema)
-    union_model = create_model(
-        "output_structure",
-        __config__=ConfigDict(arbitrary_types_allowed=True),
-        final_output=(Union[output_structure]),
+    logger.debug(
+        f"raw_fields_info: {[ele.raw_fields_info for ele in table_metadata_array]}"
     )
-    structured_llm = chat_llm.with_structured_output(union_model)
+    # 生成测试数据
+    # output_structure = list()
+    # for table_metadata in table_metadata_array:
+    #     ouput_schema = create_model_from_dict(
+    #         data=table_metadata.output_fields, model_name=table_metadata.table_en_name
+    #     )
+    #     output_structure.append(ouput_schema)
+    # union_model = create_model(
+    #     "output_structure",
+    #     __config__=ConfigDict(arbitrary_types_allowed=True),
+    #     final_output=(Union[output_structure]),
+    # )
+
+    from agent.debug import build_main_model, create_table_model
+    from agent.mock_data import mock_tables_metadata
+
+    # 动态生成所有表模型
+    table_models = {
+        table["name"]: create_table_model(table["name"], table["fields"])
+        for table in mock_tables_metadata
+    }
+
+    # 构建主模型
+    MainModel = build_main_model(table_models)
+    structured_llm = chat_llm.with_structured_output(MainModel)
     system_message = prompt_gen_faker_data.format(
         table_en_name_array=table_en_names,
         table_field_info_array=[ele.model_dump() for ele in table_metadata_array],
@@ -63,8 +78,8 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
             "请根据表字段信息生成测试数据",
         ]
     )
-    logger.debug(f"fake_data:  {fake_data.final_output}")
-    return {"fake_data": fake_data.final_output}
+    logger.debug(f"fake_data:  {fake_data.model_dump()}")
+    return {"fake_data": fake_data.model_dump()}
 
 
 gen_faker_data_builder = StateGraph(DataForgeState)

@@ -13,10 +13,11 @@ from pydantic import BaseModel, Field
 
 
 class UserIntentSchema(BaseModel):
-    table_en_names: List[str] = Field(description="表英文名称", default=[])
+    table_en_names: List[str] = Field(..., description="表英文名称, 不可为空")
     table_conditions: Dict[str, str] = Field(description="表字段的约束条件", default={})
     table_data_count: Dict[str, int] = Field(
-        description="表期望生成的数据条数", default={}
+        ...,
+        description="表期望生成的数据条数, 不可为空",
     )
 
 
