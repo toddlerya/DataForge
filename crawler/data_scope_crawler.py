@@ -12,7 +12,7 @@ from loguru import logger
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
-from config import bdp_cookie, data_scope_resource_url, data_scope_resource_detail_url
+from config import data_scope_cookie, data_scope_resource_url, data_scope_resource_detail_url
 from database_models.schema import TableRawFieldSchema, TableMetaDataSchema
 from database_models.sys_enum import MetaDataSource
 from database_models.models import TableMetaDataInfo
@@ -24,7 +24,7 @@ urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class DataScopeCrawler:
-    def __init__(self, inner_db: Database, resource_url: str, detail_url: str, cookie: str, resource_count: int = 200):
+    def __init__(self, inner_db: Database, resource_url: str, detail_url: str, cookie: str, resource_count: int = 2000):
         self.data_scope_resource_url = resource_url
         self.data_scope_resource_detail_url = detail_url
         self.resource_count = resource_count
@@ -189,5 +189,5 @@ if __name__ == '__main__':
     dsc = DataScopeCrawler(inner_db=db,
                            resource_url=data_scope_resource_url,
                            detail_url=data_scope_resource_detail_url,
-                           cookie=bdp_cookie)
+                           cookie=data_scope_cookie)
     dsc.run()

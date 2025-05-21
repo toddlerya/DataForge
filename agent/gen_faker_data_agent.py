@@ -5,13 +5,10 @@
 # @Author  :   toddlerya
 # @Desc    :   None
 
-from typing import Union
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
-from pydantic import ConfigDict, create_model
-from langchain_core.output_parsers import JsonOutputParser
 
 from agent.llm import ollama_llm
 from agent.prompt import prompt_gen_faker_data
@@ -58,8 +55,6 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
         table_data_count_array=table_data_count,
     )
     logger.debug(f"gen_faker_data_agent system_message: {system_message}")
-    # parser = JsonOutputParser(pydantic_object=union_model)
-    # chain = web_llm | parser
     fake_data = structured_llm.invoke(
         [
             system_message,
