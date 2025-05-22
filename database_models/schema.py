@@ -14,7 +14,8 @@ class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     cn_name: str = Field(default="", description="字段中文名称")
     desc: str = Field(default="", description="字段描述")
     field_type: str = Field(default="", description="字段类型")
-    dict_key: str = Field(default="", description="字典")
+    dict_key: str = Field(default="", description="字典编码")
+    dict_name: str = Field(default="", description="字典名称")
     example: str|int|float = Field(default="", description="数据样例")
 
 

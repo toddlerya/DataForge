@@ -23,6 +23,14 @@ from cruds.table_metadata import table_metadata_save
 urllib3.disable_warnings(InsecureRequestWarning)
 
 
+pangu_field_type_map = {
+    -1: "string",
+    1: "string",
+    2: "int",
+    4: "long"
+}
+
+
 class DataScopeCrawler:
     def __init__(self, inner_db: Database, resource_url: str, detail_url: str, cookie: str, resource_count: int = 2000):
         self.data_scope_resource_url = resource_url
@@ -51,6 +59,15 @@ class DataScopeCrawler:
                     cn_name=field.get("name", ""),
                     desc=field.get("description", ""),
                     field_type=field.get("fieldType", "").lower(),
+                    dict_key=field.get("dictkey", "")
+                )
+                table_fields_slice.append(field_model)
+            elif source == MetaDataSource.pangu:
+                field_model = TableRawFieldSchema(
+                    en_name=field.get("ename", ""),
+                    cn_name=field.get("name", ""),
+                    desc=field.get("description", ""),
+                    field_type=pangu_field_type_map.get(field.get("fieldType", -1)),
                     dict_key=field.get("dictkey", "")
                 )
                 table_fields_slice.append(field_model)
@@ -163,7 +180,8 @@ class DataScopeCrawler:
         return table_metadata_model
 
     def run(self):
-        for rs_id in [1,2,3]:
+        # resource_ids获取 https://172.17.63.12:12018/offsite/v1/domain/query?type=1&keyword=&_=1747895349267
+        for rs_id in [1, 2, 3]:
             self.crawl_resource(resource_id=rs_id)
             for resource_element in self.resource_elements:
                 resource_id = resource_element.get("id", "-1")
