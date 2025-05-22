@@ -19,16 +19,11 @@ from database_models.models import TableMetaDataInfo
 from utils.db import Database
 from utils.file import get_md5
 from cruds.table_metadata import table_metadata_save
+from crawler.common import table_metadata_verify2model
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
 
-pangu_field_type_map = {
-    -1: "string",
-    1: "string",
-    2: "int",
-    4: "long"
-}
 
 
 class DataScopeCrawler:
@@ -39,40 +34,6 @@ class DataScopeCrawler:
         self.bdp_headers = {"Cookie": cookie}
         self.resource_elements = []
         self.inner_db = inner_db
-
-    @staticmethod
-    def table_metadata_verify2model(table_metadata_fields: List[Dict], source: str) -> TableMetaDataSchema:
-        """
-        元数据校验转换
-        Args:
-            table_metadata_fields:
-            source:
-
-        Returns:
-
-        """
-        table_fields_slice = list()
-        for field in table_metadata_fields:
-            if source == MetaDataSource.data_scope:
-                field_model = TableRawFieldSchema(
-                    en_name=field.get("ename", ""),
-                    cn_name=field.get("name", ""),
-                    desc=field.get("description", ""),
-                    field_type=field.get("fieldType", "").lower(),
-                    dict_key=field.get("dictkey", "")
-                )
-                table_fields_slice.append(field_model)
-            elif source == MetaDataSource.pangu:
-                field_model = TableRawFieldSchema(
-                    en_name=field.get("ename", ""),
-                    cn_name=field.get("name", ""),
-                    desc=field.get("description", ""),
-                    field_type=pangu_field_type_map.get(field.get("fieldType", -1)),
-                    dict_key=field.get("dictkey", "")
-                )
-                table_fields_slice.append(field_model)
-        table_metadata_model = TableMetaDataSchema(table_fields=table_fields_slice)
-        return table_metadata_model
 
     @staticmethod
     def fill_one_example2model(table_metadata_model: TableMetaDataSchema,
@@ -161,8 +122,8 @@ class DataScopeCrawler:
         data = resp_json.get("data", {})
         resource = data.get("resource", {})
         fields = data.get("fields", [])
-        table_metadata_model = self.table_metadata_verify2model(table_metadata_fields=fields,
-                                                                source=MetaDataSource.data_scope)
+        table_metadata_model = table_metadata_verify2model(table_metadata_fields=fields,
+                                                           source=MetaDataSource.data_scope)
         # 补充表名称等元数据信息
         table_metadata_model.table_en_name = resource.get("ename", "")
         table_metadata_model.table_cn_name = resource.get("name", "")

@@ -140,3 +140,10 @@ pangu_entity_detail_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEnt
 pangu_data_sample_query_url = f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
 
 pangu_cookie = "contextPath=/catalog; JSESSIONID=7E373DD7A1EC868409CC19A9E4BD4BC1; userToken=b88388b67db44a7db9b7e5c75d29a4ba; appToken=30ac5a286a41422fb6d38678e914750f; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; JSESSIONID=0E2B81DE1A7122359036136B0CB02D83; userToken=5a1738818588448ba96cfbf5b7a6397f; appToken=54e96ba75a3f44b096b387802c935420"
+
+pangu_field_type_map = {
+    -1: "string",
+    1: "string",
+    2: "int",
+    4: "long"
+}
