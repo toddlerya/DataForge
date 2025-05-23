@@ -4,7 +4,7 @@
 # @Author   : guoqun X2590
 # @FileName : data_scope_crawler.py
 # @Project  : DataForge
-
+import json
 from typing import List, Dict
 import requests
 from loguru import logger
@@ -13,17 +13,16 @@ import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
 from config import data_scope_cookie, data_scope_resource_url, data_scope_resource_detail_url
-from database_models.schema import TableRawFieldSchema, TableMetaDataSchema
+from database_models.schema import TableRawFieldSchema, TableMetaDataSchema, TableExampleSchema
 from database_models.sys_enum import MetaDataSource
 from database_models.models import TableMetaDataInfo
 from utils.db import Database
 from utils.file import get_md5
 from cruds.table_metadata import table_metadata_save
-from crawler.common import table_metadata_verify2model
+from cruds.table_example import table_example_save
+from crawler.common import table_metadata_verify2model, fill_one_example2model
 
 urllib3.disable_warnings(InsecureRequestWarning)
-
-
 
 
 class DataScopeCrawler:
@@ -34,41 +33,6 @@ class DataScopeCrawler:
         self.bdp_headers = {"Cookie": cookie}
         self.resource_elements = []
         self.inner_db = inner_db
-
-    @staticmethod
-    def fill_one_example2model(table_metadata_model: TableMetaDataSchema,
-                               example_slice: List[Dict]) -> TableMetaDataSchema:
-        """
-        从给定的样例数据切片中获取样例数据填充模型对象
-        Args:
-            table_metadata_model:
-            example_slice:
-
-        Returns:
-
-        """
-        if example_slice is None:
-            logger.warning(f"数据域没有样例数据: {table_metadata_model.table_en_name}")
-            return table_metadata_model
-        example_one_data = {}
-        # 遍历每条数据
-        for example in example_slice:
-            # 遍历每个键值对
-            for key, value in example.items():
-                # 检查key和value都是非空
-                if key and value:
-                    # 补充数据
-                    if key not in example_one_data:
-                        example_one_data[key] = value
-            # 如果所有需要的键都有了值，则中断循环
-            if len(example_one_data) == len(table_metadata_model.table_fields):
-                logger.debug(f"example_one_data: {example_one_data}")
-                break
-        for index, field in enumerate(table_metadata_model.table_fields):
-            example_value = example_one_data.get(field.en_name, "")
-            field.example = example_value
-            table_metadata_model.table_fields[index] = field
-        return table_metadata_model
 
     def crawl_resource(self, resource_id: int):
         """
@@ -97,7 +61,7 @@ class DataScopeCrawler:
         except Exception as err:
             logger.error(err)
 
-    def crawl_detail(self, resource_id: str) -> TableMetaDataSchema:
+    def crawl_detail(self, resource_id: str) -> tuple[TableMetaDataSchema, list[dict]]:
         """
         获取资源详情
         Args:
@@ -132,13 +96,23 @@ class DataScopeCrawler:
         table_metadata_model.storage_type = resource.get("storageType", "")
         table_metadata_model.area_code = resource.get("areaCode", "")
         table_metadata_model.source = MetaDataSource.data_scope
+        status, tb_meta_uuid = get_md5(f"{table_metadata_model.table_en_name}"
+                                       f"{table_metadata_model.source}"
+                                       f"{table_metadata_model.area_code}"
+                                       f"{table_metadata_model.area_name}")
+        if status is False:
+            logger.error(f"计算{MetaDataSource.data_scope}表{table_metadata_model.table_en_name}元数据UUID异常!")
+        else:
+            table_metadata_model.uuid = tb_meta_uuid
         # 填充样例数据
         examples = data.get("example", [])
-        logger.debug(f"raw table_metadata_model: {table_metadata_model.model_dump_json()}")
-        table_metadata_model = self.fill_one_example2model(table_metadata_model=table_metadata_model,
-                                                           example_slice=examples)
-        logger.debug(f"filled table_metadata_model: {table_metadata_model.model_dump_json()}")
-        return table_metadata_model
+        if examples is None:
+            examples = []
+        logger.trace(f"raw table_metadata_model: {table_metadata_model.model_dump_json()}")
+        table_metadata_model = fill_one_example2model(table_metadata_model=table_metadata_model,
+                                                      example_slice=examples)
+        logger.trace(f"filled table_metadata_model: {table_metadata_model.model_dump_json()}")
+        return table_metadata_model, examples
 
     def run(self):
         # resource_ids获取 https://172.17.63.12:12018/offsite/v1/domain/query?type=1&keyword=&_=1747895349267
@@ -146,21 +120,29 @@ class DataScopeCrawler:
             self.crawl_resource(resource_id=rs_id)
             for resource_element in self.resource_elements:
                 resource_id = resource_element.get("id", "-1")
-                each_table_metadata_model = self.crawl_detail(resource_id=resource_id)
-                each_table_metadata_record = each_table_metadata_model.model_dump()
-                status, uuid = get_md5(f"{each_table_metadata_model.table_en_name}"
-                                       f"{each_table_metadata_model.source}"
-                                       f"{each_table_metadata_model.area_code}")
-                if status is False:
-                    logger.error(f"计算表元数据UUID异常!")
-                else:
-                    each_table_metadata_record.update({
-                        "uuid": uuid
-                    })
-                    save_status, save_message = table_metadata_save(record=each_table_metadata_record,
-                                                                    db_handler=self.inner_db)
-                    if save_status is False:
-                        logger.error(f"数据域元数据信息入库异常: {each_table_metadata_record} ERROR: save_message")
+                each_table_metadata_model, each_table_examples = self.crawl_detail(resource_id=resource_id)
+                save_status, save_message = table_metadata_save(record=each_table_metadata_model.model_dump(),
+                                                                db_handler=self.inner_db)
+                if save_status is False:
+                    logger.error(f"数据域元数据信息入库异常: {each_table_metadata_model.model_dump_json()} "
+                                 f"ERROR: {save_message}")
+                if len(each_table_examples) >= 100:
+                    each_table_examples = each_table_examples[:100]
+                for ex_data in each_table_examples:
+                    data_uuid_md5_status, data_uuid = get_md5(json.dumps(ex_data))
+                    if data_uuid_md5_status is False:
+                        continue
+                    example_data = TableExampleSchema(
+                        uuid=data_uuid,
+                        table_uuid=each_table_metadata_model.uuid,
+                        example_data=ex_data
+                    )
+                    save_ex_status, save_ex_message = table_example_save(record=example_data.model_dump(),
+                                                                         db_handler=self.inner_db)
+                    if save_ex_status is False:
+                        logger.error(f"数据域{each_table_metadata_model.table_en_name}"
+                                     f"样例数据入库异常: {example_data.model_dump_json()} "
+                                     f"ERROR: {save_ex_message}")
 
 
 if __name__ == '__main__':

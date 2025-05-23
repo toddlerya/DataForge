@@ -129,7 +129,7 @@ PROXIES = {"http": None, "https": None}
 data_scope_ip_port = "172.17.63.12:12018"
 data_scope_resource_url = f"https://{data_scope_ip_port}/offsite/v1/domain/page/resource"
 data_scope_resource_detail_url = f"https://{data_scope_ip_port}/offsite/v1/resource/detail"
-data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=ac68027157a34afb9f35927a14d7b3cb; appToken=0d6c946740d34b21bc38d4c0d7a75c3d"
+data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=b3e095c25b6649ba9c69a7c196657969; appToken=f2eb6e036df14ea98eedc3ad3f2643a7"
 
 # 盘古配置
 pangu_ip_port = "172.21.4.42:11018"
@@ -139,11 +139,13 @@ pangu_entity_list_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntit
 pangu_entity_detail_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntityDetail"
 pangu_data_sample_query_url = f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
 
-pangu_cookie = "contextPath=/catalog; JSESSIONID=7E373DD7A1EC868409CC19A9E4BD4BC1; userToken=b88388b67db44a7db9b7e5c75d29a4ba; appToken=30ac5a286a41422fb6d38678e914750f; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; JSESSIONID=0E2B81DE1A7122359036136B0CB02D83; userToken=5a1738818588448ba96cfbf5b7a6397f; appToken=54e96ba75a3f44b096b387802c935420"
+pangu_cookie = "contextPath=/catalog; JSESSIONID=8879F755883B45DD418821B7976AEBAA; userToken=f003cfa2a89f4403875293c93cd5420c; appToken=fbb5e82777534a199dc2ecf902722b80; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; userToken=b88388b67db44a7db9b7e5c75d29a4ba; appToken=30ac5a286a41422fb6d38678e914750f; JSESSIONID=083A322D330656BBE5F7D0F06BBD21A4"
 
 pangu_field_type_map = {
     -1: "string",
     1: "string",
     2: "int",
-    4: "long"
+    4: "long",
+    5: "short",
+    6: "double"
 }

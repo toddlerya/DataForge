@@ -1,8 +1,8 @@
 """init db
 
-Revision ID: c06bc2b4e8f4
+Revision ID: d9f82b53b161
 Revises: 
-Create Date: 2025-05-16 11:01:14.483097
+Create Date: 2025-05-23 15:18:58.287509
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c06bc2b4e8f4'
+revision = 'd9f82b53b161'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -38,7 +38,8 @@ def upgrade() -> None:
     sa.Column('position_type', sa.String(length=128), nullable=True, comment='数据库类型'),
     sa.Column('storage_type', sa.String(length=128), nullable=True, comment='表数据格式'),
     sa.Column('table_fields', sa.JSON(), nullable=False, comment='表字段信息'),
-    sa.Column('area_code', sa.String(length=64), nullable=True, comment='地市来源'),
+    sa.Column('area_code', sa.String(length=64), nullable=True, comment='来源地市编码'),
+    sa.Column('area_name', sa.String(length=64), nullable=True, comment='来源地市名称'),
     sa.Column('source', sa.String(length=64), nullable=True, comment='数据来源'),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False, comment='主键'),
     sa.Column('remark', sa.Text(), nullable=True, comment='备注'),

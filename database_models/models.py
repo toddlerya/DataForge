@@ -77,15 +77,16 @@ class TableMetaDataInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
         UniqueConstraint("uuid", name="uk_tb_meta")
     ]
     uuid = Column(String(length=36), nullable=False,
-                  comment="表唯一ID, md5(table_en_name+source_code+area_code)")
+                  comment="表唯一ID, md5(table_en_name+source+area_code+area_name)")
     table_en_name = Column(String(length=128), nullable=False, default="", comment="表英文名称")
     table_cn_name = Column(String(length=256), nullable=False, default="", comment="表中文名称")
     description = Column(Text, nullable=True, default="", comment="表描述")
     position_type = Column(String(length=128), default="", comment="数据库类型")
     storage_type = Column(String(length=128), default="", comment="表数据格式")
     table_fields = Column(JSON, nullable=False, comment="表字段信息")
-    area_code = Column(String(length=64), nullable=True, default="", comment="地市来源")
-    source = Column(String(length=64), nullable=True, default="", comment="数据来源")
+    area_code = Column(String(length=64), nullable=True, default="", comment="来源地市编码")
+    area_name = Column(String(length=64), nullable=True, default="", comment="来源地市名称")
+    source = Column(String(length=64), default="", comment="数据来源")
 
     def to_dict(self):
         """
@@ -108,7 +109,7 @@ class TableExampleDataInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     __table_args_array__ = [
         UniqueConstraint("uuid", name="uk_tb_example")
     ]
-    uuid = Column(String(length=36), nullable=False,
-                  comment="数据唯一一ID, md5(table_en_name+source_code)")
-    table_uuid = Column(String(length=36), nullable=False, comment="表唯一ID，table_meta_data_info.uuid")
-    example_data = Column(JSON, nullable=False, comment="表样例数据")
+    uuid = Column(String(length=36), nullable=False, comment="数据唯一ID, md5(example_data)")
+    table_uuid = Column(String(length=36), nullable=False,
+                        comment="表唯一ID，md5(table_en_name+source+area_code+area_name)")
+    example_data = Column(JSON, nullable=True, comment="表样例数据")
