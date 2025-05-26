@@ -78,7 +78,7 @@ def fill_one_example2model(table_metadata_model: TableMetaDataSchema,
         if len(example_one_data) == len(table_metadata_model.table_fields):
             logger.debug(f"example_one_data: {example_one_data}")
             break
-    logger.debug(
+    logger.trace(
         f"len(example_one_data)={len(example_one_data)} "
         f"len(table_metadata_model.table_fields)={len(table_metadata_model.table_fields)}")
     for index, field in enumerate(table_metadata_model.table_fields):

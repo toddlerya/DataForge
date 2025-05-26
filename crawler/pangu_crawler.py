@@ -210,7 +210,7 @@ class PanGuCrawler:
         logger.info(f"盘古实体清单获取到{len(self.entity_elements)}个实体信息")
         for entity_info in self.entity_elements:
             entity_id = entity_info.get("entityId", -1)
-            if entity_id in [3718]:
+            if entity_id in []:
                 continue
             if overwrite:
                 query_status, query_msg, entity_data = table_metadata_query_by_entity_id(entity_id=entity_id,
