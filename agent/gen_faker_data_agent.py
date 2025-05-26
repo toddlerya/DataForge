@@ -10,7 +10,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from agent.llm import ollama_llm
+from agent.llm import chat_llm
 from agent.prompt import prompt_gen_faker_data
 from agent.state import (
     DataForgeState,
@@ -47,7 +47,7 @@ def gen_faker_data_agent(state: DataForgeState) -> dict:
     }
     output_data_schema = build_main_model(output_table_models)
 
-    structured_llm = ollama_llm.with_structured_output(output_data_schema)
+    structured_llm = chat_llm.with_structured_output(output_data_schema)
     system_message = prompt_gen_faker_data.format(
         table_en_name_array=table_en_names,
         table_field_info_array=[ele.model_dump() for ele in table_metadata_array],

@@ -21,7 +21,7 @@ from database_models.sys_enum import MetaDataSource
 from database_models.models import TableMetaDataInfo
 from utils.db import Database
 from utils.file import get_md5
-from cruds.table_metadata import table_metadata_save
+from cruds.table_metadata import table_metadata_save, table_metadata_query_by_entity_id
 from cruds.table_example import table_example_save
 from crawler.common import table_metadata_verify2model, fill_one_example2model
 
@@ -97,7 +97,7 @@ class PanGuCrawler:
         except Exception as err:
             logger.error(err)
 
-    def crawl_entity_detail(self, entity_id: str):
+    def crawl_entity_detail(self, entity_id: str) -> TableMetaDataSchema | None:
         """
         抓取详情
         Args:
@@ -117,6 +117,7 @@ class PanGuCrawler:
         payload = {
             "entityId": entity_id
         }
+
         resp = requests.get(url=self.detail_url, headers=self.bdp_headers, params=payload, verify=False)
         if resp.status_code != 200:
             logger.error(resp.raise_for_status())
@@ -125,35 +126,38 @@ class PanGuCrawler:
             resp_json = resp.json()
             if resp_json.get("status") != 200:
                 logger.error(f"盘古表详情获取异常: resp_json.status={resp_json.get('status')}")
-            data = resp_json.get("data", {})
-            entity_extends_value = data.get("entityExtends", {}).get("entityExtends", [])
-            entity_info = data.get("entityInfo", {})
-            base_table_en_name = entity_info.get("ename", "")
-            field_info_list = data.get("fieldInfoList", [])
-            position_info = data.get("positionInfo", {})
-            data_source_name = position_info.get("DATASOURCE", "")
-            # 结束提取position_type
-            table_metadata_model = table_metadata_verify2model(table_metadata_fields=field_info_list,
-                                                               source=MetaDataSource.pangu)
-            table_metadata_model.table_en_name = f"{data_source_name}.{base_table_en_name}"
-            table_metadata_model.table_cn_name = entity_info.get("name", "")
-            table_metadata_model.description = entity_info.get("description", "")
-            table_metadata_model.position_type = entity_info.get("positionName", "")
-            table_metadata_model.storage_type = __get_storage_type_value(entity_extends=entity_extends_value)
-            table_metadata_model.area_name = entity_info.get("areaName", "")
-            table_metadata_model.source = MetaDataSource.pangu
-            status, tb_meta_uuid = get_md5(f"{table_metadata_model.table_en_name}"
-                                           f"{table_metadata_model.source}"
-                                           f"{table_metadata_model.area_code}"
-                                           f"{table_metadata_model.area_name}")
-            if status is False:
-                logger.error(f"计算{table_metadata_model.source}表{table_metadata_model.table_en_name}元数据UUID异常!")
             else:
-                table_metadata_model.uuid = tb_meta_uuid
-            logger.trace(f"table_metadata_model: {table_metadata_model.model_dump_json()}")
-            return table_metadata_model
+                data = resp_json.get("data", {})
+                entity_extends_value = data.get("entityExtends", {}).get("entityExtends", [])
+                entity_info = data.get("entityInfo", {})
+                base_table_en_name = entity_info.get("ename", "")
+                field_info_list = data.get("fieldInfoList", [])
+                position_info = data.get("positionInfo", {})
+                data_source_name = position_info.get("DATASOURCE", "")
+                # 结束提取position_type
+                table_metadata_model = table_metadata_verify2model(table_metadata_fields=field_info_list,
+                                                                   source=MetaDataSource.pangu)
+                table_metadata_model.table_en_name = f"{data_source_name}.{base_table_en_name}"
+                table_metadata_model.table_cn_name = entity_info.get("name", "")
+                table_metadata_model.description = entity_info.get("description", "")
+                table_metadata_model.position_type = entity_info.get("positionName", "")
+                table_metadata_model.storage_type = __get_storage_type_value(entity_extends=entity_extends_value)
+                table_metadata_model.area_name = entity_info.get("areaName", "")
+                table_metadata_model.source = MetaDataSource.pangu
+                status, tb_meta_uuid = get_md5(f"{table_metadata_model.table_en_name}"
+                                               f"{table_metadata_model.source}"
+                                               f"{table_metadata_model.area_code}"
+                                               f"{table_metadata_model.area_name}")
+                if status is False:
+                    logger.error(
+                        f"计算{table_metadata_model.source}表{table_metadata_model.table_en_name}元数据UUID异常!")
+                else:
+                    table_metadata_model.uuid = tb_meta_uuid
+                logger.trace(f"table_metadata_model: {table_metadata_model.model_dump_json()}")
+                return table_metadata_model
         except Exception as err:
             logger.error(err)
+            return None
 
     def crawl_sample(self, table_en_name: str, entity_id: int, type_value: str = 2, limit: int = 100) -> list[dict]:
         """
@@ -166,33 +170,39 @@ class PanGuCrawler:
         Returns:
 
         """
+        data = []
         sql = f"SELECT * FROM {table_en_name} LIMIT {limit}"
         payload = {
             "sql": sql,
             "entityId": entity_id,
             "type": type_value
         }
-        resp = requests.get(url=self.query_url, headers=self.bdp_headers, params=payload, timeout=60, verify=False)
-        if resp.status_code != 200:
-            logger.error(resp.raise_for_status())
-            raise resp.raise_for_status()
-        data = []
         try:
-            resp_json = resp.json()
-            if resp_json.get("status") != 200:
-                logger.error(
-                    f"盘古样例数据获取异常: "
-                    f"table_en_name={table_en_name} "
-                    f"entity_id={entity_id} "
-                    f"resp_json.status={resp_json.get('status')}")
-            else:
-                data: list[dict] = resp_json.get("data", [])
+            resp = requests.get(url=self.query_url, headers=self.bdp_headers, params=payload, timeout=60, verify=False)
         except Exception as err:
-            logger.error(err)
+            logger.error(f"请求url={self.query_url} payload={payload} 超时")
+        else:
+            if resp.status_code != 200:
+                logger.error(resp.raise_for_status())
+                # raise resp.raise_for_status()
+            try:
+                resp_json = resp.json()
+                if resp_json.get("status") != 200:
+                    logger.error(
+                        f"盘古样例数据获取异常: "
+                        f"table_en_name={table_en_name} "
+                        f"entity_id={entity_id} "
+                        f"resp_json.status={resp_json.get('status')}")
+                else:
+                    data: list[dict] = resp_json.get("data", [])
+            except Exception as err:
+                logger.error(err)
+            finally:
+                return data
         finally:
             return data
 
-    def run(self):
+    def run(self, overwrite: bool = False):
         self.crawl_resource()
         for resource in self.resource_elements:
             template_id = resource.get("templateId", -1)
@@ -200,6 +210,15 @@ class PanGuCrawler:
         logger.info(f"盘古实体清单获取到{len(self.entity_elements)}个实体信息")
         for entity_info in self.entity_elements:
             entity_id = entity_info.get("entityId", -1)
+            if entity_id in [3718]:
+                continue
+            if overwrite:
+                query_status, query_msg, entity_data = table_metadata_query_by_entity_id(entity_id=entity_id,
+                                                                                         db_handler=self.inner_db)
+                if query_status and entity_data:
+                    # 数据已存在则跳过
+                    logger.warning(f"数据已存在，跳过: entity_id={entity_id} table_en_name={entity_data.table_en_name}")
+                    continue
             logger.info(f"采集实例元数据入库中: entity_id={entity_id}")
             each_table_metadata_model = self.crawl_entity_detail(entity_id=entity_id)
             # 采集表的样例数据
@@ -212,6 +231,7 @@ class PanGuCrawler:
             each_table_metadata_model = fill_one_example2model(table_metadata_model=each_table_metadata_model,
                                                                example_slice=example_data)
             each_table_metadata_record = each_table_metadata_model.model_dump()
+            each_table_metadata_record.update({"remark": entity_id})
             save_status, save_message = table_metadata_save(record=each_table_metadata_record,
                                                             db_handler=self.inner_db)
             if save_status is False:

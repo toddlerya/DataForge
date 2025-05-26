@@ -139,13 +139,18 @@ pangu_entity_list_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntit
 pangu_entity_detail_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntityDetail"
 pangu_data_sample_query_url = f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
 
-pangu_cookie = "contextPath=/catalog; JSESSIONID=8879F755883B45DD418821B7976AEBAA; userToken=f003cfa2a89f4403875293c93cd5420c; appToken=fbb5e82777534a199dc2ecf902722b80; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; userToken=b88388b67db44a7db9b7e5c75d29a4ba; appToken=30ac5a286a41422fb6d38678e914750f; JSESSIONID=083A322D330656BBE5F7D0F06BBD21A4"
+pangu_cookie = "contextPath=/catalog; JSESSIONID=B326E3E91486A49D4C1B147FD289ECB5; userToken=5e9f47a866c243d3ac2cf72c75538244; appToken=62a230916b514c0c9a4833f5b4d81209; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; userToken=f003cfa2a89f4403875293c93cd5420c; appToken=fbb5e82777534a199dc2ecf902722b80; JSESSIONID=5FA36098596031DDF7A9E0AE0DB74D4C"
 
 pangu_field_type_map = {
     -1: "string",
     1: "string",
     2: "int",
+    3: "byte",
     4: "long",
     5: "short",
-    6: "double"
+    6: "double",
+    21: "array<string>",
+    22: "array<int>",
+    23: "array<long>",
+    24: "array<float>"
 }

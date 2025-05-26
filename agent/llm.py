@@ -20,7 +20,8 @@ web_llm = ChatOpenAI(
     # model="qwen3:30b-a3b",
     # model="Qwen3-30B-A3B",
     # model="DeepSeek-R1-Distill-Qwen-14B-AWQ",
-    model="DeepSeek-R1-Distill-Qwen-32B",
+    model="fiberhome-chat",
+    # model="DeepSeek-R1-Distill-Qwen-32B",
     temperature=0.6,
     # top_p=0.95,
 )
@@ -40,4 +41,4 @@ ollama_llm = ChatOllama(
 #     temperature=0.0
 # )
 
-chat_llm = web_llm
+chat_llm = ollama_llm

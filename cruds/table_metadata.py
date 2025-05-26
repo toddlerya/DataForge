@@ -13,6 +13,28 @@ from database_models.schema import TableRawFieldSchema, TableMetaDataSchema
 from utils.db import Database
 
 
+def table_metadata_query_by_entity_id(
+        entity_id: str,
+        db_handler: Database) -> Tuple[bool, str, TableMetaDataInfo | None]:
+    """
+    查询表元数据信息
+    Args:
+        entity_id:
+        db_handler:
+
+    Returns:
+
+    """
+    try:
+        result = db_handler.session.query(TableMetaDataInfo).filter(
+            TableMetaDataInfo.remark == entity_id).one_or_none()
+    except Exception as err:
+        message = f"数据库读操作异常: {err}"
+        return False, message, None
+    else:
+        return True, "ok", result
+
+
 def table_metadata_save(record: dict, db_handler: Database) -> Tuple[bool, str]:
     """
     存储数据
