@@ -212,7 +212,7 @@ class PanGuCrawler:
             entity_id = entity_info.get("entityId", -1)
             if entity_id in []:
                 continue
-            if overwrite:
+            if not overwrite:
                 query_status, query_msg, entity_data = table_metadata_query_by_entity_id(entity_id=entity_id,
                                                                                          db_handler=self.inner_db)
                 if query_status and entity_data:

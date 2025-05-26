@@ -37,15 +37,20 @@ def table_metadata_verify2model(table_metadata_fields: List[Dict], source: str) 
             )
             table_fields_slice.append(field_model)
         elif source == MetaDataSource.pangu:
-            field_model = TableRawFieldSchema(
-                en_name=field.get("ename", ""),
-                cn_name=field.get("name", ""),
-                desc=field.get("description", ""),
-                field_type=pangu_field_type_map.get(field.get("fieldType", -1)),
-                is_require=field.get("isRequire", 0),
-                dict_name=field.get("dic", "")
-            )
-            table_fields_slice.append(field_model)
+            try:
+                field_model = TableRawFieldSchema(
+                    en_name=field.get("ename", ""),
+                    cn_name=field.get("name", ""),
+                    desc=field.get("description", ""),
+                    field_type=pangu_field_type_map.get(field.get("fieldType", -1)),
+                    is_require=field.get("isRequire", 0),
+                    dict_name=field.get("dic", "")
+                )
+            except Exception as err:
+                logger.error(f"field: {field} ERROR: {err}")
+                raise err
+            else:
+                table_fields_slice.append(field_model)
     table_metadata_model = TableMetaDataSchema(table_fields=table_fields_slice)
     return table_metadata_model
 

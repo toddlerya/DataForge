@@ -153,6 +153,8 @@ pangu_field_type_map = {
     9: "date",
     10: "timestamp",
     11: "binary",
+    18: "float",
+    20: "array",
     21: "array<string>",
     22: "array<int>",
     23: "array<long>",
