@@ -23,9 +23,6 @@ def create_table_raw_field_info(state: DataForgeState):
     intent_table_en_names = state.get("user_intent", {}).table_en_names
     # 查询知识库获取表的字段配置信息
 
-    # 模拟查询
-    from agent.mock_data import MockTableMetadata
-
     for table_en_name in intent_table_en_names:
         table_metadata = TableMetadataSchema(table_en_name=table_en_name)
         query_status, query_message, query_result = table_metadata_query(table_en_name=table_en_name,
@@ -39,38 +36,14 @@ def create_table_raw_field_info(state: DataForgeState):
             logger.error(f"未查询到{table_en_name}元数据!")
             state["table_metadata_error"].append(f"未查询到{table_en_name}元数据!")
             raw_fields_data = [TableRawFieldSchema()]
-            output_fields = {}
         else:
             raw_fields_data = [
                 TableRawFieldSchema(**ele)
                 for ele in query_result.table_fields
                 if isinstance(ele, dict)
             ]
-            # 创建输出字段结构
-            # temp_output_fields = [ele.en_name for ele in raw_fields_data]
-            # output_fields = dict(
-            #     zip(temp_output_fields, len(temp_output_fields) * [""])
-            # )
-        # if table_en_name.upper() in MockTableMetadata().__dir__():
-        #     raw_fields_info = MockTableMetadata().__getattribute__(
-        #         table_en_name.upper()
-        #     )
-        #     raw_fields_data = [
-        #         TableRawFieldSchema(**ele)
-        #         for ele in raw_fields_info
-        #         if isinstance(ele, dict)
-        #     ]
-        #     # 创建输出字段结构
-        #     temp_output_fields = [ele.en_name for ele in raw_fields_data]
-        #     output_fields = dict(
-        #         zip(temp_output_fields, len(temp_output_fields) * [""])
-        #     )
-        # else:
-        #     raw_fields_info = ["未查询到该表的字段配置信息"]
-        #     raw_fields_data = [TableRawFieldSchema()]
-        #     output_fields = {}
+
         table_metadata.raw_fields_info = raw_fields_data
-        # table_metadata.output_fields = output_fields
 
         state["table_metadata_array"].append(table_metadata)
 

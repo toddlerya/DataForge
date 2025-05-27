@@ -5,11 +5,9 @@
 # @FileName : table_metadata.py
 # @Project  : DataForge
 
-from loguru import logger
-from typing import Union, Tuple
+from typing import Tuple
 
 from database_models.models import TableMetaDataInfo
-from database_models.schema import TableRawFieldSchema, TableMetaDataSchema
 from utils.db import Database
 
 

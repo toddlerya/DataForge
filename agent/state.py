@@ -58,9 +58,9 @@ class DataForgeState(MessagesState):
     user_input: str
     user_intent: UserIntentSchema
     confirmed: bool
-    table_metadata_array: List[TableMetadataSchema]
+    table_metadata_array: list[TableMetadataSchema]
     table_metadata_error: list[str]
-    fake_data: OutputDataStructureSchema
+    fake_data: dict[str, list]
 
 
 if __name__ == "__main__":

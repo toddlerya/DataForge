@@ -14,14 +14,14 @@ from agent.mapping_agent import mapping_builder
 from agent.state import DataForgeState
 
 builder = StateGraph(DataForgeState)
-builder.add_node("input_intent_agent", intent_builder.compile())
-builder.add_node("input_mapping_agent", mapping_builder.compile())
-builder.add_node("input_gen_faker_data_agent", gen_faker_data_builder.compile())
+builder.add_node("intent_agent", intent_builder.compile())
+builder.add_node("mapping_agent", mapping_builder.compile())
+builder.add_node("gen_fake_data_agent", gen_faker_data_builder.compile())
 
-builder.add_edge(START, "input_intent_agent")
-builder.add_edge("input_intent_agent", "input_mapping_agent")
-builder.add_edge("input_mapping_agent", "input_gen_faker_data_agent")
-builder.add_edge("input_gen_faker_data_agent", END)
+builder.add_edge(START, "intent_agent")
+builder.add_edge("intent_agent", "mapping_agent")
+builder.add_edge("mapping_agent", "gen_fake_data_agent")
+builder.add_edge("gen_fake_data_agent", END)
 
 memory = MemorySaver()
 data_forge_graph = builder.compile(checkpointer=memory)

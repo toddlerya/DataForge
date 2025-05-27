@@ -25,7 +25,6 @@ from agent.utils import save_json_data_async
 load_dotenv()
 
 
-
 @cl.on_chat_start
 async def start_chat():
     if not cl.user_session.get("thread_id"):
@@ -137,11 +136,11 @@ async def main(message: cl.Message):
             logger.info("完成")
             end_time = asyncio.get_event_loop().time()
             elapsed_time = end_time - start_time
-            cost_msg = f"运行耗时: {elapsed_time:.2f} 秒"
+            cost_msg = f"运行耗时: {elapsed_time: .2f} 秒"
             logger.info(cost_msg)
             for item_table_en_name, item_fake_data in fake_data.items():
                 logger.info(f"表名称: {item_table_en_name}")
-                logger.info(f"生成数据: {item_fake_data}")
+                # logger.info(f"生成数据: {item_fake_data}")
                 fake_df = pd.DataFrame(item_fake_data)
                 fake_elements = [
                     cl.Dataframe(
