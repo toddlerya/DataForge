@@ -66,7 +66,7 @@ def build_main_model(table_models: Dict[str, List[BaseModel]] | List):
 
     """
     main_model_fields = {
-        table_name: (List[table_model], [])
+        table_name: (List[table_model])
         for table_name, table_model in table_models.items()
     }
     return create_model("LLMOutputData", **main_model_fields)

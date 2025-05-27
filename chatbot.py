@@ -15,7 +15,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from agent.gen_faker_data_agent import gen_faker_data_graph
+from agent.gen_faker_data_agent import gen_fake_data_graph
 from agent.intent_agent import intent_graph
 from agent.mapping_agent import mapping_graph
 from agent.state import TableMetadataSchema, UserIntentSchema
@@ -68,7 +68,11 @@ async def get_table_metadata() -> List[TableMetadataSchema]:
 async def input_intent_analyze(user_input: str, thread: dict) -> UserIntentSchema:
     # 调用大模型对用户输入信息进行意图识别拆解
     event = await cl.make_async(intent_graph.invoke)(
-        {"user_input": user_input}, thread, stream_mode="values"
+        {
+            "user_input": user_input
+        },
+        thread,
+        stream_mode="values"
     )
     return event["user_intent"]
 
@@ -91,7 +95,7 @@ async def main(message: cl.Message):
         )
         # 查询表的字段配置信息
         table_metadata_array = await get_table_metadata()
-        logger.debug(f"table_metadata_array: {table_metadata_array}")
+        logger.trace(f"table_metadata_array: {table_metadata_array}")
         table_metadata_error = cl.user_session.get("table_metadata_error")
         if table_metadata_error:
             logger.error(f"table_metadata_error: {table_metadata_error}")
@@ -123,11 +127,14 @@ async def main(message: cl.Message):
                 ).send()
 
             await cl.Message(content="正在生成测试数据...").send()
-            event = await cl.make_async(gen_faker_data_graph.invoke)(
+            event = await cl.make_async(gen_fake_data_graph.invoke)(
                 {
                     "user_input": cl.user_session.get("user_input"),
                     "user_intent": cl.user_session.get("user_intent"),
                     "table_metadata_array": cl.user_session.get("table_metadata_array"),
+                    "fake_data": {},
+                    "max_retries": 5,
+                    "current_retries": 0
                 },
                 thread,
                 stream_mode="values",

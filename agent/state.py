@@ -61,6 +61,8 @@ class DataForgeState(MessagesState):
     table_metadata_array: list[TableMetadataSchema]
     table_metadata_error: list[str]
     fake_data: dict[str, list]
+    current_retries: int
+    max_retries: int
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from agent.gen_faker_data_agent import gen_faker_data_builder
+from agent.gen_faker_data_agent import gen_fake_data_builder
 from agent.intent_agent import intent_builder
 from agent.mapping_agent import mapping_builder
 from agent.state import DataForgeState
@@ -16,7 +16,7 @@ from agent.state import DataForgeState
 builder = StateGraph(DataForgeState)
 builder.add_node("intent_agent", intent_builder.compile())
 builder.add_node("mapping_agent", mapping_builder.compile())
-builder.add_node("gen_fake_data_agent", gen_faker_data_builder.compile())
+builder.add_node("gen_fake_data_agent", gen_fake_data_builder.compile())
 
 builder.add_edge(START, "intent_agent")
 builder.add_edge("intent_agent", "mapping_agent")

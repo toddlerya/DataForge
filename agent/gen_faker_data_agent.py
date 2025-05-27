@@ -15,14 +15,31 @@ from agent.llm import chat_llm
 from agent.prompt import prompt_gen_faker_data
 from agent.state import (
     DataForgeState,
-    TableMetadataSchema,
-    UserIntentSchema,
 )
-from database_models.schema import TableRawFieldSchema
 from agent.utils import create_table_model, build_main_model
 
 
-def gen_fake_data(state: DataForgeState) -> dict:
+def handle_retry(state: DataForgeState) -> DataForgeState:
+    """
+    处理重试逻辑
+    Args:
+        state:
+
+    Returns:
+
+    """
+    current_retries = state["current_retries"]
+    max_retries = state["max_retries"]
+    if current_retries >= max_retries:
+        logger.warning(f"当前已到达最大重试次数: {max_retries}")
+        state["current_retries"] = 0
+        return state
+    else:
+        logger.warning(f"当前重试次数: {current_retries}")
+        return state
+
+
+def gen_fake_data(state: DataForgeState) -> DataForgeState:
     user_intent = state.get("user_intent")
     table_en_names = user_intent.table_en_names
     table_conditions = user_intent.table_conditions
@@ -32,6 +49,8 @@ def gen_fake_data(state: DataForgeState) -> dict:
     logger.debug(f"table_en_names: {table_en_names}")
     logger.debug(f"table_conditions: {table_conditions}")
     logger.debug(f"table_data_count: {table_data_count}")
+    logger.debug(f"max_retries: {state.get('max_retries', 3)}")
+    logger.debug(f"current_retries: {state.get('current_retries', 0)}")
 
     # 生成测试数据
     output_table_metadata_slice = list()
@@ -56,31 +75,40 @@ def gen_fake_data(state: DataForgeState) -> dict:
         table_data_count_array=table_data_count,
     )
     logger.trace(f"gen_fake_data system_message: {system_message}")
-    fake_data = structured_llm.invoke(
-        [
-            system_message,
-            "请根据表字段信息生成测试数据",
-        ]
-    )
-    # logger.debug(f"fake_data: {type(fake_data)} {fake_data}")
-    logger.trace(f"fake_data.model_dump_json: {fake_data.model_dump_json()}")
-    # 追加数据
-    last_fake_data = state.get("fake_data", {})
-    logger.trace(f"last_fake_data: {last_fake_data}")
-    for k, v in fake_data.model_dump().items():
-        if k in last_fake_data:
-            last_fake_data[k].extend(v)
-        else:
-            last_fake_data[k] = v
-    return {"fake_data": last_fake_data}
+    try:
+        fake_data = structured_llm.invoke(
+            [
+                system_message,
+                "请根据表字段信息生成测试数据",
+            ]
+        )
+    except Exception as err:
+        logger.error(f"gen_fake_data structured_llm.invoke error: {err}")
+        state["current_retries"] = state["current_retries"] + 1
+    else:
+        logger.debug(f"current fake_data: {type(fake_data)} {fake_data}")
+        logger.trace(f"fake_data.model_dump_json: {fake_data.model_dump_json()}")
+        # 追加数据
+        last_fake_data = state.get("fake_data", {})
+        logger.debug(f"current last_fake_data: {last_fake_data}")
+        for k, v in fake_data.model_dump().items():
+            if k in last_fake_data:
+                last_fake_data[k].extend(v)
+            else:
+                last_fake_data[k] = v
+        state["fake_data"] = last_fake_data
+        state["current_retries"] = 0
+        # return {"fake_data": last_fake_data}
+        return state
 
 
 def should_continue_gen(state: DataForgeState):
     """Return the next node to execute"""
-
-    # Check if human feedback
+    # logger.debug(f"should_continue_gen state: {state}")
+    if state["current_retries"] >= state["max_retries"]:
+        return "max_retries_reached"
     user_intent = state.get("user_intent")
-    fake_data = state.get("fake_data")
+    fake_data = state.get("fake_data", {})
     for table_en_name, except_data_count in user_intent.table_data_count.items():
         actual_gen_count = len(fake_data.get(table_en_name, []))
         logger.debug(f"should_continue_gen=> table_en_name={table_en_name} "
@@ -91,15 +119,26 @@ def should_continue_gen(state: DataForgeState):
     return "finished"
 
 
-gen_faker_data_builder = StateGraph(DataForgeState)
-gen_faker_data_builder.add_node("gen_fake_data", gen_fake_data)
+gen_fake_data_builder = StateGraph(DataForgeState)
+gen_fake_data_builder.add_node("gen_fake_data", gen_fake_data)
+gen_fake_data_builder.add_node("handle_retry", handle_retry)
 
-gen_faker_data_builder.add_edge(START, "gen_fake_data")
-gen_faker_data_builder.add_conditional_edges("gen_fake_data", should_continue_gen,
-                                             {"again": "gen_fake_data", "finished": END})
+gen_fake_data_builder.add_edge(START, "gen_fake_data")
+gen_fake_data_builder.add_conditional_edges("gen_fake_data", should_continue_gen,
+                                            {
+                                                 "again": "gen_fake_data",
+                                                 "max_retries_reached": "handle_retry",
+                                                 "finished": END
+                                             })
+gen_fake_data_builder.add_conditional_edges("handle_retry", should_continue_gen,
+                                            {
+                                                 "again": "gen_fake_data",
+                                                 "max_retries_reached": END,
+                                                 "finished": END
+                                             })
 
 memory = MemorySaver()
-gen_faker_data_graph = gen_faker_data_builder.compile(checkpointer=memory)
+gen_fake_data_graph = gen_fake_data_builder.compile(checkpointer=memory)
 
 if __name__ == "__main__":
-    print(gen_faker_data_graph.get_graph(xray=True).draw_mermaid())
+    print(gen_fake_data_graph.get_graph(xray=True).draw_mermaid())
