@@ -85,6 +85,7 @@ def gen_fake_data(state: DataForgeState) -> DataForgeState:
     except Exception as err:
         logger.error(f"gen_fake_data structured_llm.invoke error: {err}")
         state["current_retries"] = state["current_retries"] + 1
+        return state
     else:
         logger.debug(f"current fake_data: {type(fake_data)} {fake_data}")
         logger.trace(f"fake_data.model_dump_json: {fake_data.model_dump_json()}")
