@@ -6,10 +6,10 @@
 # @Desc    :   None
 
 import json
-from typing import Any, List, Optional
+from typing import Any, List, Dict
 
 import aiofiles
-from pydantic import BaseModel, Field, create_model
+from pydantic import BaseModel, create_model, Field
 
 
 async def save_json_data_async(save_json_path, fake_data):
@@ -29,27 +29,47 @@ def create_model_from_dict(
     return model
 
 
-def create_table_model(table_name: str, fields: list):
+FIELD_TYPE_MAP = {"int": int, "string": str}
+
+
+def create_table_model(table_name: str, fields: list[dict]):
+    """
+    创建输出表输出模型定义
+    Args:
+        table_name:
+        fields:
+
+    Returns:
+
+    """
     field_definitions = {}
-    for field_name in fields:
+    for field in fields:
+        field_name = field.get("en_name")
+        field_type = FIELD_TYPE_MAP.get(field.get("field_type"), str)
         field_kwargs = {}
 
-        field_definitions[field_name] = (str, Field(**field_kwargs))
+        field_definitions[field_name] = (field_type, Field(**field_kwargs))
 
     return create_model(table_name, **field_definitions)
 
 
-def build_main_model(table_models: dict):
+def build_main_model(table_models: Dict[str, List[BaseModel]] | List):
+    """
+    构建输出数据结构主模型
+    Args:
+        table_models:
+
+    Returns:
+
+    """
     main_model_fields = {
-        table_name: (List[table_model], [])
+        table_name: (List[table_model])
         for table_name, table_model in table_models.items()
     }
-
-    return create_model("DataResponse", **main_model_fields)
+    return create_model("LLMOutputData", **main_model_fields)
 
 
 if __name__ == "__main__":
-
     from pydantic import BaseModel
 
     data1 = {
@@ -63,15 +83,8 @@ if __name__ == "__main__":
         "DOMAIN": "",
         "REGISTRY_DOMAIN_ID": "",
     }
-    # 动态生成所有表模型
-    table_models = {
-        table["name"]: create_table_model(table_name="data1", fields=data1)
-        for table in [data1, data2]
-    }
 
-    # 构建主模型
-    MainModel = build_main_model(table_models)
-    DynamicModel1 = build_main_model(data1)
+    DynamicModel1 = create_model_from_dict(data1)
     print(DynamicModel1())
     print(DynamicModel1.model_json_schema())
     print(DynamicModel1.__annotations__)

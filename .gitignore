@@ -19,3 +19,4 @@ wheels/
 .files
 
 data/output
+database/data_forge.db

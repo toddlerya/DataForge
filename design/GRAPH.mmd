@@ -1,0 +1,37 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph LR;
+        __start__([<p>__start__</p>]):::first
+        mapping_agent(mapping_agent)
+        __end__([<p>__end__</p>]):::last
+        __start__ --> intent_agent___start__;
+        intent_agent___end__ --> mapping_agent;
+        mapping_agent --> gen_fake_data_agent___start__;
+        gen_fake_data_agent___end__ --> __end__;
+        subgraph intent_agent
+        intent_agent___start__(<p>__start__</p>)
+        intent_agent_analyze_agent(analyze_agent)
+        intent_agent_confirm(confirm)
+        intent_agent___end__(<p>__end__</p>)
+        intent_agent___start__ --> intent_agent_analyze_agent;
+        intent_agent_analyze_agent --> intent_agent_confirm;
+        intent_agent_confirm -.-> intent_agent_analyze_agent;
+        intent_agent_confirm -.-> intent_agent___end__;
+        end
+        subgraph gen_fake_data_agent
+        gen_fake_data_agent___start__(<p>__start__</p>)
+        gen_fake_data_agent_gen_fake_data(gen_fake_data)
+        gen_fake_data_agent_handle_retry(handle_retry)
+        gen_fake_data_agent___end__(<p>__end__</p>)
+        gen_fake_data_agent___start__ --> gen_fake_data_agent_gen_fake_data;
+        gen_fake_data_agent_gen_fake_data -. &nbsp;max_retries_reached&nbsp; .-> gen_fake_data_agent_handle_retry;
+        gen_fake_data_agent_handle_retry -. &nbsp;again&nbsp; .-> gen_fake_data_agent_gen_fake_data;
+        gen_fake_data_agent_gen_fake_data -.-> gen_fake_data_agent___end__;
+        gen_fake_data_agent_gen_fake_data -. &nbsp;again&nbsp; .-> gen_fake_data_agent_gen_fake_data;
+        end
+        classDef default fill:#f2f0ff,line-height:1.2
+        classDef first fill-opacity:0
+        classDef last fill:#bfb6fc
