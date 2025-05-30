@@ -3,6 +3,68 @@ import random
 
 from faker.providers import BaseProvider
 
+"""
+{
+  "name": "generate_chinese_id_card",
+  "description": "生成符合中国身份证格式规则的(伪)真实身份证号码",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "birth_date": {
+        "type": ["string", "null"],
+        "description": "出生日期，支持格式：'YYYYMMDD'(完整日期), 'YYYYMM'(年月), 'YYYY'(年份), 或null(随机)",
+        "examples": ["19920608", "199210", "1992"]
+      },
+      "province_code": {
+        "type": ["string", "null"],
+        "description": "省份行政区划代码(2/4/6位数字)，如'37'(山东), '3708'(济宁), '370881'(曲阜), 或null(随机)",
+        "examples": ["37", "3708", "370881"]
+      },
+      "gender": {
+        "type": ["integer", "null"],
+        "enum": [0, 1, null],
+        "description": "性别：0(女), 1(男), null(随机)",
+        "examples": [0, 1]
+      }
+    }
+  },
+  "returns": {
+    "type": "string",
+    "description": "18位中国身份证号码",
+    "examples": ["370881199206081234"]
+  },
+  "examples": [
+    {
+      "description": "生成随机身份证",
+      "call": {
+        "birth_date": null,
+        "province_code": null,
+        "gender": null
+      },
+      "result": "370881199206081234"
+    },
+    {
+      "description": "生成1992年出生的山东女性身份证",
+      "call": {
+        "birth_date": "1992",
+        "province_code": "37",
+        "gender": 0
+      },
+      "result": "371234199201021234"
+    },
+    {
+      "description": "生成1992年10月出生的济宁男性身份证",
+      "call": {
+        "birth_date": "199210",
+        "province_code": "3708",
+        "gender": 1
+      },
+      "result": "370802199210121234"
+    }
+  ]
+}
+"""
+
 
 # 假设这是你的身份证生成算法 (你需要替换成你自己的真实算法)
 def generate_chinese_id_card_number(birth_date=None, province_code=None, gender=None):
@@ -381,7 +443,42 @@ def generate_chinese_id_card_number(birth_date=None, province_code=None, gender=
 
     if birth_date:
         if isinstance(birth_date, str):
-            birth_date_obj = datetime.datetime.strptime(birth_date, "%Y%m%d").date()
+            if len(birth_date) == 8:  # YYYYMMDD
+                birth_date_obj = datetime.datetime.strptime(birth_date, "%Y%m%d").date()
+            elif len(birth_date) == 6:  # YYYYMM
+                year = int(birth_date[:4])
+                month = int(birth_date[4:6])
+                # 计算当月最大天数
+                max_day = 31
+                if month in [4, 6, 9, 11]:
+                    max_day = 30
+                elif month == 2:
+                    max_day = (
+                        29
+                        if (year % 400 == 0) or (year % 100 != 0 and year % 4 == 0)
+                        else 28
+                    )
+                day = random.randint(1, max_day)
+                birth_date_obj = datetime.date(year, month, day)
+            elif len(birth_date) == 4:  # YYYY
+                year = int(birth_date)
+                month = random.randint(1, 12)
+                # 计算当月最大天数
+                max_day = 31
+                if month in [4, 6, 9, 11]:
+                    max_day = 30
+                elif month == 2:
+                    max_day = (
+                        29
+                        if (year % 400 == 0) or (year % 100 != 0 and year % 4 == 0)
+                        else 28
+                    )
+                day = random.randint(1, max_day)
+                birth_date_obj = datetime.date(year, month, day)
+            else:
+                raise ValueError(
+                    "birth_date must be 4 (YYYY), 6 (YYYYMM) or 8 (YYYYMMDD) digits"
+                )
         elif isinstance(birth_date, datetime.date):
             birth_date_obj = birth_date
         else:
@@ -444,13 +541,8 @@ class ChineseIdCardProvider(BaseProvider):
 
 # --- 接续主程序 ---
 if __name__ == "__main__":
-    # ... (上面的 ChineseAddressProvider 和 create_sample_db 代码) ...
-
     from faker import Faker
 
-    # 1. 创建示例数据库 (实际使用时你的数据库已存在)
-    # create_sample_db() # 假设已创建或不需要
-    # 2. 初始化 Faker 实例
     fake = Faker("zh_CN")
 
     # 3. 添加自定义 Provider
@@ -462,9 +554,13 @@ if __name__ == "__main__":
     print(
         f"男性，生日19920608, 曲阜地区: {fake.id_card_number(birth_date='19010608', province_code='370881', gender=1)}"
     )
-    from datetime import date
-
     print(
-        f"女性，生日19851225: {fake.id_card_number(birth_date=date(1985,12,25), gender=0)}"
+        f"男性，生日199210, 济宁地区: {fake.id_card_number(birth_date='199210', province_code='3708', gender=1)}"
     )
-    print("-" * 20)
+    print(
+        f"女性，生日1992, 山东地区: {fake.id_card_number(birth_date='1992', province_code='37', gender=0)}"
+    )
+    print(
+        f"随机性别，生日1992, 山东地区: {fake.id_card_number(birth_date='1992', province_code='37')}"
+    )
+    print(f"随机性别，随机年龄, 山东地区: {fake.id_card_number(province_code='37')}")

@@ -326,11 +326,11 @@ def create_sample_cnarea_db(db_path="my_data.db", table_name="cnarea_2016"):
 
 # --- 主程序，添加并使用 Provider ---
 if __name__ == "__main__":
-    DB_FILE = "my_cn_data_optimized.db"
+    DB_FILE = "/Users/evi1/Codes/DataForge/faker_utils/fake_db/data.db"
     TABLE_NAME = "cnarea_2016"
-    create_sample_cnarea_db(
-        db_path=DB_FILE, table_name=TABLE_NAME
-    )  # Create sample DB with indexes
+    # create_sample_cnarea_db(
+    #     db_path=DB_FILE, table_name=TABLE_NAME
+    # )  # Create sample DB with indexes
 
     fake = Faker("zh_CN")
 
