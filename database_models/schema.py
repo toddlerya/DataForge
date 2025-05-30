@@ -5,8 +5,9 @@
 # @FileName : schema.py
 # @Project  : DataForge
 
+from typing import List, Union
+
 from pydantic import BaseModel, Field
-from typing import Union, List
 
 
 class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):

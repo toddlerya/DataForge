@@ -214,3 +214,13 @@ uv pip freeze > requirements.txt
 - 数据生成规则
 - 关联关系策略
 - 输出格式选项
+
+
+## prompt demo
+
+```
+数据库表名称:
+massdata.NB_MASS_RESOURCE_MEDICAL_ORDER
+期望生成数据条数:
+massdata.NB_MASS_RESOURCE_MEDICAL_ORDER: 5
+```

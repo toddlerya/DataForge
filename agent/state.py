@@ -6,11 +6,11 @@
 # @Desc    :   None
 
 
-from typing import Dict, List, Union, Annotated
+from typing import Annotated, Dict, List, Optional, TypedDict, Union
 
+from langchain_core.messages import ToolMessage
 from langgraph.graph import MessagesState
 from langgraph.graph.message import add_messages
-from langchain_core.messages import ToolMessage
 from pydantic import BaseModel, Field
 
 from database_models.schema import TableRawFieldSchema
@@ -22,6 +22,17 @@ class UserIntentSchema(BaseModel):
     table_data_count: Dict[str, int] = Field(
         ..., description="表期望生成的数据条数，不可为空"
     )
+
+
+class TableFieldDefintion(TypedDict):
+    en_name: str
+    cn_name: str
+    # 字段类型, e.g., "INT", "VARCHAR", "DATE", "BOOLEAN"
+    field_type: str
+    # 字段样例值
+    sample_value: str
+    # 字段约束条件列表, e.g., ["age > 18", "name is not null"]
+    constraints: List[str]
 
 
 class TableMetadataSchema(BaseModel):
