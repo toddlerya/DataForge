@@ -54,22 +54,6 @@ class TableMetadataSchema(BaseModel):
     raw_fields_info: List[TableRawFieldSchema] = Field(
         description="原始字段信息", alias="raw_fields_info", default=[]
     )
-    # output_fields: dict = Field(
-    #     description="输出字段信息", alias="output_fields", default={}
-    # )
-    # map_tool_fields_info: List[Dict[str, str]] = Field(
-    #     description="映射生成工具字段信息", alias="map_fields_info", default=[]
-    # )
-    # mapping_confirmed: bool = Field(
-    #     description="映射是否完成", default=False, alias="mapping_confirmed"
-    # )
-    # map_count: int = Field(description="映射字段个数", default=-1, alias="map_count")
-    # no_map_count: int = Field(
-    #     description="未映射字段个数", default=-1, alias="no_map_count"
-    # )
-    # human_update_count: int = Field(
-    #     description="人工修正映射字段个数", default=-1, alias="human_update_count"
-    # )
 
 
 class OutputDataStructureSchema(BaseModel):
@@ -89,6 +73,8 @@ class DataForgeState(TypedDict):
     user_intent: UserIntentSchema
     confirmed: bool
     table_metadata_array: list[TableMetadataSchema]
+    input_table_definitions: List[TableFieldDefintion]
+    llm_faker_plan: Optional[FakerExecutionPlan]
     table_metadata_error: list[str]
     fake_data: dict[str, list]
     current_retries: int
