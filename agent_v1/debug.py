@@ -68,7 +68,7 @@ def build_main_model(table_models: dict):
 
 if __name__ == "__main__":
 
-    from agent.mock_data import mock_tables_metadata
+    from agent_v1.mock_data import mock_tables_metadata
 
     # 动态生成所有表模型
     table_models = {

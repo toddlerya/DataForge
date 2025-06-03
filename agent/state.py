@@ -6,7 +6,7 @@
 # @Desc    :   None
 
 
-from typing import Annotated, Dict, List, Optional, TypedDict, Union
+from typing import Annotated, Any, Dict, List, Optional, TypedDict, Union
 
 from langchain_core.messages import ToolMessage
 from langgraph.graph import MessagesState
@@ -14,6 +14,18 @@ from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 
 from database_models.schema import TableRawFieldSchema
+
+
+class TableMetadataSchema(BaseModel):
+    table_en_name: str = Field(
+        description="表英文名称", alias="table_en_name", default=""
+    )
+    table_cn_name: str = Field(
+        description="表中文名称", alias="table_cn_name", default=""
+    )
+    raw_fields_info: List[TableRawFieldSchema] = Field(
+        description="原始字段信息", alias="raw_fields_info", default=[]
+    )
 
 
 class UserIntentSchema(BaseModel):
@@ -35,47 +47,90 @@ class TableFieldDefintion(TypedDict):
     constraints: List[str]
 
 
-class TableMetadataSchema(BaseModel):
-    table_en_name: str = Field(
-        description="表英文名称", alias="table_en_name", default=""
-    )
-    table_cn_name: str = Field(
-        description="表中文名称", alias="table_cn_name", default=""
-    )
-    raw_fields_info: List[TableRawFieldSchema] = Field(
-        description="原始字段信息", alias="raw_fields_info", default=[]
-    )
-    # output_fields: dict = Field(
-    #     description="输出字段信息", alias="output_fields", default={}
-    # )
-    # map_tool_fields_info: List[Dict[str, str]] = Field(
-    #     description="映射生成工具字段信息", alias="map_fields_info", default=[]
-    # )
-    # mapping_confirmed: bool = Field(
-    #     description="映射是否完成", default=False, alias="mapping_confirmed"
-    # )
-    # map_count: int = Field(description="映射字段个数", default=-1, alias="map_count")
-    # no_map_count: int = Field(
-    #     description="未映射字段个数", default=-1, alias="no_map_count"
-    # )
-    # human_update_count: int = Field(
-    #     description="人工修正映射字段个数", default=-1, alias="human_update_count"
-    # )
+class FakerExecutionInstruction(TypedDict):
+    field_en_name: str
+    faker_provider: str
+    faker_parameters: Dict[str, Any]
+    is_nullable: bool
+    null_probability: float
+    dependencies: List[str]
+    custom_logic_description: str
+    string_format_template: Optional[str]
 
 
-class OutputDataStructureSchema(BaseModel):
-    data: Union[BaseModel]
+class FakerExecutionPlan(TypedDict):
+    plan_description: str
+    faker_locale: Optional[str]
+    instructions_for_fields: List[FakerExecutionInstruction]
 
 
-class DataForgeState(MessagesState):
+class DataForgeState(TypedDict):
+    messages: Annotated[List[ToolMessage], add_messages]
     user_input: str
     user_intent: UserIntentSchema
     confirmed: bool
     table_metadata_array: list[TableMetadataSchema]
+    input_table_definitions: List[TableFieldDefintion]
+    llm_faker_plan: Optional[FakerExecutionPlan]
     table_metadata_error: list[str]
+    num_rows_to_generate: int
     fake_data: dict[str, list]
+    error_message: Optional[str]
     current_retries: int
     max_retries: int
+
+
+# Pydantic models for LLM output as defined in section 3.2.3
+class PydanticFakerInstruction(BaseModel):
+    """LLM 输出的单个字段Faker指令 Pydantic模型"""
+
+    field_name: str = Field(description="需要生成数据的字段的英文名称。")
+    faker_provider: str = Field(
+        description="要使用的 Python Faker provider 方法 (例如 'pyint', 'name', 'address', 'date_between')。如果无法直接映射，则使用 'custom_logic'。"
+    )
+    faker_parameters: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="传递给 Faker provider 方法的参数字典。例如：pyint 的 {'min_value': 0, 'max_value': 99}。对于 date_between，可使用 {'start_date': '-1y', 'end_date': 'today'}。",
+    )
+    is_nullable: bool = Field(
+        default=False,
+        description="该字段是否可以为 null。如果为 True，还需考虑 null_probability。",
+    )
+    null_probability: Optional[float] = Field(
+        default=0.0,
+        description="如果 is_nullable 为 True，则此字段生成 null 值的概率 (0.0 到 1.0)。",
+    )
+    dependencies: Optional[List[str]] = Field(
+        default_factory=list,
+        description="此字段生成所依赖的其他 field_name 列表 (用于复杂的字段间约束)。",
+    )
+    custom_logic_description: Optional[str] = Field(
+        default=None,
+        description="如果 Faker 无法通过 provider 和参数直接处理，则需要自定义逻辑或验证的自然语言描述。例如：'确保值是质数'，或 '结束日期必须在开始日期字段之后'。",
+    )
+    string_format_template: Optional[str] = Field(
+        default=None,
+        description="如果字段类型是字符串但需要特定格式 (例如 'ID-####')，请提供模板。使用 # 表示数字，? 表示字母。示例：'USER_??_####'。",
+    )
+
+
+class PydanticFakerPlan(BaseModel):
+    """LLM 输出的Faker执行计划 Pydantic模型"""
+
+    plan_description: str = Field(
+        default="使用 Python Faker 生成伪造数据的执行计划。",
+        description="此计划的简要描述。",
+    )
+    faker_locale: Optional[str] = Field(
+        default=None,
+        description="Faker 使用的区域设置，例如 'en_US', 'zh_CN'。如果可能，从输入上下文中确定。",
+    )
+    instructions_for_fields: List[PydanticFakerInstruction] = Field(
+        description="指令列表，表中的每个字段对应一个指令。"
+    )
+
+
+# DataForgeState.__annotations__["llm_faker_plan"] = Optional[PydanticFakerPlan]
 
 
 if __name__ == "__main__":

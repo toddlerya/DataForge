@@ -9,9 +9,9 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from agent.llm import ollama_llm, chat_llm
-from agent.prompt import prompt_intent_analyse
-from agent.state import DataForgeState, UserIntentSchema
+from agent_v1.llm import ollama_llm, chat_llm
+from agent_v1.prompt import prompt_intent_analyse
+from agent_v1.state import DataForgeState, UserIntentSchema
 
 
 def analyze_agent(state: DataForgeState) -> dict:

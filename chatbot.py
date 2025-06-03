@@ -15,11 +15,11 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from agent.gen_faker_data_agent import gen_fake_data_graph
-from agent.intent_agent import intent_graph
-from agent.mapping_agent import mapping_graph
-from agent.state import TableMetadataSchema, UserIntentSchema
-from agent.utils import save_json_data_async
+from agent_v1.gen_faker_data_agent import gen_fake_data_graph
+from agent_v1.intent_agent import intent_graph
+from agent_v1.mapping_agent import mapping_graph
+from agent_v1.state import TableMetadataSchema, UserIntentSchema
+from agent_v1.utils import save_json_data_async
 
 # 加载 .env 文件
 load_dotenv()

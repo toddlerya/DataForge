@@ -12,12 +12,12 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from agent.llm import chat_llm
-from agent.prompt import prompt_gen_faker_data
-from agent.state import (
+from agent_v1.llm import chat_llm
+from agent_v1.prompt import prompt_gen_faker_data
+from agent_v1.state import (
     DataForgeState,
 )
-from agent.utils import create_table_model, build_main_model
+from agent_v1.utils import create_table_model, build_main_model
 
 
 def handle_retry(state: DataForgeState) -> DataForgeState:
