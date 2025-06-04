@@ -6,3 +6,5 @@ fake.add_provider(internet)
 
 print(fake.date_of_birth().year)
 print(fake.job())
+
+print(fake.numerify("maayanishimura@example.org"))

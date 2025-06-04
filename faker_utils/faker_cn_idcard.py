@@ -3,9 +3,10 @@ import random
 
 from faker.providers import BaseProvider
 
-"""
+doc = """
 {
-  "name": "generate_chinese_id_card",
+  "provider": "ChineseIdCardProvider",
+  "func_name": "cn_id_card_number",
   "description": "生成符合中国身份证格式规则的(伪)真实身份证号码",
   "parameters": {
     "type": "object",
@@ -31,7 +32,7 @@ from faker.providers import BaseProvider
   "returns": {
     "type": "string",
     "description": "18位中国身份证号码",
-    "examples": ["370881199206081234"]
+    "examples": "370881199206081234"
   },
   "examples": [
     {
@@ -528,7 +529,7 @@ def generate_chinese_id_card_number(birth_date=None, province_code=None, gender=
 
 
 class ChineseIdCardProvider(BaseProvider):
-    def id_card_number(self, birth_date=None, province_code=None, gender=None):
+    def cn_id_card_number(self, birth_date=None, province_code=None, gender=None):
         """
         生成一个（伪）真实的中国身份证号码。
         :param birth_date: datetime.date 对象或 "YYYYMMDD" 格式字符串

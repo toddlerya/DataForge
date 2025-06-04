@@ -27,18 +27,37 @@ intent_prompt = ChatPromptTemplate.from_messages(
     [intent_system_prompt, intent_human_prompt]
 )
 
-prompt_intent_analyse = """
-# 你是数仓测试专家，你的任务如下
-1. 识别出数据库表名称(可以多张表，对应table_en_names)
-2. 期望表约束条件(每张表可以有或者没有约束条件，对应table_conditions)
-3. 期望生成数据条数(每张表都有条数，对应table_data_count)
-按照要求输出结构化数据。
 
-# 这是是用户的输入信息
-{user_input}
-# 这是用户的之前的会话信息
-{messages}
+faker_plan_system_prompt = SystemMessagePromptTemplate.from_template(
+    "您是一个智能助手，任务是根据数据库表结构和用户指定的条件，为 Python Faker 库生成数据生成计划配置"
+)
+
+faker_plan_human_prompt = HumanMessagePromptTemplate.from_template(
+    "数据库表名称: {table_name}\n"
+    "表结构信息: {table_schema}\n"
+    "用户期望条件: {user_conditions}\n"
+    "期望生成数据条数: {num_rows}\n"
+    """请为上述表生成一个 Faker 配置。配置应包含 `table_en_name`, `row_count` 和一个 `instructions_for_fields` 对象。
+`instructions_for_fields` 对象中的每个键是表中的字段 `field_en_name`，值是一个包含 `faker_func` (例如 "name", "pyint", "numerify", "uuid4", "date_between", "boolean") 和 `faker_parameters` (一个包含传递给 faker func 的参数的字典) 的对象。
+请仔细考虑每个字段的 `field_type`, `cn_name`, `sample_value` 和 `constraints`，以及用户的期望条件，来选择最合适的 `faker_func` 和 `faker_parameters`。
+例如:
+- 对于 `ID is not null`，可以使用 `uuid4`。
+- 对于 `phone like '139%'`，可以使用 `numerify` 和类似 `{{'text': '139########'}}` 的参数。
+- 对于 `age < 100`，可以使用 `pyint` 和类似 `{{'min_value': 1, 'max_value': 99}}` 的参数。
+- 对于布尔类型字段，可以使用 `boolean` provider，例如 `{{'chance_of_getting_true': 50}}`。
+- 对于日期类型，可以使用 `date_between`，例如 `{{'start_date': '-1y', 'end_date': 'today'}}`。
+
+输出必须是单个 JSON 对象，并检查输出的instructions_for_fields数量和表字段数量和内容是否一致，且需要保持表结构的字段顺序。
+
+参考资料
+faker provider func docs:
+{faker_docs}
 """
+)
+
+faker_plan_prompt = ChatPromptTemplate.from_messages(
+    [faker_plan_system_prompt, faker_plan_human_prompt]
+)
 
 prompt_gen_faker_data = """你是数仓测试专家，你的任务是生成虚拟测试数据，按照要求输出结构化数据。
 需要生成测试数据的表名称:

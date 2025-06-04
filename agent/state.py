@@ -16,6 +16,18 @@ from pydantic import BaseModel, Field
 from database_models.schema import TableRawFieldSchema
 
 
+class UserIntentSchema(BaseModel):
+    table_en_names: List[str] = Field(..., description="表英文名称, 不可为空")
+    table_conditions: Dict[str, str] = Field(
+        {},
+        description="表字段的约束条件，key为表名，value为条件表达式字符串",
+    )
+    table_data_count: Dict[str, int] = Field(
+        ...,
+        description="表期望生成的数据条数，key为表名，value为正整数",
+    )
+
+
 class TableMetadataSchema(BaseModel):
     table_en_name: str = Field(
         description="表英文名称", alias="table_en_name", default=""
@@ -25,14 +37,6 @@ class TableMetadataSchema(BaseModel):
     )
     raw_fields_info: List[TableRawFieldSchema] = Field(
         description="原始字段信息", alias="raw_fields_info", default=[]
-    )
-
-
-class UserIntentSchema(BaseModel):
-    table_en_names: List[str] = Field(..., description="表英文名称, 不可为空")
-    table_conditions: Dict[str, str] = Field(description="表字段的约束条件", default={})
-    table_data_count: Dict[str, int] = Field(
-        ..., description="表期望生成的数据条数，不可为空"
     )
 
 
@@ -50,6 +54,7 @@ class TableFieldDefintion(TypedDict):
 class FakerExecutionInstruction(TypedDict):
     field_en_name: str
     faker_provider: str
+    faker_func: str
     faker_parameters: Dict[str, Any]
     is_nullable: bool
     null_probability: float
@@ -61,6 +66,8 @@ class FakerExecutionInstruction(TypedDict):
 class FakerExecutionPlan(TypedDict):
     plan_description: str
     faker_locale: Optional[str]
+    table_en_name: str
+    row_count: int
     instructions_for_fields: List[FakerExecutionInstruction]
 
 
@@ -71,7 +78,7 @@ class DataForgeState(TypedDict):
     confirmed: bool
     table_metadata_array: list[TableMetadataSchema]
     input_table_definitions: List[TableFieldDefintion]
-    llm_faker_plan: Optional[FakerExecutionPlan]
+    llm_faker_plan: FakerExecutionPlan
     table_metadata_error: list[str]
     num_rows_to_generate: int
     fake_data: dict[str, list]
@@ -86,6 +93,10 @@ class PydanticFakerInstruction(BaseModel):
 
     field_name: str = Field(description="需要生成数据的字段的英文名称。")
     faker_provider: str = Field(
+        default="",
+        description="要使用的 Python Faker provider (例如 'internet', 'address', 'ChineseIdCardProvider'。 没有需要映射的可以为空)。",
+    )
+    faker_func: str = Field(
         description="要使用的 Python Faker provider 方法 (例如 'pyint', 'name', 'address', 'date_between')。如果无法直接映射，则使用 'custom_logic'。"
     )
     faker_parameters: Dict[str, Any] = Field(
@@ -125,6 +136,8 @@ class PydanticFakerPlan(BaseModel):
         default=None,
         description="Faker 使用的区域设置，例如 'en_US', 'zh_CN'。如果可能，从输入上下文中确定。",
     )
+    table_en_name: str = Field(..., description="表名称")
+    row_count: int = Field(1, gt=0, description="需要生成的数据条数")
     instructions_for_fields: List[PydanticFakerInstruction] = Field(
         description="指令列表，表中的每个字段对应一个指令。"
     )

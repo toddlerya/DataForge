@@ -17,12 +17,15 @@ web_llm = ChatOpenAI(
     base_url=os.getenv("SILICONFLOW_BASE_URL"),
     api_key=os.getenv("SILICONFLOW_API_KEY"),
     # model="Qwen/Qwen3-8B",
-    model="Qwen3-30B-A3B",
+    # model="Qwen3-30B-A3B",
     # model="DeepSeek-R1-Distill-Qwen-14B-AWQ",
     # model="fiberhome-chat",
     # model="DeepSeek-R1-Distill-Qwen-32B",
-    temperature=0.6,
-    top_p=0.95,
+    # model="Qwen/Qwen3-8B",
+    # model="Qwen/Qwen3-30B-A3B",
+    model="Qwen/Qwen3-235B-A22B",
+    temperature=0.4,
+    # top_p=0.95,
 )
 
 ollama_llm = ChatOllama(
@@ -36,9 +39,16 @@ ollama_llm = ChatOllama(
     top_p=0.95,
 )
 
+gemini_llm = ChatOpenAI(
+    base_url=os.getenv("GEMINI_BASE_URL"),
+    api_key=os.getenv("GEMINI_API_KEY"),
+    # model="gemini-2.5-pro-preview-05-06",
+    model="gemini-2.0-flash",
+)
+
 # local_ollama_llm = ChatOllama(
 #     model="qwen3:0.6b-fp16",
 #     temperature=0.0
 # )
 
-chat_llm = ollama_llm
+chat_llm = web_llm

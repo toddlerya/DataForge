@@ -14,18 +14,23 @@ from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
 from agent.llm import chat_llm, ollama_llm
-from agent.prompt import intent_prompt, prompt_gen_faker_data, prompt_intent_analyse
-from agent.state import DataForgeState, TableMetadataSchema, UserIntentSchema
+from agent.prompt import faker_plan_prompt, intent_prompt, prompt_gen_faker_data
+from agent.state import (
+    DataForgeState,
+    PydanticFakerPlan,
+    TableMetadataSchema,
+    UserIntentSchema,
+)
 from agent.utils import build_main_model, create_table_model
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
+from faker_utils.faker_cn_idcard import doc as faker_cn_idcard_doc
 from utils.db import Database
 
 
-def analyze_intent(state: DataForgeState) -> dict:
+def analyze_intent(state: DataForgeState) -> DataForgeState:
     messages = state.get("messages", [])
-    user_input = state.get("user_input", "")
-    user_input = messages[-1] if not user_input else user_input
+    user_input = messages[-1]
     state["user_input"] = user_input
     logger.debug(f"user_input: {user_input} messages: {messages}")
     structured_llm = chat_llm.with_structured_output(UserIntentSchema)
@@ -36,8 +41,9 @@ def analyze_intent(state: DataForgeState) -> dict:
     logger.debug(f"analyze_intent chat_prompt: {chat_prompt}")
     user_intent = structured_llm.invoke(chat_prompt)
     state["messages"].append(user_input)
+    state["user_intent"] = user_intent
     logger.debug(f"user_intent: {user_intent}")
-    return {"user_intent": user_intent}
+    return state
 
 
 def confirm(state: DataForgeState):
@@ -199,7 +205,7 @@ def should_continue_gen(state: DataForgeState):
     return "finished"
 
 
-def llm_planner_node(state: DataForgeState) -> DataForgeState:
+def faker_planner(state: DataForgeState) -> DataForgeState:
     """
     LLM规划器节点
     Args:
@@ -208,31 +214,33 @@ def llm_planner_node(state: DataForgeState) -> DataForgeState:
     Returns:
 
     """
-    logger.info("LLM规划器节点开始执行")
-    table_definitions = state["input_table_definitions"]
+    logger.info("Faker计划配置生成器开始执行")
+    table_metadata_array = state["table_metadata_array"]
     user_intent = state["user_intent"]
-    structured_llm = ollama_llm.with_structured_output(UserIntentSchema)
-
-    system_message = prompt_intent_analyse.format(
-        user_input=user_input, messages=messages
+    structured_llm = ollama_llm.with_structured_output(PydanticFakerPlan)
+    chat_prompt = faker_plan_prompt.format_messages(
+        table_name=user_intent.table_en_names,
+        table_schema=[ele.model_dump() for ele in table_metadata_array],
+        user_conditions=user_intent.table_conditions,
+        num_rows=user_intent.table_data_count,
+        faker_docs=[faker_cn_idcard_doc],
     )
-    logger.debug(f"system_message: {system_message}")
-    user_intent = structured_llm.invoke(
-        [
-            SystemMessage(content=system_message),
-            HumanMessage(content="分析用户输入的信息并结构化输出"),
-        ]
+    logger.debug(f"faker_planner chat_prompt: {chat_prompt}")
+    llm_faker_plan = structured_llm.invoke(chat_prompt)
+    logger.debug(
+        f"llm_faker_plan.model_dump_json(): {llm_faker_plan.model_dump_json()}"
     )
-    logger.debug(f"user_intent: {user_intent}")
-    return {"user_intent": user_intent}
+    state["llm_faker_plan"] = llm_faker_plan
+    return state
 
 
 data_forge_builder = StateGraph(DataForgeState)
 data_forge_builder.add_node("analyze_intent", analyze_intent)
 data_forge_builder.add_node("confirm", confirm)
 data_forge_builder.add_node("create_table_raw_field_info", create_table_raw_field_info)
-data_forge_builder.add_node("gen_fake_data", gen_fake_data)
-data_forge_builder.add_node("handle_retry", handle_retry)
+data_forge_builder.add_node("faker_planner", faker_planner)
+# data_forge_builder.add_node("gen_fake_data", gen_fake_data)
+# data_forge_builder.add_node("handle_retry", handle_retry)
 
 
 data_forge_builder.add_edge(START, "analyze_intent")
@@ -240,21 +248,22 @@ data_forge_builder.add_edge("analyze_intent", "confirm")
 data_forge_builder.add_conditional_edges(
     "confirm", should_continue, ["analyze_intent", "create_table_raw_field_info"]
 )
-data_forge_builder.add_edge("create_table_raw_field_info", "gen_fake_data")
-data_forge_builder.add_conditional_edges(
-    "gen_fake_data",
-    should_continue_gen,
-    {
-        "again": "gen_fake_data",
-        "max_retries_reached": "handle_retry",
-        "finished": END,
-    },
-)
-data_forge_builder.add_conditional_edges(
-    "handle_retry",
-    should_continue_gen,
-    {"again": "gen_fake_data", "max_retries_reached": END, "finished": END},
-)
+data_forge_builder.add_edge("create_table_raw_field_info", "faker_planner")
+# data_forge_builder.add_conditional_edges(
+#     "gen_fake_data",
+#     should_continue_gen,
+#     {
+#         "again": "gen_fake_data",
+#         "max_retries_reached": "handle_retry",
+#         "finished": END,
+#     },
+# )
+# data_forge_builder.add_conditional_edges(
+#     "handle_retry",
+#     should_continue_gen,
+#     {"again": "gen_fake_data", "max_retries_reached": END, "finished": END},
+# )
+data_forge_builder.add_edge("faker_planner", END)
 
 # memory = MemorySaver()
 graph = data_forge_builder.compile(interrupt_before=["confirm"])

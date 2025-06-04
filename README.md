@@ -220,7 +220,11 @@ uv pip freeze > requirements.txt
 
 ```
 数据库表名称:
-massdata.NB_MASS_RESOURCE_MEDICAL_ORDER
+fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE
+期望条件：
+fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE:
+1. CERTIFICATE_CODE is not null AND MSISDN like '139%' and AGE <100 and SEXCODE is not null
+2. CERTIFICATE_CODE身份证号码要和AGE年龄、SEXCODE性别逻辑匹配
 期望生成数据条数:
-massdata.NB_MASS_RESOURCE_MEDICAL_ORDER: 5
+fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE: 5
 ```
