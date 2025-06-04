@@ -14,10 +14,9 @@ from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
 from agent.llm import chat_llm, ollama_llm
-from agent.prompt import intent_prompt
-from agent_v1.prompt import prompt_gen_faker_data, prompt_intent_analyse
-from agent_v1.state import DataForgeState, TableMetadataSchema, UserIntentSchema
-from agent_v1.utils import build_main_model, create_table_model
+from agent.prompt import intent_prompt, prompt_gen_faker_data, prompt_intent_analyse
+from agent.state import DataForgeState, TableMetadataSchema, UserIntentSchema
+from agent.utils import build_main_model, create_table_model
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
 from utils.db import Database
@@ -59,7 +58,10 @@ def should_continue(state: DataForgeState):
     return "create_table_raw_field_info"
 
 
-def create_table_raw_field_info(state: DataForgeState):
+def create_table_raw_field_info(state: DataForgeState) -> DataForgeState:
+    if "table_metadata_array" not in state:
+        state["table_metadata_array"] = []
+
     intent_table_en_names = state.get("user_intent", {}).table_en_names
     # 查询知识库获取表的字段配置信息
 
@@ -88,6 +90,7 @@ def create_table_raw_field_info(state: DataForgeState):
         table_metadata.raw_fields_info = raw_fields_data
 
         state["table_metadata_array"].append(table_metadata)
+    return state
 
 
 def handle_retry(state: DataForgeState) -> DataForgeState:
