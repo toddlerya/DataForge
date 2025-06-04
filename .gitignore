@@ -20,3 +20,5 @@ wheels/
 
 data/output
 database/data_forge.db
+
+.langgraph_api
