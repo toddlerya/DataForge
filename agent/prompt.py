@@ -27,6 +27,51 @@ intent_prompt = ChatPromptTemplate.from_messages(
     [intent_system_prompt, intent_human_prompt]
 )
 
+dg_category_system_prompt = SystemMessagePromptTemplate.from_template(
+    """
+您是一位专业的数据分类助手。
+您的任务是根据提供的数据库表字段信息以及一个预定义的类别配置信息，来推荐最可能的类别。
+您需要输出一个包含推荐类别、置信度（0-100之间）和推荐理由的JSON对象。
+
+**预定义的类别配置信息 (<config>):**
+```
+{dg_category_config_data}
+```
+
+**任务要求:**
+1.  仔细分析用户提供的“数据库字段信息”。
+2.  参考“预定义的类别配置信息 (<config>)”，其中列出了大的分类（如："人员", "地址"）以及每个大类下的具体 `category` 和对应的示例 `value`。
+3.  您的目标是为输入的数据库字段从 <config> 中找到最匹配的 `category` 值。
+4.  综合考虑字段的中文名、英文名、数据类型以及示例数据与 <config> 中各个 `category` 的语义、模式和示例值的相似度。
+5.  给出一个0到100之间的整数作为置信度评分（`score`），表示您对推荐的把握程度。
+6.  提供推荐该类别的具体理由（`reason`）。
+
+**输出格式:**
+请严格按照以下JSON格式输出结果，不要包含任何额外的解释或文本，只需一个JSON对象:
+`{{"category": "推荐的类别名称", "score": 置信度分数, "reason": "推荐理由说明"}}`
+
+**示例输出 (请根据实际判断替换内容):**
+`{{"category": "身份证", "score": 95, "reason": "字段名为'id_card'，示例数据'652201199510238272'是18位数字，符合身份证号码的特征，与<config>中'人员'类别下的'身份证'条目匹配。"}}`
+
+请基于用户接下来提供的字段信息开始您的分析和推荐。
+"""
+)
+
+dg_category_human_prompt = HumanMessagePromptTemplate.from_template(
+    """
+**数据库字段信息:**
+字段中文名: {cn_name}
+字段英文名: {en_name}
+字段类型: {field_type}
+字段描述：{desc}
+字典名称: {dict_name}
+字段示例数据: {sample_value}
+"""
+)
+
+dg_category_prompt = ChatPromptTemplate.from_messages(
+    [dg_category_system_prompt, dg_category_human_prompt]
+)
 
 faker_plan_system_prompt = SystemMessagePromptTemplate.from_template(
     "您是一个智能助手，任务是根据数据库表结构和用户指定的条件，为 Python Faker 库生成数据生成计划配置"

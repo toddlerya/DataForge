@@ -551,17 +551,17 @@ if __name__ == "__main__":
 
     # 4. 使用自定义 Provider 生成数据
     print("\n--- 身份证信息 ---")
-    print(f"随机身份证: {fake.id_card_number()}")
+    print(f"随机身份证: {fake.cn_id_card_number()}")
     print(
-        f"男性，生日19920608, 曲阜地区: {fake.id_card_number(birth_date='19010608', province_code='370881', gender=1)}"
+        f"男性，生日19920608, 曲阜地区: {fake.cn_id_card_number(birth_date='19010608', province_code='370881', gender=1)}"
     )
     print(
-        f"男性，生日199210, 济宁地区: {fake.id_card_number(birth_date='199210', province_code='3708', gender=1)}"
+        f"男性，生日199210, 济宁地区: {fake.cn_id_card_number(birth_date='199210', province_code='3708', gender=1)}"
     )
     print(
-        f"女性，生日1992, 山东地区: {fake.id_card_number(birth_date='1992', province_code='37', gender=0)}"
+        f"女性，生日1992, 山东地区: {fake.cn_id_card_number(birth_date='1992', province_code='37', gender=0)}"
     )
     print(
-        f"随机性别，生日1992, 山东地区: {fake.id_card_number(birth_date='1992', province_code='37')}"
+        f"随机性别，生日1992, 山东地区: {fake.cn_id_card_number(birth_date='1992', province_code='37')}"
     )
-    print(f"随机性别，随机年龄, 山东地区: {fake.id_card_number(province_code='37')}")
+    print(f"随机性别，随机年龄, 山东地区: {fake.cn_id_card_number(province_code='37')}")

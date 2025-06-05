@@ -228,3 +228,11 @@ fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE:
 期望生成数据条数:
 fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE: 5
 ```
+
+
+```
+数据库表名称:
+fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE
+期望生成数据条数:
+fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE: 5
+```

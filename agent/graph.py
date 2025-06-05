@@ -14,9 +14,15 @@ from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
 from agent.llm import chat_llm, ollama_llm
-from agent.prompt import faker_plan_prompt, intent_prompt, prompt_gen_faker_data
+from agent.prompt import (
+    dg_category_prompt,
+    faker_plan_prompt,
+    intent_prompt,
+    prompt_gen_faker_data,
+)
 from agent.state import (
     DataForgeState,
+    PydanticDataGeniusCategoryRecommendation,
     PydanticFakerPlan,
     TableMetadataSchema,
     UserIntentSchema,
@@ -24,6 +30,7 @@ from agent.state import (
 from agent.utils import build_main_model, create_table_model
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
+from faker_utils.dg_configs import DG_FIELD_CATEGORY_CONFIG
 from faker_utils.faker_cn_idcard import doc as faker_cn_idcard_doc
 from utils.db import Database
 
@@ -205,6 +212,45 @@ def should_continue_gen(state: DataForgeState):
     return "finished"
 
 
+def dg_planner(state: DataForgeState) -> DataForgeState:
+    """
+    数据生成规划器节点
+    Args:
+        state:
+
+    Returns:
+
+    """
+    logger.info("数据生成规划器开始执行")
+    table_metadata_array = state["table_metadata_array"]
+    # user_intent = state["user_intent"]
+    table_metadata = table_metadata_array[0] if table_metadata_array else None
+    if not table_metadata:
+        logger.error("未查询到表元数据，无法进行数据生成规划")
+        state["error_message"] = "未查询到表元数据，无法进行数据生成规划"
+        return state
+    structured_llm = ollama_llm.with_structured_output(
+        PydanticDataGeniusCategoryRecommendation
+    )
+    for field_info in table_metadata.raw_fields_info:
+        chat_prompt = dg_category_prompt.format_messages(
+            cn_name=field_info.cn_name,
+            en_name=field_info.en_name,
+            field_type=field_info.field_type,
+            desc=field_info.desc,
+            sample_value=field_info.example,
+            dict_name=field_info.dict_name,
+            dg_category_config_data=DG_FIELD_CATEGORY_CONFIG,
+        )
+        logger.debug(f"llm_dg_field_category_recommendation chat_prompt: {chat_prompt}")
+        llm_dg_field_category_recommendation = structured_llm.invoke(chat_prompt)
+        logger.debug(
+            f"llm_dg_field_category_recommendation.model_dump_json(): {llm_dg_field_category_recommendation.model_dump_json()}"
+        )
+    # state["llm_faker_plan"] = llm_faker_plan
+    return state
+
+
 def faker_planner(state: DataForgeState) -> DataForgeState:
     """
     LLM规划器节点
@@ -218,12 +264,12 @@ def faker_planner(state: DataForgeState) -> DataForgeState:
     table_metadata_array = state["table_metadata_array"]
     user_intent = state["user_intent"]
     structured_llm = ollama_llm.with_structured_output(PydanticFakerPlan)
-    chat_prompt = faker_plan_prompt.format_messages(
+    chat_prompt = dg_category_prompt.format_messages(
         table_name=user_intent.table_en_names,
         table_schema=[ele.model_dump() for ele in table_metadata_array],
         user_conditions=user_intent.table_conditions,
         num_rows=user_intent.table_data_count,
-        faker_docs=[faker_cn_idcard_doc],
+        dg_category_config_data=[faker_cn_idcard_doc],
     )
     logger.debug(f"faker_planner chat_prompt: {chat_prompt}")
     llm_faker_plan = structured_llm.invoke(chat_prompt)
@@ -238,7 +284,7 @@ data_forge_builder = StateGraph(DataForgeState)
 data_forge_builder.add_node("analyze_intent", analyze_intent)
 data_forge_builder.add_node("confirm", confirm)
 data_forge_builder.add_node("create_table_raw_field_info", create_table_raw_field_info)
-data_forge_builder.add_node("faker_planner", faker_planner)
+data_forge_builder.add_node("dg_planner", dg_planner)
 # data_forge_builder.add_node("gen_fake_data", gen_fake_data)
 # data_forge_builder.add_node("handle_retry", handle_retry)
 
@@ -248,7 +294,7 @@ data_forge_builder.add_edge("analyze_intent", "confirm")
 data_forge_builder.add_conditional_edges(
     "confirm", should_continue, ["analyze_intent", "create_table_raw_field_info"]
 )
-data_forge_builder.add_edge("create_table_raw_field_info", "faker_planner")
+data_forge_builder.add_edge("create_table_raw_field_info", "dg_planner")
 # data_forge_builder.add_conditional_edges(
 #     "gen_fake_data",
 #     should_continue_gen,
@@ -263,7 +309,7 @@ data_forge_builder.add_edge("create_table_raw_field_info", "faker_planner")
 #     should_continue_gen,
 #     {"again": "gen_fake_data", "max_retries_reached": END, "finished": END},
 # )
-data_forge_builder.add_edge("faker_planner", END)
+data_forge_builder.add_edge("dg_planner", END)
 
 # memory = MemorySaver()
 graph = data_forge_builder.compile(interrupt_before=["confirm"])
