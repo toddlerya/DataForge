@@ -7,6 +7,7 @@
 
 
 import json
+import uuid
 
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langgraph.checkpoint.memory import MemorySaver
@@ -23,6 +24,8 @@ from agent.prompt import (
 from agent.state import (
     DataForgeState,
     PydanticDataGeniusCategoryRecommendation,
+    PydanticDataGeniusPlan,
+    PydanticDataGeniusRule,
     PydanticFakerPlan,
     TableMetadataSchema,
     UserIntentSchema,
@@ -53,10 +56,10 @@ def analyze_intent(state: DataForgeState) -> DataForgeState:
     return state
 
 
-def confirm(state: DataForgeState):
+def intent_confirm(state: DataForgeState):
     """Confirm node that sets default confirmed=False if not set"""
-    if "confirmed" not in state:
-        state["confirmed"] = False
+    if "intent_confirmed" not in state:
+        state["intent_confirmed"] = False
 
 
 def should_continue(state: DataForgeState):
@@ -212,27 +215,51 @@ def should_continue_gen(state: DataForgeState):
     return "finished"
 
 
-def dg_planner(state: DataForgeState) -> DataForgeState:
+def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     """
-    数据生成规划器节点
+    DataGenius字段分类推荐节点
     Args:
         state:
 
     Returns:
 
     """
-    logger.info("数据生成规划器开始执行")
+    logger.info("DataGenius字段分类推荐节点")
     table_metadata_array = state["table_metadata_array"]
-    # user_intent = state["user_intent"]
+    user_intent = state["user_intent"]
+    table_en_name = user_intent.table_en_names[0]
+    row_count = user_intent.table_data_count.get(table_en_name, 1000)
     table_metadata = table_metadata_array[0] if table_metadata_array else None
     if not table_metadata:
-        logger.error("未查询到表元数据，无法进行数据生成规划")
-        state["error_message"] = "未查询到表元数据，无法进行数据生成规划"
+        logger.error("未查询到表元数据，无法进行数据字段分类推荐")
+        state["error_message"] = "未查询到表元数据，无法进行数据字段分类推荐"
         return state
     structured_llm = ollama_llm.with_structured_output(
         PydanticDataGeniusCategoryRecommendation
     )
-    for field_info in table_metadata.raw_fields_info:
+
+    # 如果类别推荐错误，记录错误信息，补充到提示词不要再次生成错误的类别推荐，重试N次
+    last_error_message = ""
+    field_index = 0
+    retry_count = 0
+    max_retries = 5  # 设置最大重试次数
+    stop_flag = False
+    rules: list[PydanticDataGeniusRule] = []
+    while True:
+        field_info = (
+            table_metadata.raw_fields_info[field_index]
+            if field_index < len(table_metadata.raw_fields_info)
+            else stop_flag is True
+        )
+        if stop_flag:
+            logger.info("所有字段已处理完毕，结束DataGenius分类推荐")
+            break
+        if retry_count >= max_retries:
+            logger.error(f"已达到最大重试次数 {max_retries}，结束DataGenius分类推荐")
+            state["error_message"] = (
+                f"已达到最大重试次数 {max_retries}，结束DataGenius分类推荐"
+            )
+            break
         chat_prompt = dg_category_prompt.format_messages(
             cn_name=field_info.cn_name,
             en_name=field_info.en_name,
@@ -241,13 +268,53 @@ def dg_planner(state: DataForgeState) -> DataForgeState:
             sample_value=field_info.example,
             dict_name=field_info.dict_name,
             dg_category_config_data=DG_FIELD_CATEGORY_CONFIG,
+            last_error_message=last_error_message,
         )
-        logger.debug(f"llm_dg_field_category_recommendation chat_prompt: {chat_prompt}")
-        llm_dg_field_category_recommendation = structured_llm.invoke(chat_prompt)
-        logger.debug(
-            f"llm_dg_field_category_recommendation.model_dump_json(): {llm_dg_field_category_recommendation.model_dump_json()}"
+        logger.trace(f"llm_dg_field_category_recommendation chat_prompt: {chat_prompt}")
+        try:
+            llm_dg_field_category_recommendation = structured_llm.invoke(chat_prompt)
+            logger.trace(
+                f"llm_dg_field_category_recommendation.model_dump_json(): {llm_dg_field_category_recommendation.model_dump_json()}"
+            )
+        except Exception as e:
+            logger.error(f"llm_dg_field_category_recommendation error: {e}")
+            last_error_message = str(e)
+            retry_count += 1
+        else:
+            last_error_message = ""
+            # 构建该字段的DataGenius规则参数
+            pydantic_data_genius_rule = PydanticDataGeniusRule(
+                col=field_index,
+                category=llm_dg_field_category_recommendation.category,
+                name="规则名称",
+                ename=field_info.en_name,
+                cname=field_info.cn_name,
+                preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
+                value=field_info.example,
+            )
+            logger.debug(
+                f"PydanticDataGeniusRule: {PydanticDataGeniusRule.model_dump_json()}"
+            )
+            rules.append(pydantic_data_genius_rule)
+            field_index += 1
+            # 清空字段重试次数，开始下一个字段的推荐
+            retry_count = 0
+        rule_uuid = str(uuid.uuid4())
+        pydantic_data_genius_rule = PydanticDataGeniusPlan(
+            table_en_name=table_en_name,
+            rule_name=f"{rule_uuid}.json",
+            type_="模型",
+            rows=row_count,
+            separator="\t",
+            rules=rules,
+            output=f"/storec/storea/projects/xxx/10.0.23.57/{rule_uuid}",
+            model=f"/storec/storea/projects/xxx/10.0.23.57/{table_en_name}",
+            cols=len(table_metadata.raw_fields_info),
         )
-    # state["llm_faker_plan"] = llm_faker_plan
+        logger.info(
+            f"PydanticDataGeniusPlan: {pydantic_data_genius_rule.model_dump_json()}"
+        )
+        state["pydantic_data_genius_rule"] = pydantic_data_genius_rule
     return state
 
 
@@ -282,19 +349,19 @@ def faker_planner(state: DataForgeState) -> DataForgeState:
 
 data_forge_builder = StateGraph(DataForgeState)
 data_forge_builder.add_node("analyze_intent", analyze_intent)
-data_forge_builder.add_node("confirm", confirm)
+data_forge_builder.add_node("intent_confirm", intent_confirm)
 data_forge_builder.add_node("create_table_raw_field_info", create_table_raw_field_info)
-data_forge_builder.add_node("dg_planner", dg_planner)
+data_forge_builder.add_node("dg_category_recommend", dg_category_recommend)
 # data_forge_builder.add_node("gen_fake_data", gen_fake_data)
 # data_forge_builder.add_node("handle_retry", handle_retry)
 
 
 data_forge_builder.add_edge(START, "analyze_intent")
-data_forge_builder.add_edge("analyze_intent", "confirm")
+data_forge_builder.add_edge("analyze_intent", "intent_confirm")
 data_forge_builder.add_conditional_edges(
-    "confirm", should_continue, ["analyze_intent", "create_table_raw_field_info"]
+    "intent_confirm", should_continue, ["analyze_intent", "create_table_raw_field_info"]
 )
-data_forge_builder.add_edge("create_table_raw_field_info", "dg_planner")
+data_forge_builder.add_edge("create_table_raw_field_info", "dg_category_recommend")
 # data_forge_builder.add_conditional_edges(
 #     "gen_fake_data",
 #     should_continue_gen,
@@ -309,10 +376,10 @@ data_forge_builder.add_edge("create_table_raw_field_info", "dg_planner")
 #     should_continue_gen,
 #     {"again": "gen_fake_data", "max_retries_reached": END, "finished": END},
 # )
-data_forge_builder.add_edge("dg_planner", END)
+data_forge_builder.add_edge("dg_category_recommend", END)
 
 # memory = MemorySaver()
-graph = data_forge_builder.compile(interrupt_before=["confirm"])
+graph = data_forge_builder.compile(interrupt_before=["intent_confirm"])
 
 
 if __name__ == "__main__":

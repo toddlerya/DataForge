@@ -16,13 +16,16 @@ load_dotenv()
 web_llm = ChatOpenAI(
     base_url=os.getenv("SILICONFLOW_BASE_URL"),
     api_key=os.getenv("SILICONFLOW_API_KEY"),
-    model="Qwen/Qwen3-8B",
+    # 关键参数：通过extra_body关闭think功能
+    # model="Qwen/Qwen3-8B",
+    # model="qwen3-30b-a3b",
+    # model="qwen3-8b",
     # model="Qwen3-30B-A3B",
     # model="DeepSeek-R1-Distill-Qwen-14B-AWQ",
     # model="fiberhome-chat",
     # model="DeepSeek-R1-Distill-Qwen-32B",
     # model="Qwen/Qwen3-8B",
-    # model="Qwen/Qwen3-30B-A3B",
+    model="Qwen/Qwen3-30B-A3B",
     # model="Qwen/Qwen3-235B-A22B",
     temperature=0.4,
     # top_p=0.95,
@@ -51,4 +54,4 @@ gemini_llm = ChatOpenAI(
 #     temperature=0.0
 # )
 
-chat_llm = ollama_llm
+chat_llm = web_llm

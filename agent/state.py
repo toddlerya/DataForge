@@ -9,11 +9,13 @@ from enum import Enum
 from typing import (
     Annotated,
     Any,
+    ClassVar,
     Dict,
     List,
     Literal,
     LiteralString,
     Optional,
+    Set,
     TypedDict,
     Union,
 )
@@ -21,7 +23,7 @@ from typing import (
 from langchain_core.messages import ToolMessage
 from langgraph.graph import MessagesState
 from langgraph.graph.message import add_messages
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from database_models.schema import TableRawFieldSchema
 from faker_utils.dg_configs import DG_FIELD_CATEGORY_CONFIG
@@ -80,22 +82,6 @@ class FakerExecutionPlan(TypedDict):
     table_en_name: str
     row_count: int
     instructions_for_fields: List[FakerExecutionInstruction]
-
-
-class DataForgeState(TypedDict):
-    messages: Annotated[List[ToolMessage], add_messages]
-    user_input: str
-    user_intent: UserIntentSchema
-    confirmed: bool
-    table_metadata_array: list[TableMetadataSchema]
-    input_table_definitions: List[TableFieldDefintion]
-    llm_faker_plan: FakerExecutionPlan
-    table_metadata_error: list[str]
-    num_rows_to_generate: int
-    fake_data: dict[str, list]
-    error_message: Optional[str]
-    current_retries: int
-    max_retries: int
 
 
 # Pydantic models for LLM output as defined in section 3.2.3
@@ -159,34 +145,34 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
     用于定义LLM输出的结构，包含推荐的类别、置信度分数和推荐理由。
     """
 
-    category: str = Field(
-        description="推荐的类别名称，必须是预定义 DG_FIELD_CATEGORY_CONFIG 中的 category 值之一"
-    )
+    category: str = Field(description=f"推荐的类别名称，必须在允许的类别列表中。")
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
     reason: str = Field(description="推荐理由说明")
 
-    @classmethod
-    def allowed_categories(cls):
-        all_category_values = set()
-        for main_category_list in DG_FIELD_CATEGORY_CONFIG.values():
-            for item in main_category_list:
-                if "category" in item:
-                    all_category_values.add(item["category"])
-        return set(all_category_values)
+    # 类变量，存储允许的类别
+    _allowed_categories: ClassVar[Set[str]] = None
 
     @classmethod
-    def __get_validators__(cls):
-        yield from super().__get_validators__()
-        yield cls.validate_category
+    def get_allowed_categories(cls) -> Set[str]:
+        """获取允许的类别列表"""
+        if cls._allowed_categories is None:
+            all_categories = set()
+            # 直接遍历字典列表，提取 category 字段
+            for item in DG_FIELD_CATEGORY_CONFIG:
+                if isinstance(item, dict) and "category" in item:
+                    all_categories.add(item["category"])
+            cls._allowed_categories = all_categories
+        return cls._allowed_categories
 
-    @staticmethod
-    def validate_category(value):
-        allowed = PydanticDataGeniusCategoryRecommendation.allowed_categories()
-        if value not in allowed:
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        allowed = cls.get_allowed_categories()
+        if v not in allowed:
             raise ValueError(
-                f"category '{value}' is not in allowed categories: {allowed}"
+                f"category '{v}' is not in allowed categories: {', '.join(sorted(allowed))}"
             )
-        return value
+        return v
 
 
 class PydanticDataGeniusRule(BaseModel):
@@ -214,12 +200,12 @@ class PydanticDataGeniusRule(BaseModel):
 class PydanticDataGeniusPlan(BaseModel):
     """DataGenius 输出的计划 Pydantic模型"""
 
-    plan_description: str = Field(
-        default="DataGenius 生成的伪造数据计划。",
-        description="此计划的简要描述。",
+    rule_name: str = Field(
+        default="DataGenius规则配置名称json文件名",
+        description="DataGenius规则配置名称json文件名",
     )
     type_: str = Field(
-        default="自定义模型",
+        default="模型",
         description="DataGenius 生成的模型类型，固定为 '自定义模型'",
     )
     rows: int = Field(1, gt=0, description="需要生成的数据条数")
@@ -228,11 +214,37 @@ class PydanticDataGeniusPlan(BaseModel):
         description="生成数据的分隔符，默认为制表符 ('\t')。",
     )
     table_en_name: str = Field(..., description="表名称")
-    cols: int = Field(1, gt=0, description="需要生成的列数")
     rules: List[PydanticDataGeniusRule] = Field(
         description="规则列表，表中的每个字段对应一个规则。"
     )
+    output: str = Field(
+        default="DataGenius规则配置输出文件名",
+        description="DataGenius规则配置输出文件名",
+    )
+    model: str = Field(default="DataGenius模型名称", description="DataGenius模型名称")
+    cols: int = Field(1, gt=0, description="需要生成的列数")
+
+
+class DataForgeState(TypedDict):
+    messages: Annotated[List[ToolMessage], add_messages]
+    user_input: str
+    user_intent: UserIntentSchema
+    intent_confirmed: bool
+    table_metadata_array: list[TableMetadataSchema]
+    input_table_definitions: List[TableFieldDefintion]
+    table_data_genius_category_recommendation_array: List[Dict[str, Any]]
+    llm_faker_plan: FakerExecutionPlan
+    pydantic_data_genius_rule: PydanticFakerPlan
+    table_metadata_error: list[str]
+    num_rows_to_generate: int
+    fake_data: dict[str, list]
+    error_message: Optional[str]
+    current_retries: int
+    max_retries: int
 
 
 if __name__ == "__main__":
-    print(CategoryLiteral, type(CategoryLiteral))
+    pdgcr = PydanticDataGeniusCategoryRecommendation(
+        category="姓名", score=95, reason="根据姓名生成规则推测"
+    )
+    print(pdgcr)
