@@ -234,7 +234,8 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
         logger.error("未查询到表元数据，无法进行数据字段分类推荐")
         state["error_message"] = "未查询到表元数据，无法进行数据字段分类推荐"
         return state
-    structured_llm = ollama_llm.with_structured_output(
+    logger.debug(f"table_metadata: {table_metadata.model_dump_json()}")
+    structured_llm = chat_llm.with_structured_output(
         PydanticDataGeniusCategoryRecommendation
     )
 
@@ -242,7 +243,8 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     last_error_message = ""
     field_index = 0
     retry_count = 0
-    max_retries = 5  # 设置最大重试次数
+    # 设置最大重试次数
+    max_retries = 3
     stop_flag = False
     rules: list[PydanticDataGeniusRule] = []
     while True:
@@ -255,11 +257,24 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
             logger.info("所有字段已处理完毕，结束DataGenius分类推荐")
             break
         if retry_count >= max_retries:
-            logger.error(f"已达到最大重试次数 {max_retries}，结束DataGenius分类推荐")
-            state["error_message"] = (
-                f"已达到最大重试次数 {max_retries}，结束DataGenius分类推荐"
+            llm_dg_field_category_recommendation = (
+                PydanticDataGeniusCategoryRecommendation(
+                    category="数字串",
+                    score=0,
+                    reason="未能识别字段类型, 填充数字串分类",
+                )
             )
-            break
+            logger.warning(
+                f"已达到最大推荐重试次数 {max_retries}，自动填充默认DataGenius分类推荐"
+            )
+            logger.debug(
+                f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
+            )
+            rules.append(pydantic_data_genius_rule)
+            field_index += 1
+            # 清空字段重试次数，开始下一个字段的推荐
+            retry_count = 0
+            continue
         chat_prompt = dg_category_prompt.format_messages(
             cn_name=field_info.cn_name,
             en_name=field_info.en_name,
@@ -284,7 +299,7 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
             last_error_message = ""
             # 构建该字段的DataGenius规则参数
             pydantic_data_genius_rule = PydanticDataGeniusRule(
-                col=field_index,
+                col=field_index + 1,
                 category=llm_dg_field_category_recommendation.category,
                 name="规则名称",
                 ename=field_info.en_name,
@@ -293,28 +308,28 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
                 value=field_info.example,
             )
             logger.debug(
-                f"PydanticDataGeniusRule: {PydanticDataGeniusRule.model_dump_json()}"
+                f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
             )
             rules.append(pydantic_data_genius_rule)
             field_index += 1
             # 清空字段重试次数，开始下一个字段的推荐
             retry_count = 0
-        rule_uuid = str(uuid.uuid4())
-        pydantic_data_genius_rule = PydanticDataGeniusPlan(
-            table_en_name=table_en_name,
-            rule_name=f"{rule_uuid}.json",
-            type_="模型",
-            rows=row_count,
-            separator="\t",
-            rules=rules,
-            output=f"/storec/storea/projects/xxx/10.0.23.57/{rule_uuid}",
-            model=f"/storec/storea/projects/xxx/10.0.23.57/{table_en_name}",
-            cols=len(table_metadata.raw_fields_info),
-        )
-        logger.info(
-            f"PydanticDataGeniusPlan: {pydantic_data_genius_rule.model_dump_json()}"
-        )
-        state["pydantic_data_genius_rule"] = pydantic_data_genius_rule
+    rule_uuid = str(uuid.uuid4())
+    pydantic_data_genius_rule = PydanticDataGeniusPlan(
+        table_en_name=table_en_name,
+        rule_name=f"{rule_uuid}.json",
+        type_="模型",
+        rows=row_count,
+        separator="\t",
+        rules=rules,
+        output=f"/storec/storea/projects/xxx/10.0.23.57/{rule_uuid}",
+        model=f"/storec/storea/projects/xxx/10.0.23.57/{table_en_name}",
+        cols=len(table_metadata.raw_fields_info),
+    )
+    logger.info(
+        f"PydanticDataGeniusPlan: {pydantic_data_genius_rule.model_dump_json()}"
+    )
+    state["pydantic_data_genius_rule"] = pydantic_data_genius_rule
     return state
 
 

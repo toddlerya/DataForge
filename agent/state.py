@@ -234,7 +234,7 @@ class DataForgeState(TypedDict):
     input_table_definitions: List[TableFieldDefintion]
     table_data_genius_category_recommendation_array: List[Dict[str, Any]]
     llm_faker_plan: FakerExecutionPlan
-    pydantic_data_genius_rule: PydanticFakerPlan
+    pydantic_data_genius_rule: PydanticDataGeniusPlan
     table_metadata_error: list[str]
     num_rows_to_generate: int
     fake_data: dict[str, list]
