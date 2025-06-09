@@ -248,11 +248,10 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     stop_flag = False
     rules: list[PydanticDataGeniusRule] = []
     while True:
-        field_info = (
-            table_metadata.raw_fields_info[field_index]
-            if field_index < len(table_metadata.raw_fields_info)
-            else stop_flag is True
-        )
+        if field_index >= len(table_metadata.raw_fields_info):
+            stop_flag = True
+            break
+        field_info = table_metadata.raw_fields_info[field_index]
         if stop_flag:
             logger.info("所有字段已处理完毕，结束DataGenius分类推荐")
             break
