@@ -15,12 +15,7 @@ from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
 from agent.llm import chat_llm, ollama_llm
-from agent.prompt import (
-    dg_category_prompt,
-    faker_plan_prompt,
-    intent_prompt,
-    prompt_gen_faker_data,
-)
+from agent.prompt import dg_category_prompt, intent_prompt, prompt_gen_faker_data
 from agent.state import (
     DataForgeState,
     PydanticDataGeniusCategoryRecommendation,
@@ -33,7 +28,7 @@ from agent.state import (
 from agent.utils import build_main_model, create_table_model
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
-from faker_utils.dg_configs import DG_FIELD_CATEGORY_CONFIG
+from faker_utils.dg_configs import DG_FIELD_CATEGORY_CONFIG, DG_STORAGE_PATH
 from faker_utils.faker_cn_idcard import doc as faker_cn_idcard_doc
 from utils.db import Database
 
@@ -58,8 +53,8 @@ def analyze_intent(state: DataForgeState) -> DataForgeState:
 
 def intent_confirm(state: DataForgeState):
     """Confirm node that sets default confirmed=False if not set"""
-    if "intent_confirmed" not in state:
-        state["intent_confirmed"] = False
+    if "intent_feedback" not in state:
+        state["intent_feedback"] = ""
 
 
 def should_continue(state: DataForgeState):
@@ -315,14 +310,13 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
             retry_count = 0
     rule_uuid = str(uuid.uuid4())
     pydantic_data_genius_rule = PydanticDataGeniusPlan(
-        table_en_name=table_en_name,
         rule_name=f"{rule_uuid}.json",
         type_="模型",
         rows=row_count,
         separator="\t",
         rules=rules,
-        output=f"/storec/storea/projects/xxx/10.0.23.57/{rule_uuid}",
-        model=f"/storec/storea/projects/xxx/10.0.23.57/{table_en_name}",
+        output=f"{DG_STORAGE_PATH}/output/10.0.23.57/{rule_uuid}",
+        model=f"{DG_STORAGE_PATH}/models/10.0.23.57/{table_en_name}",
         cols=len(table_metadata.raw_fields_info),
     )
     logger.info(

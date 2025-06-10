@@ -213,7 +213,6 @@ class PydanticDataGeniusPlan(BaseModel):
         default="\t",
         description="生成数据的分隔符，默认为制表符 ('\t')。",
     )
-    table_en_name: str = Field(..., description="表名称")
     rules: List[PydanticDataGeniusRule] = Field(
         description="规则列表，表中的每个字段对应一个规则。"
     )
@@ -229,7 +228,7 @@ class DataForgeState(TypedDict):
     messages: Annotated[List[ToolMessage], add_messages]
     user_input: str
     user_intent: UserIntentSchema
-    intent_confirmed: bool
+    intent_feedback: str
     table_metadata_array: list[TableMetadataSchema]
     input_table_definitions: List[TableFieldDefintion]
     table_data_genius_category_recommendation_array: List[Dict[str, Any]]

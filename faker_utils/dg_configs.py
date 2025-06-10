@@ -1,3 +1,5 @@
+DG_STORAGE_PATH = "k/storec/storea/projects/geniusWeb/espresso/media/genius"
+
 DG_FIELD_CATEGORY_CONFIG = [
     {"category": "姓名", "value": "向东"},
     {"category": "姓名拼音", "value": "luanyu"},
