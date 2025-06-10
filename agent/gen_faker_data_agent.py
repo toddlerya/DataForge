@@ -6,6 +6,7 @@
 # @Desc    :   None
 
 from typing import Literal
+import json
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -57,16 +58,20 @@ def gen_fake_data(state: DataForgeState) -> DataForgeState:
     for table_metadata in table_metadata_array:
         each_table_output_metadata = {
             "table_name": table_metadata.table_en_name,
-            "fields": [ele.model_dump() for ele in table_metadata.raw_fields_info]
+            "fields": [ele.model_dump() for ele in table_metadata.raw_fields_info],
         }
         logger.trace(each_table_output_metadata)
         output_table_metadata_slice.append(each_table_output_metadata)
     output_table_models = {
-        table.get("table_name"): create_table_model(table_name=table.get("table_name"), fields=table.get("fields"))
+        table.get("table_name"): create_table_model(
+            table_name=table.get("table_name"), fields=table.get("fields")
+        )
         for table in output_table_metadata_slice
     }
     output_data_schema = build_main_model(output_table_models)
-
+    logger.trace(
+        f"output_data_schema: {output_data_schema}  {json.dumps(output_data_schema.model_json_schema())}"
+    )
     structured_llm = chat_llm.with_structured_output(output_data_schema)
     system_message = prompt_gen_faker_data.format(
         table_en_name_array=table_en_names,
@@ -87,8 +92,7 @@ def gen_fake_data(state: DataForgeState) -> DataForgeState:
         state["current_retries"] = state["current_retries"] + 1
         return state
     else:
-        logger.debug(f"current fake_data: {type(fake_data)} {fake_data}")
-        logger.trace(f"fake_data.model_dump_json: {fake_data.model_dump_json()}")
+        logger.debug(f"fake_data.model_dump_json: {fake_data.model_dump_json()}")
         # 追加数据
         last_fake_data = state.get("fake_data", {})
         logger.debug(f"current last_fake_data: {last_fake_data}")
@@ -112,8 +116,10 @@ def should_continue_gen(state: DataForgeState):
     fake_data = state.get("fake_data", {})
     for table_en_name, except_data_count in user_intent.table_data_count.items():
         actual_gen_count = len(fake_data.get(table_en_name, []))
-        logger.debug(f"should_continue_gen=> table_en_name={table_en_name} "
-                     f"except_data_count={except_data_count} actual_gen_count={actual_gen_count}")
+        logger.debug(
+            f"should_continue_gen=> table_en_name={table_en_name} "
+            f"except_data_count={except_data_count} actual_gen_count={actual_gen_count}"
+        )
         if actual_gen_count < except_data_count:
             return "again"
     # Otherwise end
@@ -125,18 +131,16 @@ gen_fake_data_builder.add_node("gen_fake_data", gen_fake_data)
 gen_fake_data_builder.add_node("handle_retry", handle_retry)
 
 gen_fake_data_builder.add_edge(START, "gen_fake_data")
-gen_fake_data_builder.add_conditional_edges("gen_fake_data", should_continue_gen,
-                                            {
-                                                 "again": "gen_fake_data",
-                                                 "max_retries_reached": "handle_retry",
-                                                 "finished": END
-                                             })
-gen_fake_data_builder.add_conditional_edges("handle_retry", should_continue_gen,
-                                            {
-                                                 "again": "gen_fake_data",
-                                                 "max_retries_reached": END,
-                                                 "finished": END
-                                             })
+gen_fake_data_builder.add_conditional_edges(
+    "gen_fake_data",
+    should_continue_gen,
+    {"again": "gen_fake_data", "max_retries_reached": "handle_retry", "finished": END},
+)
+gen_fake_data_builder.add_conditional_edges(
+    "handle_retry",
+    should_continue_gen,
+    {"again": "gen_fake_data", "max_retries_reached": END, "finished": END},
+)
 
 memory = MemorySaver()
 gen_fake_data_graph = gen_fake_data_builder.compile(checkpointer=memory)

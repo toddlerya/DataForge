@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/15 17:30 
+# @Time     : 2025/4/15 17:30
 # @Author   : guoqun X2590
 # @FileName : prompts.py
 # @Project  : PreviewDataForge
@@ -1127,6 +1127,9 @@ CREATE TABLE
 """
 
 
-demo4_prompt = demo3_prompt + """
+demo4_prompt = (
+    demo3_prompt
+    + """
 3. p1, p2, p3, p4分别设置为final, update, 1744601400, 20250414
 """
+)

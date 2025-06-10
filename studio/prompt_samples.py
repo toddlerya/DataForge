@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/22 16:29 
+# @Time     : 2025/4/22 16:29
 # @Author   : guoqun X2590
 # @FileName : prompt_samples.py
 # @Project  : PreviewDataForge
@@ -9,36 +9,20 @@
 table_en_name = "ADM_GRAPH_NODE_FLIGHT"
 table_cn_name = "航班节点表"
 table_columns_info = [
-    {
-        "name": "航班唯一标识",
-        "ename": "FLIGHT",
-        "desc": "航班唯一标识"
-    },
-    {
-        "name": "航班号",
-        "ename": "FLIG_NO",
-        "desc": "航班号"
-    },
-    {
-        "name": "始发机场名称",
-        "ename": "DEP_AIR",
-        "desc": "始发机场名称"
-    },
-    {
-        "name": "终点机场名称",
-        "ename": "ARR_AIR",
-        "desc": "终点机场名称"
-    },
+    {"name": "航班唯一标识", "ename": "FLIGHT", "desc": "航班唯一标识"},
+    {"name": "航班号", "ename": "FLIG_NO", "desc": "航班号"},
+    {"name": "始发机场名称", "ename": "DEP_AIR", "desc": "始发机场名称"},
+    {"name": "终点机场名称", "ename": "ARR_AIR", "desc": "终点机场名称"},
     {
         "name": "始发站行政区划代码",
         "ename": "DEP_CITY_CODE",
-        "desc": "CODE_ADDR_PHY_0001\n若无法归一化，则填空"
+        "desc": "CODE_ADDR_PHY_0001\n若无法归一化，则填空",
     },
     {
         "name": "终点站行政区划代码",
         "ename": "ARR_CITY_CODE",
-        "desc": "CODE_ADDR_PHY_0001\n若无法归一化，则填空"
-    }
+        "desc": "CODE_ADDR_PHY_0001\n若无法归一化，则填空",
+    },
 ]
 
 table_create_sql = """CREATE TABLE

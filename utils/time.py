@@ -45,9 +45,7 @@ def now_date_time_str(datetime_format: str = "%Y-%m-%d %H:%M:%S") -> str:
     return datetime.strftime(datetime.now(), datetime_format)
 
 
-def datetime_str2object(
-    datetime_str: str, datetime_format: str = "%Y-%m-%d %H:%M:%S"
-):
+def datetime_str2object(datetime_str: str, datetime_format: str = "%Y-%m-%d %H:%M:%S"):
     """
     年月日字符串转为datetime对象
     Args:

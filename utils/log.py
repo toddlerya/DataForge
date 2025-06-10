@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 # @File    :   log.py
-# @Time    :   2023/11/3 18:27
-# @Author  :   guo qun X2590
+# @Time    :   2023/04/13 13:57:32
+# @Author  :   toddlerya
 # @Desc    :   None
 
 import pathlib
@@ -11,7 +11,7 @@ import sys
 from loguru import logger
 
 
-class LogManager(object):
+class LogManager:
     def __init__(
         self,
         base_path,
@@ -33,8 +33,7 @@ class LogManager(object):
             base_path (str): 日志目录的基础目录, 可以是项目根目录, **绝对路径**
             log_path (str): 存放日志文件的目录, 举个例子, 可以设置为logs,  `base_path` 的相对子级路径
             log_name (str): 日志文件的名称, 比如task.log
-            log_format (str, optional): 日志内容的格式默认为.
-                       Defaults to "{time:YYYY-MM-DD HH:mm:ss} {module} {function} {level} {message} {line}"
+            log_format (str, optional): 日志内容的格式默认为. Defaults to "{time:YYYY-MM-DD HH:mm:ss} {module} {function} {level} {message} {line}"
             file_log_level (str, optional): 文件日志的级别. Defaults to "INFO".
             console_log_level (str, optional): 终端窗口日志的级别. Defaults to "INFO".
             rotation (str, optional): 日志的回转分卷配置. Defaults to "32 MB".

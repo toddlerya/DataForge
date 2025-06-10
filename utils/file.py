@@ -474,7 +474,7 @@ def targz_archive(dir_to_archive, archive_filename_path):
         # 用于创建归档的默认格式。 目前为 PAX_FORMAT。
         # 在 3.8 版更改: 新归档的默认格式已更改为 PAX_FORMAT 而不再是 GNU_FORMAT。
         with tarfile.open(
-                archive_filename_path, mode="w:gz", format=tarfile.GNU_FORMAT
+            archive_filename_path, mode="w:gz", format=tarfile.GNU_FORMAT
         ) as tar:
             # 并目录作为 arcname
             arcname = pathlib.Path(dir_to_archive).name
@@ -540,17 +540,25 @@ def save_jl_data2xlsx(json_line_data: list[dict], save_path: str = None):
         # 写入列名称
         for col_num, fieldname in enumerate(fieldname_array, 1):
             sheet.cell(row=1, column=col_num, value=fieldname)
-            sheet.column_dimensions[get_column_letter(col_num)].width = min(len(fieldname) * 2, 100)
+            sheet.column_dimensions[get_column_letter(col_num)].width = min(
+                len(fieldname) * 2, 100
+            )
         # 写入数据
         for row_num, row_data in enumerate(json_line_data, 2):
             for col_num, fieldname in enumerate(fieldname_array, 1):
                 cell_value = row_data.get(fieldname, "")
-                if isinstance(cell_value, dict) or isinstance(cell_value, list) or isinstance(cell_value, tuple):
+                if (
+                    isinstance(cell_value, dict)
+                    or isinstance(cell_value, list)
+                    or isinstance(cell_value, tuple)
+                ):
                     # 输出的dict、list、tuple变为JSON，更容易阅读与格式化
                     try:
                         cell_value = json.dumps(cell_value, ensure_ascii=False)
                     except json.JSONDecodeError as err:
-                        logger.warning(f"save_jl_data2xlsx cell_value转为json异常: {err}")
+                        logger.warning(
+                            f"save_jl_data2xlsx cell_value转为json异常: {err}"
+                        )
                         cell_value = str(cell_value)
                 sheet.cell(row=row_num, column=col_num, value=cell_value)
         workbook.save(save_path)
@@ -599,12 +607,15 @@ def __save_dict2jl(dict_data: Union[list, dict], w_obj: TextIO):
                 except Exception as err:
                     logger.exception("无法写入文件: {}".format(err))
             else:
-                logger.error("无法写入文件: {}，内容不是dict {!r}".format(w_obj.name, line))
+                logger.error(
+                    "无法写入文件: {}，内容不是dict {!r}".format(w_obj.name, line)
+                )
     else:
         logger.error("无法写入文件: {}，内容不是dict {}".format(w_obj.name, dict_data))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     res = split_path(
-        r"HETU_TAOSHA-1.2.26-install-20241129\\HETU_TAOSHA-Onekey-install-1.2.26-allsystem-20241129\\HETU_TAOSHA-Onekey-install-1.2.26\\HETU_IAO_TAOSHA_MODELS-install-runtime-2.1.4-allsystem-20241129\\HETU_IAO_TAOSHA_MODELS-install-2.1.4\\package\\HETU_IAO_TAOSHA_LABEL_MODELS-install-runtime-2.1.4-allsystem-20241129\\HETU_IAO_TAOSHA_LABEL_MODELS-install-2.1.4\\models\\model_template_30001\\model_13352\\model_13352.xml")
+        r"HETU_TAOSHA-1.2.26-install-20241129\\HETU_TAOSHA-Onekey-install-1.2.26-allsystem-20241129\\HETU_TAOSHA-Onekey-install-1.2.26\\HETU_IAO_TAOSHA_MODELS-install-runtime-2.1.4-allsystem-20241129\\HETU_IAO_TAOSHA_MODELS-install-2.1.4\\package\\HETU_IAO_TAOSHA_LABEL_MODELS-install-runtime-2.1.4-allsystem-20241129\\HETU_IAO_TAOSHA_LABEL_MODELS-install-2.1.4\\models\\model_template_30001\\model_13352\\model_13352.xml"
+    )
     print(res)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/29 16:00 
+# @Time     : 2025/4/29 16:00
 # @Author   : guoqun X2590
 # @FileName : llm_debug.py
 # @Project  : DataForge
@@ -16,7 +16,7 @@ records = [
             "lng": "115.791973",
             "name": "小吕村委会",
             "short_name": "小吕",
-            "zip_code": "252032"
+            "zip_code": "252032",
         }
     },
     {
@@ -28,7 +28,7 @@ records = [
             "lng": "98.090831",
             "name": "上滩东村委会",
             "short_name": "上滩东",
-            "zip_code": "816199"
+            "zip_code": "816199",
         }
     },
     {
@@ -40,7 +40,7 @@ records = [
             "lng": "107.096186",
             "name": "如龙村民委员会",
             "short_name": "如龙",
-            "zip_code": "532311"
+            "zip_code": "532311",
         }
     },
     {
@@ -52,7 +52,7 @@ records = [
             "lng": "114.018159",
             "name": "双堰村委会",
             "short_name": "双堰",
-            "zip_code": "432013"
+            "zip_code": "432013",
         }
     },
     {
@@ -64,7 +64,7 @@ records = [
             "lng": "107.819450",
             "name": "凤家庄村委会",
             "short_name": "凤家庄",
-            "zip_code": "722402"
+            "zip_code": "722402",
         }
     },
     {
@@ -76,7 +76,7 @@ records = [
             "lng": "126.337441",
             "name": "卫民村民委员会",
             "short_name": "卫民",
-            "zip_code": "164703"
+            "zip_code": "164703",
         }
     },
     {
@@ -88,7 +88,7 @@ records = [
             "lng": "120.533014",
             "name": "大庆寺村委会",
             "short_name": "大庆寺",
-            "zip_code": "312066"
+            "zip_code": "312066",
         }
     },
     {
@@ -100,7 +100,7 @@ records = [
             "lng": "114.372285",
             "name": "后林都村民委员会",
             "short_name": "后林都",
-            "zip_code": "455111"
+            "zip_code": "455111",
         }
     },
     {
@@ -112,7 +112,7 @@ records = [
             "lng": "114.418882",
             "name": "城关乡",
             "short_name": "城关",
-            "zip_code": "453399"
+            "zip_code": "453399",
         }
     },
     {
@@ -124,9 +124,9 @@ records = [
             "lng": "118.745254",
             "name": "前果庄村村委会",
             "short_name": "前果庄村",
-            "zip_code": "276533"
+            "zip_code": "276533",
         }
-    }
+    },
 ]
 
 data = dict()

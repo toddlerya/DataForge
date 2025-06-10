@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/25 17:02 
+# @Time     : 2025/4/25 17:02
 # @Author   : guoqun X2590
 # @FileName : process_bcp_gen_sample.py
 # @Project  : DataForge
@@ -32,7 +32,9 @@ def get_bcp_col_by_index(index: int, data_slice: list[list[str]]) -> [str]:
     return data
 
 
-def gen_sample_data(gab_json_data: dict, bcp_sample_data: list[list], output_sample_json: pathlib.Path):
+def gen_sample_data(
+    gab_json_data: dict, bcp_sample_data: list[list], output_sample_json: pathlib.Path
+):
     """
     生成样例数据
     Args:
@@ -47,11 +49,13 @@ def gen_sample_data(gab_json_data: dict, bcp_sample_data: list[list], output_sam
     struct_data = []
     for index, item in enumerate(gab_json_data["DATA"]["ITEM"]):
         attr = item["_attributes"]
-        struct_data.append({
-            "ename": attr.get("eng"),
-            "cname": attr.get("chn"),
-            "sample": get_bcp_col_by_index(index=index, data_slice=bcp_sample_data)
-        })
+        struct_data.append(
+            {
+                "ename": attr.get("eng"),
+                "cname": attr.get("chn"),
+                "sample": get_bcp_col_by_index(index=index, data_slice=bcp_sample_data),
+            }
+        )
     print(json.dumps(struct_data, ensure_ascii=False))
     with open(output_sample_json, mode="w", encoding="utf-8") as w:
         json.dump(struct_data, w, ensure_ascii=False)
@@ -70,20 +74,31 @@ def run():
             each_file_path = pathlib.Path(each_file)
             if each_file_path.name == "gab.json":
                 print(f"gab json: {each_file}")
-                msg, gab_json_data = load_json_from_file(json_file_path=str(each_file_path.absolute()))
+                msg, gab_json_data = load_json_from_file(
+                    json_file_path=str(each_file_path.absolute())
+                )
             if each_file_path.suffix == ".bcp":
                 print(f"bcp sample: {each_file}")
-                with open(each_file_path.absolute(), mode="r", encoding="utf-8") as bcp_reader:
+                with open(
+                    each_file_path.absolute(), mode="r", encoding="utf-8"
+                ) as bcp_reader:
                     raw_bcp_sample_lines = bcp_reader.readlines()
-                    bcp_sample_slice = [line.split("\t") for line in raw_bcp_sample_lines]
+                    bcp_sample_slice = [
+                        line.split("\t") for line in raw_bcp_sample_lines
+                    ]
                     if len(bcp_sample_slice) > 3:
                         bcp_sample_slice = bcp_sample_slice[:3]
                     print(f"bcp_sample_slice: {bcp_sample_slice}")
             if bcp_sample_slice and gab_json_data:
-                output_sample_json_file = fake_bcp_sample_data.joinpath(f"{table_dir_path.name}.json")
-                gen_sample_data(gab_json_data=gab_json_data, bcp_sample_data=bcp_sample_slice,
-                                output_sample_json=output_sample_json_file)
+                output_sample_json_file = fake_bcp_sample_data.joinpath(
+                    f"{table_dir_path.name}.json"
+                )
+                gen_sample_data(
+                    gab_json_data=gab_json_data,
+                    bcp_sample_data=bcp_sample_slice,
+                    output_sample_json=output_sample_json_file,
+                )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

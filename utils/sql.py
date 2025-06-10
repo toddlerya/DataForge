@@ -6,7 +6,7 @@
 # @Desc    :   None
 
 
-from typing import  Tuple
+from typing import Tuple
 
 
 def query_safe_check(sql: str) -> Tuple[bool, list]:
@@ -19,7 +19,15 @@ def query_safe_check(sql: str) -> Tuple[bool, list]:
 
     """
     status = True
-    forbid_key_words = ("DELETE", "UPDATE", "INSERT", "CREATE", "DROP", "GRAND", "ALTER")
+    forbid_key_words = (
+        "DELETE",
+        "UPDATE",
+        "INSERT",
+        "CREATE",
+        "DROP",
+        "GRAND",
+        "ALTER",
+    )
     format_sql_list = sql.upper().strip().split()
     forbid_result = list()
     for each in format_sql_list:

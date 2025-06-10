@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/22 11:45 
+# @Time     : 2025/4/22 11:45
 # @Author   : guoqun X2590
 # @FileName : faker_factory_agent.py
 # @Project  : PreviewDataForge
@@ -128,5 +128,5 @@ faker_tool_prompt = f"""
 }
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(faker_tool_prompt)

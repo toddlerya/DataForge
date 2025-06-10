@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/10 16:43 
+# @Time     : 2025/4/10 16:43
 # @Author   : guoqun X2590
 # @FileName : sql_parse.py
 # @Project  : AIUsage
@@ -281,7 +281,7 @@ def extract_table_info(select_node):
         "filters": [],
         # "udf_functions": [],
         "join_conditions": [],
-        "union_conditions": []
+        "union_conditions": [],
     }
 
     # 获取表名
@@ -295,12 +295,12 @@ def extract_table_info(select_node):
         # 提取查询字段和UDF函数
         # for expr in select_node.expressions:
         #     if isinstance(expr, sqlglot.expressions.Alias):
-                # table_info["selected_columns"].append(expr.alias)
-                # 检查是否包含udf函数
-                # if isinstance(expr.this, sqlglot.expressions.Func):
-                #     table_info["udf_functions"].append(expr.this.sql())
-            # elif isinstance(expr, sqlglot.expressions.Column):
-            #     table_info["selected_columns"].append(expr.name)
+        # table_info["selected_columns"].append(expr.alias)
+        # 检查是否包含udf函数
+        # if isinstance(expr.this, sqlglot.expressions.Func):
+        #     table_info["udf_functions"].append(expr.this.sql())
+        # elif isinstance(expr, sqlglot.expressions.Column):
+        #     table_info["selected_columns"].append(expr.name)
 
         # 提取过滤条件
         where_clause = select_node.args.get("where")
@@ -317,9 +317,13 @@ def extract_table_info(select_node):
         unions = select_node.find_all(sqlglot.expressions.Union)
         for union in unions:
             if hasattr(union, "distinct"):
-                table_info["union_conditions"].append("UNION" if union.distinct else "UNION ALL")
+                table_info["union_conditions"].append(
+                    "UNION" if union.distinct else "UNION ALL"
+                )
             else:
-                table_info["union_conditions"].append("UNION" if union.args.get("distinct", True) else "UNION ALL")
+                table_info["union_conditions"].append(
+                    "UNION" if union.args.get("distinct", True) else "UNION ALL"
+                )
     return table_info
 
 

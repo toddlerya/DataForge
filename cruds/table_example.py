@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/5/23 16:36 
+# @Time     : 2025/5/23 16:36
 # @Author   : guoqun X2590
 # @FileName : table_example.py
 # @Project  : DataForge

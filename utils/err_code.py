@@ -41,9 +41,15 @@ class ErrorCode(object):
 
         self.SYSTEM_MOVE_ERROR = {"code": "C2000", "description": "移动目录或文件失败"}
 
-        self.SYSTEM_DELETE_ERROR = {"code": "C3000", "description": "删除文件或目录失败"}
+        self.SYSTEM_DELETE_ERROR = {
+            "code": "C3000",
+            "description": "删除文件或目录失败",
+        }
 
-        self.SYSTEM_UNCOMPRESS_ERROR = {"code": "C4000", "description": "解压缩文件失败"}
+        self.SYSTEM_UNCOMPRESS_ERROR = {
+            "code": "C4000",
+            "description": "解压缩文件失败",
+        }
 
         self.SYSTEM_SAVE_ERROR = {"code": "C5000", "description": "写文件失败"}
 
@@ -54,24 +60,35 @@ class ErrorCode(object):
             "description": "数据库INSERT or UPDATE错误",
         }
 
-        self.DB_SQL_EXECUTE_ERROR = {"code": "D2000", "description": "数据库SQL执行错误"}
+        self.DB_SQL_EXECUTE_ERROR = {
+            "code": "D2000",
+            "description": "数据库SQL执行错误",
+        }
 
-        self.DB_SAFE_CHECK_ERROR = {"code": "D3000", "description": "数据库查询SQL安全检查不通过"}
+        self.DB_SAFE_CHECK_ERROR = {
+            "code": "D3000",
+            "description": "数据库查询SQL安全检查不通过",
+        }
 
         self.DB_QUERY_ERROR = {"code": "D4000", "description": "数据库查询异常"}
 
-        self.HTTP_UNAUTHORIZED_ERROR = {"code": "E4010", "description": "用户名或密码错误"}
+        self.HTTP_UNAUTHORIZED_ERROR = {
+            "code": "E4010",
+            "description": "用户名或密码错误",
+        }
 
         self.HTTP_DATA_EXCEPTION = {"code": "E4010", "description": "用户名或密码错误"}
 
-        self.BACKGROUND_TASK_EXCEPTION = {"code": "F1000", "description": "创建后台任务失败"}
+        self.BACKGROUND_TASK_EXCEPTION = {
+            "code": "F1000",
+            "description": "创建后台任务失败",
+        }
 
         self.TTH_EXCEPTION = {"code": "T1000", "description": "TestToolHub的API异常"}
 
         self.DATA_DUMP = {"code": "J1000", "description": "数据重复"}
 
         self.DATA_GEN_ERROR = {"code": "J2000", "description": "数据生成失败"}
-
 
 
 error_code = ErrorCode()

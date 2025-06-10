@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/24 17:27 
+# @Time     : 2025/4/24 17:27
 # @Author   : guoqun X2590
 # @FileName : crawl_pangu_table_info.py
 # @Project  : DataForge
@@ -38,7 +38,7 @@ def crawl(entity_id: str):
     return resp_json
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from tools.table_meta_info_clear import clear
     from tools.pang_config import bash_path
     from tools.crawl_dict_info import get_dict_values_by_keyword
@@ -49,66 +49,22 @@ if __name__ == '__main__':
     # 'ODS_BEIAN_SAFETY_ASSESSMENT', 'ODS_BEIAN_ACCESS_WEBSITE', 'ODS_BEIAN_ACCESS_APP', 'ODS_BEIAN_ACCESS_MINIAPP',
     # 'ODS_BEIAN_ACCESS_DATAVERIFICATION', 'ODS_BEIAN_APPLICANT_INFO');
     table_entity_info = [
-        {
-            "id": 3514,
-            "name": "主体信息",
-            "ename": "ODS_BEIAN_MAINBODY_INFO"
-        },
-        {
-            "id": 3515,
-            "name": "网站信息",
-            "ename": "ODS_BEIAN_WEBSITE_INFO"
-        },
-        {
-            "id": 3516,
-            "name": "APP信息",
-            "ename": "ODS_BEIAN_APPINFO"
-        },
-        {
-            "id": 3517,
-            "name": "小程序信息",
-            "ename": "ODS_BEIAN_MIMIAPP_INFO"
-        },
-        {
-            "id": 3518,
-            "name": "应用市场信息",
-            "ename": "ODS_BEIAN_MARKETPLACE_INFO"
-        },
-        {
-            "id": 3519,
-            "name": "服务商信息",
-            "ename": "ODS_BEIAN_SERVICE_PROVIDER_INFO"
-        },
-        {
-            "id": 3520,
-            "name": "安全评估信息",
-            "ename": "ODS_BEIAN_SAFETY_ASSESSMENT"
-        },
-        {
-            "id": 3521,
-            "name": "接入网站信息",
-            "ename": "ODS_BEIAN_ACCESS_WEBSITE"
-        },
-        {
-            "id": 3522,
-            "name": "接入APP信息",
-            "ename": "ODS_BEIAN_ACCESS_APP"
-        },
-        {
-            "id": 3523,
-            "name": "接入小程序信息",
-            "ename": "ODS_BEIAN_ACCESS_MINIAPP"
-        },
+        {"id": 3514, "name": "主体信息", "ename": "ODS_BEIAN_MAINBODY_INFO"},
+        {"id": 3515, "name": "网站信息", "ename": "ODS_BEIAN_WEBSITE_INFO"},
+        {"id": 3516, "name": "APP信息", "ename": "ODS_BEIAN_APPINFO"},
+        {"id": 3517, "name": "小程序信息", "ename": "ODS_BEIAN_MIMIAPP_INFO"},
+        {"id": 3518, "name": "应用市场信息", "ename": "ODS_BEIAN_MARKETPLACE_INFO"},
+        {"id": 3519, "name": "服务商信息", "ename": "ODS_BEIAN_SERVICE_PROVIDER_INFO"},
+        {"id": 3520, "name": "安全评估信息", "ename": "ODS_BEIAN_SAFETY_ASSESSMENT"},
+        {"id": 3521, "name": "接入网站信息", "ename": "ODS_BEIAN_ACCESS_WEBSITE"},
+        {"id": 3522, "name": "接入APP信息", "ename": "ODS_BEIAN_ACCESS_APP"},
+        {"id": 3523, "name": "接入小程序信息", "ename": "ODS_BEIAN_ACCESS_MINIAPP"},
         {
             "id": 3524,
             "name": "接入数据核验信息",
-            "ename": "ODS_BEIAN_ACCESS_DATAVERIFICATION"
+            "ename": "ODS_BEIAN_ACCESS_DATAVERIFICATION",
         },
-        {
-            "id": 3525,
-            "name": "申请人信息",
-            "ename": "ODS_BEIAN_APPLICANT_INFO"
-        }
+        {"id": 3525, "name": "申请人信息", "ename": "ODS_BEIAN_APPLICANT_INFO"},
     ]
     fhwa_dict_code_data = dict()
     for item in table_entity_info:
@@ -118,11 +74,14 @@ if __name__ == '__main__':
             print(data)
             continue
         # 存储字段信息
-        save_data_file = bash_path.joinpath("export_data", "pangu", "bxf", f'{item.get("ename")}.json')
-        with open(save_data_file, mode="w",
-                  encoding="utf-8") as w:
+        save_data_file = bash_path.joinpath(
+            "export_data", "pangu", "bxf", f"{item.get('ename')}.json"
+        )
+        with open(save_data_file, mode="w", encoding="utf-8") as w:
             json.dump(data, w, ensure_ascii=False)
-        clear_data_file = bash_path.joinpath("output", "pangu", "bxf", f'{item.get("ename")}.json')
+        clear_data_file = bash_path.joinpath(
+            "output", "pangu", "bxf", f"{item.get('ename')}.json"
+        )
         clear(input_file=save_data_file, output_file=clear_data_file)
         # 获取表字段涉及的字典信息
         for field in data.get("data", {}).get("fieldInfoList", [{}]):
@@ -130,10 +89,29 @@ if __name__ == '__main__':
             if field_dic != "":
                 fhwa_dict_result = get_dict_values_by_keyword(keyword=field_dic)
                 fhwa_dict_code = fhwa_dict_result.get("fhwa_code", "")
-                with open(bash_path.joinpath("export_data", "pangu", "dict_code", f"{field_dic}_{fhwa_dict_code}.json"),
-                          mode="w",
-                          encoding="utf-8") as dict_w:
+                with open(
+                    bash_path.joinpath(
+                        "export_data",
+                        "pangu",
+                        "dict_code",
+                        f"{field_dic}_{fhwa_dict_code}.json",
+                    ),
+                    mode="w",
+                    encoding="utf-8",
+                ) as dict_w:
                     json.dump(fhwa_dict_result, dict_w, ensure_ascii=False)
-                with open(bash_path.joinpath("output", "pangu", "dict_code", f"{field_dic}_{fhwa_dict_code}.json"),
-                          mode="w", encoding="utf-8") as dict_w_brief:
-                    json.dump(fhwa_dict_result.get("brief_data", {}), dict_w_brief, ensure_ascii=False)
+                with open(
+                    bash_path.joinpath(
+                        "output",
+                        "pangu",
+                        "dict_code",
+                        f"{field_dic}_{fhwa_dict_code}.json",
+                    ),
+                    mode="w",
+                    encoding="utf-8",
+                ) as dict_w_brief:
+                    json.dump(
+                        fhwa_dict_result.get("brief_data", {}),
+                        dict_w_brief,
+                        ensure_ascii=False,
+                    )

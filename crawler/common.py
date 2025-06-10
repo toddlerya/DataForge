@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/5/22 17:28 
+# @Time     : 2025/5/22 17:28
 # @Author   : guoqun X2590
 # @FileName : common.py
 # @Project  : DataForge
@@ -15,7 +15,9 @@ from database_models.sys_enum import MetaDataSource
 from config import pangu_field_type_map
 
 
-def table_metadata_verify2model(table_metadata_fields: List[Dict], source: str) -> TableMetaDataSchema:
+def table_metadata_verify2model(
+    table_metadata_fields: List[Dict], source: str
+) -> TableMetaDataSchema:
     """
     元数据校验转换
     Args:
@@ -33,7 +35,7 @@ def table_metadata_verify2model(table_metadata_fields: List[Dict], source: str) 
                 cn_name=field.get("name", ""),
                 desc=field.get("description", ""),
                 field_type=field.get("fieldType", "").lower(),
-                dict_key=field.get("dictkey", "")
+                dict_key=field.get("dictkey", ""),
             )
             table_fields_slice.append(field_model)
         elif source == MetaDataSource.pangu:
@@ -44,7 +46,7 @@ def table_metadata_verify2model(table_metadata_fields: List[Dict], source: str) 
                     desc=field.get("description", ""),
                     field_type=pangu_field_type_map.get(field.get("fieldType", -1)),
                     is_require=field.get("isRequire", 0),
-                    dict_name=field.get("dic", "")
+                    dict_name=field.get("dic", ""),
                 )
             except Exception as err:
                 logger.error(f"field: {field} ERROR: {err}")
@@ -55,8 +57,9 @@ def table_metadata_verify2model(table_metadata_fields: List[Dict], source: str) 
     return table_metadata_model
 
 
-def fill_one_example2model(table_metadata_model: TableMetaDataSchema,
-                           example_slice: List[Dict]) -> TableMetaDataSchema:
+def fill_one_example2model(
+    table_metadata_model: TableMetaDataSchema, example_slice: List[Dict]
+) -> TableMetaDataSchema:
     """
     从给定的样例数据切片中获取样例数据填充模型对象
     Args:
@@ -85,7 +88,8 @@ def fill_one_example2model(table_metadata_model: TableMetaDataSchema,
             break
     logger.trace(
         f"len(example_one_data)={len(example_one_data)} "
-        f"len(table_metadata_model.table_fields)={len(table_metadata_model.table_fields)}")
+        f"len(table_metadata_model.table_fields)={len(table_metadata_model.table_fields)}"
+    )
     for index, field in enumerate(table_metadata_model.table_fields):
         example_value = example_one_data.get(field.en_name.upper(), "")
         field.example = example_value

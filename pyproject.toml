@@ -9,6 +9,7 @@ dependencies = [
     "alembic>=1.15.2",
     "apscheduler>=3.11.0",
     "chainlit>=2.5.5",
+    "chromadb>=0.6.3",
     "faker>=37.1.0",
     "fastapi>=0.115.12",
     "httpx>=0.28.1",
@@ -39,6 +40,6 @@ dependencies = [
 ]
 
 [[tool.uv.index]]
-url = "http://172.16.111.6:8898/simple/"
-name = "fh-pypi"
+url = "https://mirrors.aliyun.com/pypi/simple"
+name = "aliyun"
 default = true

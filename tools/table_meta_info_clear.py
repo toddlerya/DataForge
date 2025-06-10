@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/11 11:23 
+# @Time     : 2025/4/11 11:23
 # @Author   : guoqun X2590
 # @FileName : table_meta_info_clear.py.py
 # @Project  : AIUsage
@@ -10,6 +10,7 @@ import pathlib
 
 
 # https://172.21.4.42:11018/catalog/catalog/query/getEntityDetail?entityId=1355
+
 
 def transform_entity_detail_info(raw_data: dict) -> list[dict]:
     """
@@ -31,7 +32,7 @@ def transform_entity_detail_info(raw_data: dict) -> list[dict]:
                 "desc": item_field.get("desc", "").strip(),
                 # "fieldDir": item_field.get("fieldDir", "").strip(),
                 # "fieldSen": item_field.get("fieldSen", "").strip(),
-                "dic": item_field.get("dic", "").strip()
+                "dic": item_field.get("dic", "").strip(),
             }
         )
 
@@ -46,29 +47,32 @@ def clear(input_file: pathlib, output_file: pathlib):
             json.dump(format_data, w, ensure_ascii=False, indent=2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     io_pair = [
         {
             "input": "export_data/pangu/ODS_POL_EIV_DOMAIN_WHOIS.json",
-            "output": "output/pangu/ODS_POL_EIV_DOMAIN_WHOIS.json"
+            "output": "output/pangu/ODS_POL_EIV_DOMAIN_WHOIS.json",
         },
         {
             "input": "export_data/pangu/ADM_DOMAIN_WHOIS.json",
-            "output": "output/pangu/ADM_DOMAIN_WHOIS.json"
+            "output": "output/pangu/ADM_DOMAIN_WHOIS.json",
         },
         {
             "input": "export_data/pangu/DWD_RES_NUL_LOG_VEH.json",
-            "output": "output/pangu/DWD_RES_NUL_LOG_VEH.json"
+            "output": "output/pangu/DWD_RES_NUL_LOG_VEH.json",
         },
         {
             "input": "export_data/pangu/ADM_GRAPH_NODE_FLIGHT.json",
-            "output": "output/pangu/ADM_GRAPH_NODE_FLIGHT.json"
+            "output": "output/pangu/ADM_GRAPH_NODE_FLIGHT.json",
         },
         {
             "input": "export_data/pangu/DWS_PER_RES_DAY_DCFLIGHT.json",
-            "output": "output/pangu/DWS_PER_RES_DAY_DCFLIGHT.json"
-        }
+            "output": "output/pangu/DWS_PER_RES_DAY_DCFLIGHT.json",
+        },
     ]
     bash_path = pathlib.Path(r"F:\GITLAB\DataForge")
     for item in io_pair:
-        clear(input_file=bash_path.joinpath(item.get("input")), output_file=bash_path.joinpath(item.get("output")))
+        clear(
+            input_file=bash_path.joinpath(item.get("input")),
+            output_file=bash_path.joinpath(item.get("output")),
+        )

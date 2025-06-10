@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/15 15:40 
+# @Time     : 2025/4/15 15:40
 # @Author   : guoqun X2590
 # @FileName : agent.py
 # @Project  : PreviewDataForge
@@ -114,13 +114,11 @@ def call_faker_factory(columns: str, number: int) -> list[dict]:
     Returns:
 
     """
-    payload = {
-        "number": number,
-        "columns": columns
-    }
+    payload = {"number": number, "columns": columns}
     print(f"call_faker_factory payload: {payload}")
-    resp = requests.get(url="http://172.16.111.6:8001/api/v1/fakerfactory",
-                        params=payload)
+    resp = requests.get(
+        url="http://172.16.111.6:8001/api/v1/fakerfactory", params=payload
+    )
     if resp.status_code != 200:
         return [{"message": "服务异常，无法生成仿真数据"}]
     result = resp.json().get("data", [{}])
@@ -165,7 +163,7 @@ def demo1():
             print(type(item), item)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     draw_graph()
     print("=" * 20)
     demo1()

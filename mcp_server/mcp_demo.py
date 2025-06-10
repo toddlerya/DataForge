@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/4/16 16:32 
+# @Time     : 2025/4/16 16:32
 # @Author   : guoqun X2590
 # @FileName : mcp_demo.py
 # @Project  : PreviewDataForge
@@ -37,5 +37,5 @@ def get_greeting(name: str) -> str:
     return f"Hello, {name}"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     mcp.run(transport="stdio")

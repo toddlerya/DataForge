@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/5/13 16:41 
+# @Time     : 2025/5/13 16:41
 # @Author   : guoqun X2590
 # @FileName : schema.py
 # @Project  : DataForge
 
+from typing import List, Union
+
 from pydantic import BaseModel, Field
-from typing import Union, List
 
 
 class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
@@ -21,7 +22,10 @@ class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
 
 
 class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
-    uuid: str = Field(default="", description="表的唯一ID: md5(table_en_name+source+area_code+area_name)")
+    uuid: str = Field(
+        default="",
+        description="表的唯一ID: md5(table_en_name+source+area_code+area_name)",
+    )
     table_en_name: str = Field(description="表英文名称", default="")
     table_cn_name: str = Field(description="表中文名称", default="")
     description: str = Field("", description="表描述")
@@ -35,5 +39,7 @@ class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
 
 class TableExampleSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     uuid: str = Field(..., description="数据唯一ID, md5(example_data)")
-    table_uuid: str = Field(..., description="表的唯一ID: md5(table_en_name+source+area_code+area_name)")
+    table_uuid: str = Field(
+        ..., description="表的唯一ID: md5(table_en_name+source+area_code+area_name)"
+    )
     example_data: dict = Field(..., description="样例数据")

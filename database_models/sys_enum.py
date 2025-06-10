@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/5/15 17:04 
+# @Time     : 2025/5/15 17:04
 # @Author   : guoqun X2590
 # @FileName : sys_enum.py
 # @Project  : DataForge

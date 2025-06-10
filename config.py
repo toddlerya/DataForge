@@ -20,8 +20,10 @@ ENV_DATA_EXPIRED_DAY = os.getenv("DATA_EXPIRED_DAY", 15)
 try:
     ENV_DATA_EXPIRED_DAY = int(ENV_DATA_EXPIRED_DAY)
 except ValueError as err:
-    print(f"DATA_EXPIRED_DAY配置不是整数, 请确认, 使用默认值30. "
-          f"current value: {ENV_DATA_EXPIRED_DAY} type: {type(ENV_DATA_EXPIRED_DAY)}")
+    print(
+        f"DATA_EXPIRED_DAY配置不是整数, 请确认, 使用默认值30. "
+        f"current value: {ENV_DATA_EXPIRED_DAY} type: {type(ENV_DATA_EXPIRED_DAY)}"
+    )
     ENV_DATA_EXPIRED_DAY = 30
 
 SERVER_PORT = 20211
@@ -120,24 +122,34 @@ API_PREFIX = "/api"
 
 HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/103.0.5060.53 Safari/537.36 PolarisInspection/1.0.0"
+    "Chrome/103.0.5060.53 Safari/537.36 PolarisInspection/1.0.0"
 }
 
 PROXIES = {"http": None, "https": None}
 
 # 数据域配置
 data_scope_ip_port = "172.17.63.12:12018"
-data_scope_resource_url = f"https://{data_scope_ip_port}/offsite/v1/domain/page/resource"
-data_scope_resource_detail_url = f"https://{data_scope_ip_port}/offsite/v1/resource/detail"
+data_scope_resource_url = (
+    f"https://{data_scope_ip_port}/offsite/v1/domain/page/resource"
+)
+data_scope_resource_detail_url = (
+    f"https://{data_scope_ip_port}/offsite/v1/resource/detail"
+)
 data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=b3e095c25b6649ba9c69a7c196657969; appToken=f2eb6e036df14ea98eedc3ad3f2643a7"
 
 # 盘古配置
 pangu_ip_port = "172.21.4.42:11018"
 # 数据资产-数据资源目录
-pangu_data_resource_dir_url = f"https://{pangu_ip_port}/catalog/catalog/res/searchResourceManage"
+pangu_data_resource_dir_url = (
+    f"https://{pangu_ip_port}/catalog/catalog/res/searchResourceManage"
+)
 pangu_entity_list_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntityList"
-pangu_entity_detail_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntityDetail"
-pangu_data_sample_query_url = f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
+pangu_entity_detail_url = (
+    f"https://{pangu_ip_port}/catalog/catalog/query/getEntityDetail"
+)
+pangu_data_sample_query_url = (
+    f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
+)
 
 pangu_cookie = "contextPath=/catalog; JSESSIONID=B326E3E91486A49D4C1B147FD289ECB5; userToken=5e9f47a866c243d3ac2cf72c75538244; appToken=62a230916b514c0c9a4833f5b4d81209; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; userToken=f003cfa2a89f4403875293c93cd5420c; appToken=fbb5e82777534a199dc2ecf902722b80; JSESSIONID=5FA36098596031DDF7A9E0AE0DB74D4C"
 
@@ -158,5 +170,5 @@ pangu_field_type_map = {
     21: "array<string>",
     22: "array<int>",
     23: "array<long>",
-    24: "array<float>"
+    24: "array<float>",
 }

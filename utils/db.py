@@ -1,29 +1,35 @@
 #!/usr/bin/env python
 # coding: utf-8
 # @File    :   db.py
-# @Time    :   2023/11/3 18:27
-# @Author  :   guo qun X2590
+# @Time    :   2023/11/03 18:27:50
+# @Author  :   toddlerya
 # @Desc    :   None
 
-from typing import Callable, Dict, Any, Tuple
+from typing import Any
 
 from sqlalchemy import ForeignKeyConstraint, Index, UniqueConstraint, create_engine
 from sqlalchemy.dialects import mysql, postgresql, sqlite
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql.schema import ColumnDefault
 
-from config import (SQLALCHEMY_AUTO_COMMIT, SQLALCHEMY_AUTO_FLUSH, SQLALCHEMY_ECHO, ENV_DB_MODE, SQLALCHEMY_URL)
+from config import (
+    ENV_DB_MODE,
+    SQLALCHEMY_AUTO_COMMIT,
+    SQLALCHEMY_AUTO_FLUSH,
+    SQLALCHEMY_ECHO,
+    SQLALCHEMY_URL,
+)
 from utils.log import logger
 
 
 class Database:
     @logger.catch(reraise=True)
     def __init__(
-            self,
-            url: str = None,
-            echo: bool = None,
-            auto_flush: bool = None,
-            auto_commit: bool = None,
+        self,
+        url: str = None,
+        echo: bool = None,
+        auto_flush: bool = None,
+        auto_commit: bool = None,
     ):
         if ENV_DB_MODE == "POSTGRESQL":
             self.db = PostgreSQLDB(
@@ -57,11 +63,11 @@ class Database:
 class SQLiteDB:
     @logger.catch(reraise=True)
     def __init__(
-            self,
-            url: str = None,
-            echo: bool = None,
-            auto_flush: bool = None,
-            auto_commit: bool = None,
+        self,
+        url: str = None,
+        echo: bool = None,
+        auto_flush: bool = None,
+        auto_commit: bool = None,
     ):
         """
         初始化sqlalchemy数据库对象化
@@ -81,8 +87,15 @@ class SQLiteDB:
         if not auto_commit:
             auto_commit = SQLALCHEMY_AUTO_COMMIT
         # 启用Sqlite的WAL模式
-        # QueuePool limit of size 20 overflow 10 reached, connection timed out, timeout 30.00
-        self.__engine = create_engine(url=url, echo=echo, future=True, pool_size=30, max_overflow=60, pool_timeout=30)
+        # QueuePool limit of size 20 overflow 10 reached, connection time out, timeout 30.00
+        self.__engine = create_engine(
+            url=url,
+            echo=echo,
+            future=True,
+            pool_size=30,
+            max_overflow=60,
+            pool_timeout=30,
+        )
         session_factory = sessionmaker(
             bind=self.__engine, autoflush=auto_flush, autocommit=auto_commit
         )
@@ -105,7 +118,7 @@ class SQLiteDB:
             .values(kwargs)
             .prefix_with("OR REPLACE")
         )
-        logger.trace(f"sqlite insert_or_update insert_stmt => {insert_stmt}")
+        logger.debug(f"sqlite insert_or_update insert_stmt => {insert_stmt}")
         # update_stmt = insert_stmt.on_duplicate_key_update(**kwargs)
         # insert_stmt = model_name().insert().values(**kwargs).prefix_with("OR REPLACE")
         self.session.execute(insert_stmt)
@@ -114,11 +127,11 @@ class SQLiteDB:
 class MySQLDB:
     @logger.catch(reraise=True)
     def __init__(
-            self,
-            url: str = None,
-            echo: bool = None,
-            auto_flush: bool = None,
-            auto_commit: bool = None,
+        self,
+        url: str = None,
+        echo: bool = None,
+        auto_flush: bool = None,
+        auto_commit: bool = None,
     ):
         """
         初始化sqlalchemy数据库对象化
@@ -164,11 +177,11 @@ class MySQLDB:
 class PostgreSQLDB:
     @logger.catch(reraise=True)
     def __init__(
-            self,
-            url: str = None,
-            echo: bool = None,
-            auto_flush: bool = None,
-            auto_commit: bool = None,
+        self,
+        url: str = None,
+        echo: bool = None,
+        auto_flush: bool = None,
+        auto_commit: bool = None,
     ):
         """
         初始化sqlalchemy数据库对象化
@@ -197,7 +210,7 @@ class PostgreSQLDB:
         # https://farer.org/2017/10/28/sqlalchemy_scoped_session/
         self.session = scoped_session(session_factory)
 
-    @logger.catch(reraise=True)
+    # @logger.catch(reraise=True)
     def insert_or_update(self, model_name, **kwargs):
         """
         使用SQL的CONFLICT (id) DO UPDATE 语法
@@ -223,7 +236,7 @@ class PostgreSQLDB:
                         for column in each.table.columns:
                             # 找到onupdate列和值，补充到入参里
                             if column.onupdate and isinstance(
-                                    column.onupdate, ColumnDefault
+                                column.onupdate, ColumnDefault
                             ):
                                 onupdate_arg = column.onupdate.arg
                                 if column.onupdate.is_callable:
@@ -248,13 +261,17 @@ class PostgreSQLDB:
 def insert_or_update(db: Database, model_name: Any, record: dict) -> tuple[bool, str]:
     """
     封装插入或更新数据库操作
-    :param record:
-    :param model_name:
-    :param db:
-    :return:
+
+    Args:
+        db (Database): _description_
+        model_name (Any): _description_
+        record (dict): _description_
+
+    Returns:
+        tuple[bool, str]: _description_
     """
     try:
-        db.insert_or_update(model_name, **record)
+        db.insert_or_update(model_name=model_name, **record)
     except Exception as err:
         db.session.rollback()
         message = f"数据库写操作错误: {err}"

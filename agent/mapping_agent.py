@@ -25,11 +25,14 @@ def create_table_raw_field_info(state: DataForgeState):
 
     for table_en_name in intent_table_en_names:
         table_metadata = TableMetadataSchema(table_en_name=table_en_name)
-        query_status, query_message, query_result = table_metadata_query(table_en_name=table_en_name,
-                                                                         db_handler=Database())
+        query_status, query_message, query_result = table_metadata_query(
+            table_en_name=table_en_name, db_handler=Database()
+        )
         if query_status is False:
             logger.error(f"查询{table_en_name}元数据异常: {query_result}")
-            state["table_metadata_error"].append(f"查询{table_en_name}元数据异常: {query_result}")
+            state["table_metadata_error"].append(
+                f"查询{table_en_name}元数据异常: {query_result}"
+            )
             raw_fields_data = [TableRawFieldSchema()]
             output_fields = {}
         elif query_result is None:
