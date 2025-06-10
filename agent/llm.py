@@ -13,6 +13,7 @@ from langchain_openai import ChatOpenAI
 # 加载 .env 文件
 load_dotenv()
 
+
 web_llm = ChatOpenAI(
     base_url=os.getenv("SILICONFLOW_BASE_URL"),
     api_key=os.getenv("SILICONFLOW_API_KEY"),
@@ -33,10 +34,10 @@ web_llm = ChatOpenAI(
 
 ollama_llm = ChatOllama(
     base_url=os.getenv("OLLAMA_BASE_URL"),
-    model="qwen3:0.6b-fp16",
+    # model="qwen3:0.6b-fp16",
     # model="qwen3:4b-q4_K_M",
     # model="qwen3:8b-q4_K_M",
-    # model="qwen3:30b-a3b",
+    model="qwen3:30b-a3b",
     # model="THUDM_GLM-Z1-9B-0414:Q6_K_L",
     temperature=0.6,
     top_p=0.95,
@@ -54,4 +55,4 @@ gemini_llm = ChatOpenAI(
 #     temperature=0.0
 # )
 
-chat_llm = web_llm
+chat_llm = ollama_llm

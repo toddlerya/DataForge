@@ -15,11 +15,10 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from agent_v1.gen_faker_data_agent import gen_fake_data_graph
-from agent_v1.intent_agent import intent_graph
-from agent_v1.mapping_agent import mapping_graph
-from agent_v1.state import TableMetadataSchema, UserIntentSchema
-from agent_v1.utils import save_json_data_async
+from agent.graph import data_forge_graph
+
+from agent.state import TableMetadataSchema, UserIntentSchema, PydanticDataGeniusPlan
+from agent.utils import save_json_data_async
 
 # 加载 .env 文件
 load_dotenv()
@@ -46,7 +45,7 @@ ADM_DOMAIN_WHOIS: 5
 
 @cl.step(type="tool", name="查询表元数据信息")
 async def get_table_metadata() -> List[TableMetadataSchema]:
-    event = await cl.make_async(mapping_graph.invoke)(
+    event = await cl.make_async(data_forge_graph.invoke)(
         {
             "user_input": cl.user_session.get("user_input"),
             "user_intent": cl.user_session.get("user_intent"),
@@ -64,7 +63,7 @@ async def get_table_metadata() -> List[TableMetadataSchema]:
 @cl.step(type="llm", name="意图分析")
 async def input_intent_analyze(user_input: str, thread: dict) -> UserIntentSchema:
     # 调用大模型对用户输入信息进行意图识别拆解
-    event = await cl.make_async(intent_graph.invoke)(
+    event = await cl.make_async(data_forge_graph.invoke)(
         {"user_input": user_input}, thread, stream_mode="values"
     )
     return event["user_intent"]
@@ -79,13 +78,13 @@ async def main(message: cl.Message):
     if message.content.strip() == "正确":
         await cl.Message(content="正在获取表元数据信息...").send()
         start_time = asyncio.get_event_loop().time()
-        intent_graph.update_state(
+        data_forge_graph.update_state(
             thread,
             {
                 "confirmed": True,
                 "table_metadata_array": [],
             },
-            as_node="confirm",
+            as_node="intent_confirm",
         )
         # 查询表的字段配置信息
         table_metadata_array = await get_table_metadata()
@@ -122,58 +121,43 @@ async def main(message: cl.Message):
                     elements=table_metadata_elements,
                 ).send()
 
-            await cl.Message(content="正在生成测试数据...").send()
-            event = await cl.make_async(gen_fake_data_graph.invoke)(
+            await cl.Message(content="正在生成DataGenius任务规则...").send()
+            event = await cl.make_async(data_forge_graph.invoke)(
                 {
                     "user_input": cl.user_session.get("user_input"),
                     "user_intent": cl.user_session.get("user_intent"),
                     "table_metadata_array": cl.user_session.get("table_metadata_array"),
-                    "fake_data": {},
                     "max_retries": 5,
                     "current_retries": 0,
                 },
                 thread,
                 stream_mode="values",
             )
-            fake_data: dict[list] = event["fake_data"]
+            pydantic_data_genius_plan: PydanticDataGeniusPlan = event["pydantic_data_genius_plan"]
             logger.info("完成")
             end_time = asyncio.get_event_loop().time()
             elapsed_time = end_time - start_time
             cost_msg = f"运行耗时: {elapsed_time: .2f} 秒"
             logger.info(cost_msg)
-            for item_table_en_name, item_fake_data in fake_data.items():
-                logger.info(f"表名称: {item_table_en_name}")
-                # logger.info(f"生成数据: {item_fake_data}")
-                fake_df = pd.DataFrame(item_fake_data)
-                fake_elements = [
-                    cl.Dataframe(
-                        data=fake_df,
-                        name=f"{item_table_en_name}仿真测试数据",
-                        display="side",
-                    )
-                ]
-                await cl.Message(
-                    elements=fake_elements,
-                    content=f"{item_table_en_name}仿真测试数据",
-                ).send()
+            await cl.Message(content=f"{pydantic_data_genius_plan.model_dump_json(indent=2)}").send()
             await cl.Message(
                 content=f"仿真测试数据生成完成，耗时{elapsed_time:.2f}秒",
             ).send()
-            # 保存生成的测试数据
+            # 保存生成的dg任务配置
             save_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\output").joinpath(
-                f"fake_data_{thread_id}.json"
+                f"dg_task_plan_{thread_id}.json"
             )
-            await save_json_data_async(save_json_path, fake_data)
+            await save_json_data_async(save_json_path, pydantic_data_genius_plan.model_dump_json())
             download_json_elements = [
                 cl.File(
-                    name=f"fake_data_{thread_id}.json",
+                    name=f"dg_task_plan_{thread_id}.json",
                     path=str(save_json_path.absolute()),
                     display="inline",
                 ),
             ]
             await cl.Message(
                 elements=download_json_elements,
-                content="请下载生成的仿真测试数据",
+                content="请下载生成的DataGenius任务配置文件",
             ).send()
     else:
         try:

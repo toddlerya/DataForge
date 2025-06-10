@@ -53,7 +53,7 @@ class TableMetadataSchema(BaseModel):
     )
 
 
-class TableFieldDefintion(TypedDict):
+class TableFieldDefinition(TypedDict):
     en_name: str
     cn_name: str
     # 字段类型, e.g., "INT", "VARCHAR", "DATE", "BOOLEAN"
@@ -228,15 +228,12 @@ class DataForgeState(TypedDict):
     messages: Annotated[List[ToolMessage], add_messages]
     user_input: str
     user_intent: UserIntentSchema
-    intent_feedback: str
+    confirmed: bool
     table_metadata_array: list[TableMetadataSchema]
-    input_table_definitions: List[TableFieldDefintion]
     table_data_genius_category_recommendation_array: List[Dict[str, Any]]
-    llm_faker_plan: FakerExecutionPlan
-    pydantic_data_genius_rule: PydanticDataGeniusPlan
+    pydantic_data_genius_plan: PydanticDataGeniusPlan
     table_metadata_error: list[str]
     num_rows_to_generate: int
-    fake_data: dict[str, list]
     error_message: Optional[str]
     current_retries: int
     max_retries: int

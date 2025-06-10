@@ -53,8 +53,8 @@ def analyze_intent(state: DataForgeState) -> DataForgeState:
 
 def intent_confirm(state: DataForgeState):
     """Confirm node that sets default confirmed=False if not set"""
-    if "intent_feedback" not in state:
-        state["intent_feedback"] = ""
+    if "confirmed" not in state:
+        state["confirmed"] = False
 
 
 def should_continue(state: DataForgeState):
@@ -123,72 +123,6 @@ def handle_retry(state: DataForgeState) -> DataForgeState:
         logger.warning(f"当前重试次数: {current_retries}")
         return state
 
-
-def gen_fake_data(state: DataForgeState) -> DataForgeState:
-    user_intent = state.get("user_intent")
-    table_en_names = user_intent.table_en_names
-    table_conditions = user_intent.table_conditions
-    table_data_count = user_intent.table_data_count
-    table_metadata_array = state.get("table_metadata_array", [])
-
-    logger.debug(f"table_en_names: {table_en_names}")
-    logger.debug(f"table_conditions: {table_conditions}")
-    logger.debug(f"table_data_count: {table_data_count}")
-    logger.debug(f"max_retries: {state.get('max_retries', 3)}")
-    logger.debug(f"current_retries: {state.get('current_retries', 0)}")
-
-    # 生成测试数据
-    output_table_metadata_slice = list()
-    for table_metadata in table_metadata_array:
-        each_table_output_metadata = {
-            "table_name": table_metadata.table_en_name,
-            "fields": [ele.model_dump() for ele in table_metadata.raw_fields_info],
-        }
-        logger.trace(each_table_output_metadata)
-        output_table_metadata_slice.append(each_table_output_metadata)
-    output_table_models = {
-        table.get("table_name"): create_table_model(
-            table_name=table.get("table_name"), fields=table.get("fields")
-        )
-        for table in output_table_metadata_slice
-    }
-    output_data_schema = build_main_model(output_table_models)
-    logger.trace(
-        f"output_data_schema: {output_data_schema}  {json.dumps(output_data_schema.model_json_schema())}"
-    )
-    structured_llm = chat_llm.with_structured_output(output_data_schema)
-    system_message = prompt_gen_faker_data.format(
-        table_en_name_array=table_en_names,
-        table_field_info_array=[ele.model_dump() for ele in table_metadata_array],
-        table_conditions_array=table_conditions,
-        table_data_count_array=table_data_count,
-    )
-    logger.trace(f"gen_fake_data system_message: {system_message}")
-    try:
-        fake_data = structured_llm.invoke(
-            [
-                system_message,
-                "请根据表字段信息生成测试数据",
-            ]
-        )
-    except Exception as err:
-        logger.error(f"gen_fake_data structured_llm.invoke error: {err}")
-        state["current_retries"] = state["current_retries"] + 1
-        return state
-    else:
-        logger.debug(f"fake_data.model_dump_json: {fake_data.model_dump_json()}")
-        # 追加数据
-        last_fake_data = state.get("fake_data", {})
-        logger.debug(f"current last_fake_data: {last_fake_data}")
-        for k, v in fake_data.model_dump().items():
-            if k in last_fake_data:
-                last_fake_data[k].extend(v)
-            else:
-                last_fake_data[k] = v
-        state["fake_data"] = last_fake_data
-        state["current_retries"] = 0
-        # return {"fake_data": last_fake_data}
-        return state
 
 
 def should_continue_gen(state: DataForgeState):
@@ -309,7 +243,7 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
             # 清空字段重试次数，开始下一个字段的推荐
             retry_count = 0
     rule_uuid = str(uuid.uuid4())
-    pydantic_data_genius_rule = PydanticDataGeniusPlan(
+    pydantic_data_genius_plan = PydanticDataGeniusPlan(
         rule_name=f"{rule_uuid}.json",
         type_="模型",
         rows=row_count,
@@ -320,38 +254,9 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
         cols=len(table_metadata.raw_fields_info),
     )
     logger.info(
-        f"PydanticDataGeniusPlan: {pydantic_data_genius_rule.model_dump_json()}"
+        f"PydanticDataGeniusPlan: {pydantic_data_genius_plan.model_dump_json()}"
     )
-    state["pydantic_data_genius_rule"] = pydantic_data_genius_rule
-    return state
-
-
-def faker_planner(state: DataForgeState) -> DataForgeState:
-    """
-    LLM规划器节点
-    Args:
-        state:
-
-    Returns:
-
-    """
-    logger.info("Faker计划配置生成器开始执行")
-    table_metadata_array = state["table_metadata_array"]
-    user_intent = state["user_intent"]
-    structured_llm = ollama_llm.with_structured_output(PydanticFakerPlan)
-    chat_prompt = dg_category_prompt.format_messages(
-        table_name=user_intent.table_en_names,
-        table_schema=[ele.model_dump() for ele in table_metadata_array],
-        user_conditions=user_intent.table_conditions,
-        num_rows=user_intent.table_data_count,
-        dg_category_config_data=[faker_cn_idcard_doc],
-    )
-    logger.debug(f"faker_planner chat_prompt: {chat_prompt}")
-    llm_faker_plan = structured_llm.invoke(chat_prompt)
-    logger.debug(
-        f"llm_faker_plan.model_dump_json(): {llm_faker_plan.model_dump_json()}"
-    )
-    state["llm_faker_plan"] = llm_faker_plan
+    state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
     return state
 
 
@@ -386,9 +291,38 @@ data_forge_builder.add_edge("create_table_raw_field_info", "dg_category_recommen
 # )
 data_forge_builder.add_edge("dg_category_recommend", END)
 
-# memory = MemorySaver()
-graph = data_forge_builder.compile(interrupt_before=["intent_confirm"])
-
+memory = MemorySaver()
+data_forge_graph = data_forge_builder.compile(interrupt_before=["create_table_raw_field_info"], checkpointer=memory)
 
 if __name__ == "__main__":
-    print(graph.get_graph(xray=True).draw_mermaid())
+    print(data_forge_graph.get_graph(xray=True).draw_mermaid())
+
+    config = {"configurable": {"thread_id": "123"}}
+
+    init_state = DataForgeState(
+        messages=["""数据库表名称:
+fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE
+期望生成数据条数:
+fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE: 5"""],
+        confirmed=True,
+        # user_intent=UserIntentSchema(table_en_names=['fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE'],
+        #                              table_conditions={},
+        #                              table_data_count={'fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE': 5})
+    )
+    for event in data_forge_graph.stream(init_state, config, stream_mode="updates"):
+        for key, value in event.items():
+            print(f"输出节点: {key}")
+            print("=" * 30)
+            print(value)
+            print("\n")
+
+    current_state = data_forge_graph.get_state(config)
+    print(f"\n当前图已中断， 下一个节点是: {current_state.next}")
+
+    print("继续运行")
+    for event in data_forge_graph.stream(None, config, stream_mode="updates"):
+        for key, value in event.items():
+            print(f"输出节点: {key}")
+            print("=" * 30)
+            print(value)
+            print("\n")
