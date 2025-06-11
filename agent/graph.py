@@ -8,12 +8,13 @@
 
 import json
 import pathlib
+import time
 import uuid
 
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+import httpx
+import requests
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import interrupt, Command
 from loguru import logger
 
 from agent.llm import chat_llm, ollama_llm
@@ -26,10 +27,11 @@ from agent.state import (
     TableMetadataSchema,
     UserIntentSchema,
 )
-from agent.utils import build_main_model, create_table_model
+from config import DG_PLAN_CONFIG_PREFIX, DG_HEADERS
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
-from faker_utils.dg_configs import DG_FIELD_CATEGORY_CONFIG, DG_STORAGE_PATH
+from faker_utils.dg_configs import (DG_FIELD_CATEGORY_CONFIG, DG_STORAGE_PATH, DG_SERVER_BASE_URL, DG_TASK_ADD_URL,
+                                    DG_TASK_HISTORY)
 from utils.db import Database
 from utils.file import save_dict2jl
 
@@ -42,7 +44,7 @@ def analyze_intent(state: DataForgeState) -> DataForgeState:
     chat_prompt = intent_prompt.format_messages(
         user_input=user_input, human_intent_feedback=human_intent_feedback
     )
-    logger.debug(f"analyze_intent chat_prompt: {chat_prompt}")
+    logger.trace(f"analyze_intent chat_prompt: {chat_prompt}")
     user_intent = structured_llm.invoke(chat_prompt)
     state["user_intent"] = user_intent
     logger.debug(f"user_intent: {user_intent}")
@@ -101,26 +103,6 @@ def create_table_raw_field_info(state: DataForgeState) -> DataForgeState:
     return state
 
 
-def handle_retry(state: DataForgeState) -> DataForgeState:
-    """
-    处理重试逻辑
-    Args:
-        state:
-
-    Returns:
-
-    """
-    current_retries = state["current_retries"]
-    max_retries = state["max_retries"]
-    if current_retries >= max_retries:
-        logger.warning(f"当前已到达最大重试次数: {max_retries}")
-        state["current_retries"] = 0
-        return state
-    else:
-        logger.warning(f"当前重试次数: {current_retries}")
-        return state
-
-
 def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     """
     DataGenius字段分类推荐节点
@@ -130,7 +112,7 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     Returns:
 
     """
-    logger.info("DataGenius字段分类推荐节点")
+    logger.info("DataGenius字段分类推荐")
     table_metadata_array = state["table_metadata_array"]
     user_intent = state["user_intent"]
     table_en_name = user_intent.table_en_names[0]
@@ -138,9 +120,9 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     table_metadata = table_metadata_array[0] if table_metadata_array else None
     if not table_metadata:
         logger.error("未查询到表元数据，无法进行数据字段分类推荐")
-        state["error_message"] = "未查询到表元数据，无法进行数据字段分类推荐"
+        state["error_message"].append("未查询到表元数据，无法进行数据字段分类推荐")
         return state
-    logger.debug(f"table_metadata: {table_metadata.model_dump_json()}")
+    logger.trace(f"table_metadata: {table_metadata.model_dump_json()}")
     structured_llm = chat_llm.with_structured_output(
         PydanticDataGeniusCategoryRecommendation
     )
@@ -150,7 +132,7 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     field_index = 0
     retry_count = 0
     # 设置最大重试次数
-    max_retries = 3
+    max_retries = state["max_retries"]
     stop_flag = False
     rules: list[PydanticDataGeniusRule] = []
     while True:
@@ -171,7 +153,7 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
             logger.warning(
                 f"已达到最大推荐重试次数 {max_retries}，自动填充默认DataGenius分类推荐"
             )
-            logger.debug(
+            logger.trace(
                 f"llm_dg_field_category_recommendation: {llm_dg_field_category_recommendation.model_dump_json()}"
             )
             # 构建该字段的DataGenius规则参数
@@ -218,10 +200,10 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
                 name="",
                 ename=field_info.en_name,
                 cname=field_info.cn_name,
-                preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
+                preview=f"score: {llm_dg_field_category_recommendation.score}, reason: {llm_dg_field_category_recommendation.reason}",
                 value=field_info.example,
             )
-            logger.debug(
+            logger.trace(
                 f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
             )
             rules.append(pydantic_data_genius_rule)
@@ -230,17 +212,14 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
             retry_count = 0
     rule_uuid = str(uuid.uuid4())
     pydantic_data_genius_plan = PydanticDataGeniusPlan(
-        rule_name=f"{rule_uuid}.json",
-        type_="模型",
+        rule_name=f"{DG_PLAN_CONFIG_PREFIX}{rule_uuid}.json",
+        type_="规则",
         rows=row_count,
         separator="\t",
         rules=rules,
         output=f"{DG_STORAGE_PATH}/output/10.0.23.57/{rule_uuid}",
         model=f"{DG_STORAGE_PATH}/models/10.0.23.57/{table_en_name}",
         cols=len(table_metadata.raw_fields_info),
-    )
-    logger.info(
-        f"PydanticDataGeniusPlan: {pydantic_data_genius_plan.model_dump_json()}"
     )
     state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
     return state
@@ -255,13 +234,115 @@ def save_dg_plan2json(state: DataForgeState):
     Returns:
 
     """
+    logger.info("存储DataGenius任务规则")
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
         save_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\dg_plans").joinpath(
-            f"dg_task_plan_{pydantic_data_genius_plan.rule_name}"
+            f"{pydantic_data_genius_plan.rule_name}"
         ).absolute()
         save_dict2jl(json_data=data, save_path=str(save_json_path))
+
+
+def create_dg_task(state: DataForgeState) -> DataForgeState:
+    """
+    创建人DataGenius任务
+    Args:
+        state:
+
+    Returns:
+
+    """
+    pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+    user_intent = state["user_intent"]
+    table_en_name = user_intent.table_en_names[0]
+    logger.info(f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name}")
+    pydantic_data_genius_plan_dict = pydantic_data_genius_plan.model_dump()
+    payload = {
+        "task": {"step": "2", "name": pydantic_data_genius_plan.rule_name,
+                 "type_": pydantic_data_genius_plan.type_,
+                 "modelName": table_en_name,
+                 "mode": "create",
+                 "task_id": "None",
+                 "duration": None,
+                 "output_filesize": None},
+        "rules": pydantic_data_genius_plan_dict["rules"],
+        "separator": pydantic_data_genius_plan.separator,
+        "rows": pydantic_data_genius_plan.rows,
+        "cols": pydantic_data_genius_plan.cols,
+        "send": {"send_type": 1,
+                 "id": None,
+                 "tip": "无配置，点击刷新或添加。",
+                 "connect_test": False,
+                 "connect_test_tip": "",
+                 "table_name": "",
+                 "table_test": False,
+                 "table_test_tip": "",
+                 "table_columns": [],
+                 "schema": "public"},
+        "saveRuleFile": False,
+        "blockSize": 100000,
+        "source": "",
+        "alam": {"isRule": "1", "rule": "", "name": ""}
+    }
+
+    save_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\dg_payload").joinpath(
+        f"payload_{pydantic_data_genius_plan.rule_name}"
+    ).absolute()
+    save_dict2jl(json_data=payload, save_path=str(save_json_path))
+
+    create_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_ADD_URL}"
+    with httpx.Client() as client:
+        response = client.post(
+            create_task_url, data=payload, timeout=30,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "Referer": "http://172.17.55.30/genius/page/new-task/?step=2&name=qguo&type_=%E8%A7%84%E5%88%99&modelName=&tableName=",
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        )
+        if response.status_code != 200:
+            logger.error(f"请求{create_task_url}异常, status_code: {response.status_code}")
+            state["create_data_genius_task_error"] = f"请求{create_task_url}异常, status_code: {response.status_code}"
+            logger.debug(f"state.create_data_genius_task_error: {state['create_data_genius_task_error']}")
+        return state
+
+
+def query_dg_task_status(state: DataForgeState) -> DataForgeState:
+    """
+    查询当前任务状态
+    Args:
+        state:
+
+    Returns:
+
+    """
+    pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+    logger.info(f"查询DataGenius进度, 任务名称: {pydantic_data_genius_plan.rule_name}")
+    query_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_HISTORY}"
+    payload = {"limit": 10}
+    with httpx.Client() as client:
+        for _ in range(60):
+            response = client.get(query_task_url, params=payload)
+            if response.status_code != 200:
+                logger.error(f"请求{query_task_url}异常, status_code: {response.status_code}")
+                state["query_data_genius_task_error"] = f"请求{query_task_url}异常, status_code: {response.status_code}"
+                return state
+            resp_json = response.json()
+            logger.debug(f"resp_json: {resp_json}")
+            for result in resp_json.get("results", [{}]):
+                logger.debug(f"result: {result}")
+                if result.get("name", "") == pydantic_data_genius_plan.rule_name:
+                    if result.get("status_name") == "成功":
+                        state["data_genius_plan_run_duration"] = result.get("duration_", "未获取到dg生成耗时")
+                        state[
+                            "data_genius_data_output_url"] = f"{DG_SERVER_BASE_URL}/" \
+                                                             f"{result.get('output', 'not_found_output_path')}"
+                        state["data_genius_data_output_filesize"] = result.get("output_filesize",
+                                                                               "未获取到output_filesize")
+                        state["data_genius_plan_run_duration"] = result.get("duration_", "未获取到dg生成耗时")
+                        return state
+            time.sleep(2)
 
 
 data_forge_builder = StateGraph(DataForgeState)
@@ -270,6 +351,8 @@ data_forge_builder.add_node("intent_human_feedback", intent_human_feedback)
 data_forge_builder.add_node("create_table_raw_field_info", create_table_raw_field_info)
 data_forge_builder.add_node("dg_category_recommend", dg_category_recommend)
 data_forge_builder.add_node("save_dg_plan2json", save_dg_plan2json)
+data_forge_builder.add_node("create_dg_task", create_dg_task)
+data_forge_builder.add_node("query_dg_task_status", query_dg_task_status)
 
 data_forge_builder.add_edge(START, "analyze_intent")
 data_forge_builder.add_edge("analyze_intent", "intent_human_feedback")
@@ -278,7 +361,9 @@ data_forge_builder.add_conditional_edges(
 )
 data_forge_builder.add_edge("create_table_raw_field_info", "dg_category_recommend")
 data_forge_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
-data_forge_builder.add_edge("save_dg_plan2json", END)
+data_forge_builder.add_edge("save_dg_plan2json", "create_dg_task")
+data_forge_builder.add_edge("create_dg_task", "query_dg_task_status")
+data_forge_builder.add_edge("query_dg_task_status", END)
 
 memory = MemorySaver()
 data_forge_graph = data_forge_builder.compile(interrupt_before=["intent_human_feedback"], checkpointer=memory)
@@ -286,27 +371,47 @@ data_forge_graph = data_forge_builder.compile(interrupt_before=["intent_human_fe
 if __name__ == "__main__":
     print(data_forge_graph.get_graph(xray=True).draw_mermaid())
     user_input = """数据库表名称:
-    fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE
-    期望生成数据条数:
-    fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE: 5"""
+massdata.ADM_REL_MOBILE
+期望生成数据条数:
+massdata.ADM_REL_MOBILE: 5"""
     thread = {"configurable": {"thread_id": "123"}}
 
-    for event in data_forge_graph.stream({"user_input": user_input}, thread, stream_mode="values"):
+    init_state = {
+        "user_input": user_input,
+        "max_retries": 5,
+        "create_data_genius_task_error": "",
+        "query_data_genius_task_error": "",
+        "data_genius_plan_run_duration": "",
+        "data_genius_data_output_url": "",
+        "data_genius_data_output_filesize": "",
+    }
+
+    for event in data_forge_graph.stream(init_state, thread, stream_mode="values"):
         # Review
         user_intent: UserIntentSchema = event.get("user_intent")
         if user_intent:
             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
 
-    __state = data_forge_graph.get_state(thread)
-    logger.info(f"下一个节点: {__state.next}")
-
     # 模拟用户意图识别的研判反馈
     data_forge_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback")
-    __state = data_forge_graph.get_state(thread)
-    logger.info(f"用户意图识别反馈后，下一个节点: {__state.next}")
 
     for event in data_forge_graph.stream(None, thread, stream_mode="values"):
         # Review
         intent_human_feedback = event.get("intent_human_feedback")
         if intent_human_feedback:
             logger.info(f"intent_human_feedback: {intent_human_feedback}")
+
+        if event["create_data_genius_task_error"] != "":
+            logger.info("create_data_genius_task_error", event["create_data_genius_task_error"])
+
+        if event["query_data_genius_task_error"] != "":
+            logger.info("query_data_genius_task_error", event["query_data_genius_task_error"])
+
+        if event["data_genius_plan_run_duration"] != "":
+            logger.info("data_genius_plan_run_duration", event["data_genius_plan_run_duration"])
+
+        if event["create_data_genius_task_error"] != "":
+            logger.info("data_genius_data_output_url", event["create_data_genius_task_error"])
+
+        if event["data_genius_data_output_filesize"] != "":
+            logger.info("data_genius_data_output_filesize", event["data_genius_data_output_filesize"])

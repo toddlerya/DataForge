@@ -172,3 +172,7 @@ pangu_field_type_map = {
     23: "array<long>",
     24: "array<float>",
 }
+
+DG_PLAN_CONFIG_PREFIX = "dg_task_plan_"
+
+DG_HEADERS = {"HTTP_X_FORWARDED_FOR": "10.0.23.57"}

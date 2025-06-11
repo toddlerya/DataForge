@@ -1,3 +1,9 @@
+DG_SERVER_BASE_URL = "http://172.17.55.30"
+
+DG_TASK_ADD_URL = "genius/task/add/"
+
+DG_TASK_HISTORY = "genius/generate-record"
+
 DG_STORAGE_PATH = "/storec/storea/projects/geniusWeb/espresso/media/genius"
 
 DG_FIELD_CATEGORY_CONFIG = [
@@ -92,15 +98,15 @@ DG_FIELD_CATEGORY_CONFIG = [
     {"category": "当前时间绝对秒", "value": 1749106269},
     {"category": "当月时间", "value": "2025-06-04 19:14:03"},
     {"category": "当月时间绝对秒", "value": 1748848272},
-    # {"category": "数据集敏感度代码", "value": "一级"},
-    # {"category": "WA重点内容分类", "value": "涉及特定对象"},
-    # {"category": "WA重点内容代码", "value": "涉枪"},
-    # {"category": "GA场景关系代码", "value": "孙媳妇或外孙媳妇"},
-    # {"category": "GA重点行为代码", "value": "系统应用行为"},
-    # {"category": "警情编号", "value": "JQ21390160"},
-    # {"category": "案件编号", "value": "JQ57848142"},
-    # {"category": "案件类型代码", "value": "网络盗窃"},
-    # {"category": "案件来源代码", "value": "技术手段发现"},
+    {"category": "数据集敏感度代码", "value": "一级"},
+    {"category": "WA重点内容分类", "value": "涉及特定对象"},
+    {"category": "WA重点内容代码", "value": "涉枪"},
+    {"category": "GA场景关系代码", "value": "孙媳妇或外孙媳妇"},
+    {"category": "GA重点行为代码", "value": "系统应用行为"},
+    {"category": "警情编号", "value": "JQ21390160"},
+    {"category": "案件编号", "value": "JQ57848142"},
+    {"category": "案件类型代码", "value": "网络盗窃"},
+    {"category": "案件来源代码", "value": "技术手段发现"},
 ]
 
 DG_FIELD_CATEGORY_RAW_CONFIG = {

@@ -20,8 +20,7 @@ from typing import (
     Union,
 )
 
-from langchain_core.messages import HumanMessage
-from langgraph.graph import MessagesState
+from langchain_core.messages import HumanMessage, AnyMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
 
@@ -205,8 +204,8 @@ class PydanticDataGeniusPlan(BaseModel):
         description="DataGenius规则配置名称json文件名",
     )
     type_: str = Field(
-        default="模型",
-        description="DataGenius 生成的模型类型，固定为 '自定义模型'",
+        default="规则",
+        description="DataGenius 生成的模型类型",
     )
     rows: int = Field(1, gt=0, description="需要生成的数据条数")
     separator: str = Field(
@@ -225,17 +224,19 @@ class PydanticDataGeniusPlan(BaseModel):
 
 
 class DataForgeState(TypedDict):
-    messages: Annotated[List[HumanMessage], add_messages]
+    messages: Annotated[List[AnyMessage], add_messages]
     user_input: str
     user_intent: UserIntentSchema
     human_intent_feedback: str
     table_metadata_array: list[TableMetadataSchema]
-    table_data_genius_category_recommendation_array: List[Dict[str, Any]]
-    pydantic_data_genius_plan: PydanticDataGeniusPlan
     table_metadata_error: list[str]
-    num_rows_to_generate: int
-    error_message: Optional[str]
-    current_retries: int
+    pydantic_data_genius_plan: PydanticDataGeniusPlan
+    create_data_genius_task_error: str
+    query_data_genius_task_error: str
+    data_genius_plan_run_duration: str
+    data_genius_data_output_url: str
+    data_genius_data_output_filesize: str
+    error_message: Annotated[List[AnyMessage], add_messages]
     max_retries: int
 
 
