@@ -1,4 +1,4 @@
-DG_STORAGE_PATH = "k/storec/storea/projects/geniusWeb/espresso/media/genius"
+DG_STORAGE_PATH = "/storec/storea/projects/geniusWeb/espresso/media/genius"
 
 DG_FIELD_CATEGORY_CONFIG = [
     {"category": "姓名", "value": "向东"},

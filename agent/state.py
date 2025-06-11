@@ -20,7 +20,7 @@ from typing import (
     Union,
 )
 
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import HumanMessage
 from langgraph.graph import MessagesState
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
@@ -225,10 +225,10 @@ class PydanticDataGeniusPlan(BaseModel):
 
 
 class DataForgeState(TypedDict):
-    messages: Annotated[List[ToolMessage], add_messages]
+    messages: Annotated[List[HumanMessage], add_messages]
     user_input: str
     user_intent: UserIntentSchema
-    confirmed: bool
+    human_intent_feedback: str
     table_metadata_array: list[TableMetadataSchema]
     table_data_genius_category_recommendation_array: List[Dict[str, Any]]
     pydantic_data_genius_plan: PydanticDataGeniusPlan

@@ -7,21 +7,22 @@
 
 
 import json
+import pathlib
 import uuid
 
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import interrupt, Command
 from loguru import logger
 
 from agent.llm import chat_llm, ollama_llm
-from agent.prompt import dg_category_prompt, intent_prompt, prompt_gen_faker_data
+from agent.prompt import dg_category_prompt, intent_prompt
 from agent.state import (
     DataForgeState,
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
     PydanticDataGeniusRule,
-    PydanticFakerPlan,
     TableMetadataSchema,
     UserIntentSchema,
 )
@@ -29,44 +30,40 @@ from agent.utils import build_main_model, create_table_model
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
 from faker_utils.dg_configs import DG_FIELD_CATEGORY_CONFIG, DG_STORAGE_PATH
-from faker_utils.faker_cn_idcard import doc as faker_cn_idcard_doc
 from utils.db import Database
+from utils.file import save_dict2jl
 
 
 def analyze_intent(state: DataForgeState) -> DataForgeState:
-    messages = state.get("messages", [])
-    user_input = messages[-1]
-    state["user_input"] = user_input
-    logger.debug(f"user_input: {user_input} messages: {messages}")
+    user_input = state.get("user_input").strip()
+    human_intent_feedback = state.get("human_intent_feedback", "")
+    logger.debug(f"user_input: {user_input} human_intent_feedback: {human_intent_feedback}")
     structured_llm = chat_llm.with_structured_output(UserIntentSchema)
-
     chat_prompt = intent_prompt.format_messages(
-        user_input=user_input, messages=messages
+        user_input=user_input, human_intent_feedback=human_intent_feedback
     )
     logger.debug(f"analyze_intent chat_prompt: {chat_prompt}")
     user_intent = structured_llm.invoke(chat_prompt)
-    state["messages"].append(user_input)
     state["user_intent"] = user_intent
     logger.debug(f"user_intent: {user_intent}")
     return state
 
 
-def intent_confirm(state: DataForgeState):
-    """Confirm node that sets default confirmed=False if not set"""
-    if "confirmed" not in state:
-        state["confirmed"] = False
+def intent_human_feedback(state: DataForgeState):
+    """No-op node that should be interrupted on"""
+    pass
 
 
-def should_continue(state: DataForgeState):
+def should_intent_continue(state: DataForgeState):
     """Return the next node to execute"""
 
     # Check if human feedback
-    confirmed = state.get("confirmed", False)
-    if confirmed:
-        return "analyze_intent"
+    human_intent_feedback = state.get("human_intent_feedback", "").strip()
+    if human_intent_feedback == "正确":
+        return "create_table_raw_field_info"
 
     # Otherwise proceed to create table info
-    return "create_table_raw_field_info"
+    return "analyze_intent"
 
 
 def create_table_raw_field_info(state: DataForgeState) -> DataForgeState:
@@ -124,26 +121,6 @@ def handle_retry(state: DataForgeState) -> DataForgeState:
         return state
 
 
-
-def should_continue_gen(state: DataForgeState):
-    """Return the next node to execute"""
-    # logger.debug(f"should_continue_gen state: {state}")
-    if state["current_retries"] >= state["max_retries"]:
-        return "max_retries_reached"
-    user_intent = state.get("user_intent")
-    fake_data = state.get("fake_data", {})
-    for table_en_name, except_data_count in user_intent.table_data_count.items():
-        actual_gen_count = len(fake_data.get(table_en_name, []))
-        logger.debug(
-            f"should_continue_gen=> table_en_name={table_en_name} "
-            f"except_data_count={except_data_count} actual_gen_count={actual_gen_count}"
-        )
-        if actual_gen_count < except_data_count:
-            return "again"
-    # Otherwise end
-    return "finished"
-
-
 def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     """
     DataGenius字段分类推荐节点
@@ -179,11 +156,10 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     while True:
         if field_index >= len(table_metadata.raw_fields_info):
             stop_flag = True
-            break
-        field_info = table_metadata.raw_fields_info[field_index]
         if stop_flag:
             logger.info("所有字段已处理完毕，结束DataGenius分类推荐")
             break
+        field_info = table_metadata.raw_fields_info[field_index]
         if retry_count >= max_retries:
             llm_dg_field_category_recommendation = (
                 PydanticDataGeniusCategoryRecommendation(
@@ -196,7 +172,17 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
                 f"已达到最大推荐重试次数 {max_retries}，自动填充默认DataGenius分类推荐"
             )
             logger.debug(
-                f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
+                f"llm_dg_field_category_recommendation: {llm_dg_field_category_recommendation.model_dump_json()}"
+            )
+            # 构建该字段的DataGenius规则参数
+            pydantic_data_genius_rule = PydanticDataGeniusRule(
+                col=field_index + 1,
+                category=llm_dg_field_category_recommendation.category,
+                name="",
+                ename=field_info.en_name,
+                cname=field_info.cn_name,
+                preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
+                value=field_info.example,
             )
             rules.append(pydantic_data_genius_rule)
             field_index += 1
@@ -229,7 +215,7 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
             pydantic_data_genius_rule = PydanticDataGeniusRule(
                 col=field_index + 1,
                 category=llm_dg_field_category_recommendation.category,
-                name="规则名称",
+                name="",
                 ename=field_info.en_name,
                 cname=field_info.cn_name,
                 preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
@@ -260,69 +246,67 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     return state
 
 
+def save_dg_plan2json(state: DataForgeState):
+    """
+    存储DG执行计划任务配置
+    Args:
+        state:
+
+    Returns:
+
+    """
+    pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+    if pydantic_data_genius_plan:
+        data = pydantic_data_genius_plan.model_dump()
+        save_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\dg_plans").joinpath(
+            f"dg_task_plan_{pydantic_data_genius_plan.rule_name}"
+        ).absolute()
+        save_dict2jl(json_data=data, save_path=str(save_json_path))
+
+
 data_forge_builder = StateGraph(DataForgeState)
 data_forge_builder.add_node("analyze_intent", analyze_intent)
-data_forge_builder.add_node("intent_confirm", intent_confirm)
+data_forge_builder.add_node("intent_human_feedback", intent_human_feedback)
 data_forge_builder.add_node("create_table_raw_field_info", create_table_raw_field_info)
 data_forge_builder.add_node("dg_category_recommend", dg_category_recommend)
-# data_forge_builder.add_node("gen_fake_data", gen_fake_data)
-# data_forge_builder.add_node("handle_retry", handle_retry)
-
+data_forge_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 
 data_forge_builder.add_edge(START, "analyze_intent")
-data_forge_builder.add_edge("analyze_intent", "intent_confirm")
+data_forge_builder.add_edge("analyze_intent", "intent_human_feedback")
 data_forge_builder.add_conditional_edges(
-    "intent_confirm", should_continue, ["analyze_intent", "create_table_raw_field_info"]
+    "intent_human_feedback", should_intent_continue, ["analyze_intent", "create_table_raw_field_info"]
 )
 data_forge_builder.add_edge("create_table_raw_field_info", "dg_category_recommend")
-# data_forge_builder.add_conditional_edges(
-#     "gen_fake_data",
-#     should_continue_gen,
-#     {
-#         "again": "gen_fake_data",
-#         "max_retries_reached": "handle_retry",
-#         "finished": END,
-#     },
-# )
-# data_forge_builder.add_conditional_edges(
-#     "handle_retry",
-#     should_continue_gen,
-#     {"again": "gen_fake_data", "max_retries_reached": END, "finished": END},
-# )
-data_forge_builder.add_edge("dg_category_recommend", END)
+data_forge_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
+data_forge_builder.add_edge("save_dg_plan2json", END)
 
 memory = MemorySaver()
-data_forge_graph = data_forge_builder.compile(interrupt_before=["create_table_raw_field_info"], checkpointer=memory)
+data_forge_graph = data_forge_builder.compile(interrupt_before=["intent_human_feedback"], checkpointer=memory)
 
 if __name__ == "__main__":
     print(data_forge_graph.get_graph(xray=True).draw_mermaid())
+    user_input = """数据库表名称:
+    fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE
+    期望生成数据条数:
+    fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE: 5"""
+    thread = {"configurable": {"thread_id": "123"}}
 
-    config = {"configurable": {"thread_id": "123"}}
+    for event in data_forge_graph.stream({"user_input": user_input}, thread, stream_mode="values"):
+        # Review
+        user_intent: UserIntentSchema = event.get("user_intent")
+        if user_intent:
+            logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
 
-    init_state = DataForgeState(
-        messages=["""数据库表名称:
-fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE
-期望生成数据条数:
-fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE: 5"""],
-        confirmed=True,
-        # user_intent=UserIntentSchema(table_en_names=['fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE'],
-        #                              table_conditions={},
-        #                              table_data_count={'fmdbmeta.NB_APP_EVIDENCE_EMAILRELATE': 5})
-    )
-    for event in data_forge_graph.stream(init_state, config, stream_mode="updates"):
-        for key, value in event.items():
-            print(f"输出节点: {key}")
-            print("=" * 30)
-            print(value)
-            print("\n")
+    __state = data_forge_graph.get_state(thread)
+    logger.info(f"下一个节点: {__state.next}")
 
-    current_state = data_forge_graph.get_state(config)
-    print(f"\n当前图已中断， 下一个节点是: {current_state.next}")
+    # 模拟用户意图识别的研判反馈
+    data_forge_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback")
+    __state = data_forge_graph.get_state(thread)
+    logger.info(f"用户意图识别反馈后，下一个节点: {__state.next}")
 
-    print("继续运行")
-    for event in data_forge_graph.stream(None, config, stream_mode="updates"):
-        for key, value in event.items():
-            print(f"输出节点: {key}")
-            print("=" * 30)
-            print(value)
-            print("\n")
+    for event in data_forge_graph.stream(None, thread, stream_mode="values"):
+        # Review
+        intent_human_feedback = event.get("intent_human_feedback")
+        if intent_human_feedback:
+            logger.info(f"intent_human_feedback: {intent_human_feedback}")
