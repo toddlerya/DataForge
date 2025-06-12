@@ -329,7 +329,7 @@ def query_dg_task_status(state: DataForgeState) -> DataForgeState:
                         duration = result.get("duration_", "not_found_duration")
                         output_url = f"{DG_SERVER_BASE_URL}/{result.get('output', 'not_found_output_url')}"
                         output_filesize = result.get("output_filesize", "not_found_output_filesize")
-                        data_genius_plan_edit_url = f"{DG_SERVER_BASE_URL}/{DG_NEW_TASK}/?step=2&name={pydantic_data_genius_plan.rule_name}&type_={pydantic_data_genius_plan.type_}&modelName={pydantic_data_genius_plan.model}&mode=edit&task_id={task_id}"
+                        data_genius_plan_edit_url = f"{DG_SERVER_BASE_URL}/{DG_NEW_TASK}?step=2&name={pydantic_data_genius_plan.rule_name}&type_={pydantic_data_genius_plan.type_}&modelName={pydantic_data_genius_plan.model}&mode=edit&task_id={task_id}"
                         logger.debug(
                             f"duration: {duration}\n output_url: {output_url}\n output_filesize: {output_filesize}\ndata_genius_plan_edit_url: {data_genius_plan_edit_url}")
                         state["data_genius_plan_task_id"] = task_id
