@@ -2,7 +2,7 @@ DG_SERVER_BASE_URL = "http://172.17.55.30"
 
 DG_TASK_ADD_URL = "genius/task/add/"
 
-DG_TASK_HISTORY = "genius/generate-record"
+DG_TASK_HISTORY = "genius/generate-record/"
 
 DG_STORAGE_PATH = "/storec/storea/projects/geniusWeb/espresso/media/genius"
 

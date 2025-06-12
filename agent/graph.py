@@ -259,53 +259,58 @@ def create_dg_task(state: DataForgeState) -> DataForgeState:
     logger.info(f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name}")
     pydantic_data_genius_plan_dict = pydantic_data_genius_plan.model_dump()
     payload = {
-        "task": {"step": "2", "name": pydantic_data_genius_plan.rule_name,
-                 "type_": pydantic_data_genius_plan.type_,
-                 "modelName": table_en_name,
-                 "mode": "create",
-                 "task_id": "None",
-                 "duration": None,
-                 "output_filesize": None},
-        "rules": pydantic_data_genius_plan_dict["rules"],
+        "task": json.dumps({"step": "2", "name": pydantic_data_genius_plan.rule_name,
+                            "type_": pydantic_data_genius_plan.type_,
+                            "modelName": table_en_name,
+                            "mode": "create",
+                            "task_id": "None",
+                            "duration": None,
+                            "output_filesize": None}),
+        "rules": json.dumps(pydantic_data_genius_plan_dict["rules"]),
         "separator": pydantic_data_genius_plan.separator,
         "rows": pydantic_data_genius_plan.rows,
         "cols": pydantic_data_genius_plan.cols,
-        "send": {"send_type": 1,
-                 "id": None,
-                 "tip": "无配置，点击刷新或添加。",
-                 "connect_test": False,
-                 "connect_test_tip": "",
-                 "table_name": "",
-                 "table_test": False,
-                 "table_test_tip": "",
-                 "table_columns": [],
-                 "schema": "public"},
+        "send": json.dumps({"send_type": 1,
+                            "id": None,
+                            "tip": "无配置，点击刷新或添加。",
+                            "connect_test": False,
+                            "connect_test_tip": "",
+                            "table_name": "",
+                            "table_test": False,
+                            "table_test_tip": "",
+                            "table_columns": [],
+                            "schema": "public"}),
         "saveRuleFile": False,
         "blockSize": 100000,
         "source": "",
-        "alam": {"isRule": "1", "rule": "", "name": ""}
+        "alam": json.dumps({"isRule": "1", "rule": "", "name": ""})
     }
 
     save_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\dg_payload").joinpath(
-        f"payload_{pydantic_data_genius_plan.rule_name}"
-    ).absolute()
+        f"payload_{pydantic_data_genius_plan.rule_name}").absolute()
     save_dict2jl(json_data=payload, save_path=str(save_json_path))
-
     create_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_ADD_URL}"
+
+    # response = requests.post(
+    #     create_task_url,
+    #     data=payload,
+    #     headers={
+    #         "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+    #     }
+    # )
+    # if response.status_code != 200:
+    #     logger.error(f"请求{create_task_url}异常, status_code: {response.status_code}")
+    #     state["create_data_genius_task_error"] = f"请求{create_task_url}异常, status_code: {response.status_code}"
+    #     logger.debug(f"state.create_data_genius_task_error: {state['create_data_genius_task_error']}")
+    # return state
+
     with httpx.Client() as client:
-        response = client.post(
-            create_task_url, data=payload, timeout=30,
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                "Referer": "http://172.17.55.30/genius/page/new-task/?step=2&name=qguo&type_=%E8%A7%84%E5%88%99&modelName=&tableName=",
-                "X-Requested-With": "XMLHttpRequest",
-            }
-        )
-        if response.status_code != 200:
-            logger.error(f"请求{create_task_url}异常, status_code: {response.status_code}")
-            state["create_data_genius_task_error"] = f"请求{create_task_url}异常, status_code: {response.status_code}"
-            logger.debug(f"state.create_data_genius_task_error: {state['create_data_genius_task_error']}")
-        return state
+        response = client.post(create_task_url, data=payload)
+    if response.status_code != 200:
+        logger.error(f"请求{create_task_url}异常, status_code: {response.status_code}")
+        state["create_data_genius_task_error"] = f"请求{create_task_url}异常, status_code: {response.status_code}"
+        logger.debug(f"state.create_data_genius_task_error: {state['create_data_genius_task_error']}")
+    return state
 
 
 def query_dg_task_status(state: DataForgeState) -> DataForgeState:
@@ -329,18 +334,18 @@ def query_dg_task_status(state: DataForgeState) -> DataForgeState:
                 state["query_data_genius_task_error"] = f"请求{query_task_url}异常, status_code: {response.status_code}"
                 return state
             resp_json = response.json()
-            logger.debug(f"resp_json: {resp_json}")
             for result in resp_json.get("results", [{}]):
-                logger.debug(f"result: {result}")
                 if result.get("name", "") == pydantic_data_genius_plan.rule_name:
                     if result.get("status_name") == "成功":
-                        state["data_genius_plan_run_duration"] = result.get("duration_", "未获取到dg生成耗时")
-                        state[
-                            "data_genius_data_output_url"] = f"{DG_SERVER_BASE_URL}/" \
-                                                             f"{result.get('output', 'not_found_output_path')}"
-                        state["data_genius_data_output_filesize"] = result.get("output_filesize",
-                                                                               "未获取到output_filesize")
-                        state["data_genius_plan_run_duration"] = result.get("duration_", "未获取到dg生成耗时")
+                        logger.trace(f"matched result: {result}")
+                        duration = result.get("duration_", "未获取到dg生成耗时")
+                        output_url = f"{DG_SERVER_BASE_URL}/{result.get('output', 'not_found')}"
+                        output_filesize = result.get("output_filesize", "未获取到output_filesize")
+                        logger.debug(
+                            f"duration: {duration}\n output_url: {output_url}\n output_filesize: {output_filesize}")
+                        state["data_genius_plan_run_duration"] = duration
+                        state["data_genius_plan_output_url"] = output_url
+                        state["data_genius_plan_output_filesize"] = output_filesize
                         return state
             time.sleep(2)
 
@@ -379,11 +384,6 @@ massdata.ADM_REL_MOBILE: 5"""
     init_state = {
         "user_input": user_input,
         "max_retries": 5,
-        "create_data_genius_task_error": "",
-        "query_data_genius_task_error": "",
-        "data_genius_plan_run_duration": "",
-        "data_genius_data_output_url": "",
-        "data_genius_data_output_filesize": "",
     }
 
     for event in data_forge_graph.stream(init_state, thread, stream_mode="values"):
@@ -401,17 +401,17 @@ massdata.ADM_REL_MOBILE: 5"""
         if intent_human_feedback:
             logger.info(f"intent_human_feedback: {intent_human_feedback}")
 
-        if event["create_data_genius_task_error"] != "":
+        if event.get("create_data_genius_task_error"):
             logger.info("create_data_genius_task_error", event["create_data_genius_task_error"])
 
-        if event["query_data_genius_task_error"] != "":
+        if event.get("query_data_genius_task_error"):
             logger.info("query_data_genius_task_error", event["query_data_genius_task_error"])
 
-        if event["data_genius_plan_run_duration"] != "":
+        if event.get("data_genius_plan_run_duration"):
             logger.info("data_genius_plan_run_duration", event["data_genius_plan_run_duration"])
 
-        if event["create_data_genius_task_error"] != "":
-            logger.info("data_genius_data_output_url", event["create_data_genius_task_error"])
+        if event.get("data_genius_plan_output_url"):
+            logger.info("data_genius_plan_output_url", event["data_genius_plan_output_url"])
 
-        if event["data_genius_data_output_filesize"] != "":
-            logger.info("data_genius_data_output_filesize", event["data_genius_data_output_filesize"])
+        if event.get("data_genius_plan_output_filesize"):
+            logger.info("data_genius_plan_output_filesize", event["data_genius_plan_output_filesize"])
