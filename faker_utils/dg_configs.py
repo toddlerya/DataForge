@@ -4,6 +4,8 @@ DG_TASK_ADD_URL = "genius/task/add/"
 
 DG_TASK_HISTORY = "genius/generate-record/"
 
+DG_NEW_TASK = "genius/page/new-task/"
+
 DG_STORAGE_PATH = "/storec/storea/projects/geniusWeb/espresso/media/genius"
 
 DG_FIELD_CATEGORY_CONFIG = [

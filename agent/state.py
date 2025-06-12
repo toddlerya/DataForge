@@ -233,9 +233,11 @@ class DataForgeState(TypedDict):
     pydantic_data_genius_plan: PydanticDataGeniusPlan
     create_data_genius_task_error: str
     query_data_genius_task_error: str
+    data_genius_plan_task_id: str
     data_genius_plan_run_duration: str
     data_genius_plan_output_url: str
     data_genius_plan_output_filesize: str
+    data_genius_plan_edit_url: str
     error_message: Annotated[List[AnyMessage], add_messages]
     max_retries: int
 
