@@ -1,0 +1,199 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.17 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.17">
+  <diagram name="第 1 页" id="K-cl1vzY9knZKWMjM1jg">
+    <mxGraphModel dx="2607" dy="1553" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="CECK6BH28crwyE_l5nWH-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;startArrow=classic;startFill=1;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-4" target="CECK6BH28crwyE_l5nWH-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-4" target="CECK6BH28crwyE_l5nWH-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-4" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;意图解析&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="314" y="180" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-39" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=classic;startFill=1;exitX=0.55;exitY=0.95;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-9" target="CECK6BH28crwyE_l5nWH-37">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="382" y="570" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-9" value="LLM&lt;div&gt;Qwen3-30B:A3B&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="297" y="397.5" width="154" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;exitX=0;exitY=0;exitDx=120;exitDy=25;exitPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-11" target="CECK6BH28crwyE_l5nWH-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-95" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0;entryY=0;entryDx=0;entryDy=35;entryPerimeter=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;dashed=1;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-11" target="CECK6BH28crwyE_l5nWH-23">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="190" y="315" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-11" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;用户自然语言&lt;/font&gt;&lt;div style=&quot;font-size: 16px;&quot;&gt;&lt;font&gt;数据&lt;/font&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;生成需求&lt;/span&gt;&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;position2=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;size=25;position=0.33;" vertex="1" parent="1">
+          <mxGeometry x="120" y="185" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-13" target="CECK6BH28crwyE_l5nWH-23">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="573.9999999999998" y="294.9999999999999" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-13" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;数据生成任务&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;结构化参数&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="514" y="180" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-18" target="CECK6BH28crwyE_l5nWH-37">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-83" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-18" target="CECK6BH28crwyE_l5nWH-75">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="714" y="445" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-18" value="查询知识库&lt;div&gt;表元数据信息&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="514" y="415" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-23" target="CECK6BH28crwyE_l5nWH-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-23" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;用户确认&amp;nbsp;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;/&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;&amp;nbsp;修改需求&lt;/font&gt;&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;position2=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;size=25;position=0.22;base=20;" vertex="1" parent="1">
+          <mxGeometry x="514" y="280" width="120" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-26" value="" style="shape=curlyBracket;whiteSpace=wrap;html=1;rounded=1;labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" vertex="1" parent="1">
+          <mxGeometry x="650" y="130" width="20" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-27" value="&lt;span style=&quot;font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: pre-wrap; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;数据库表名称 (必填):&#xa;massdata.ADM_REL_MOBILE&#xa;期望生成数据条数 (必填):&#xa;massdata.ADM_REL_MOBILE: 5&#xa;期望表约束条件 (可选):&#xa;massdata.ADM_REL_MOBILE: MD_ID IS NOT NULL AND FIRST_TIME &amp;lt;= LAST_TIME AND LAST_TIME &amp;lt;= &#39;2025-06-13&#39;&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;fontColor=default;labelBackgroundColor=none;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="65" width="480" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-29" value="{&#xa;&amp;nbsp; &quot;table_en_names&quot;: [&#xa;&amp;nbsp; &amp;nbsp; &quot;massdata.ADM_REL_MOBILE&quot;&#xa;&amp;nbsp; ],&#xa;&amp;nbsp; &quot;table_conditions&quot;: {&#xa;&amp;nbsp; &amp;nbsp; &quot;massdata.ADM_REL_MOBILE&quot;: &quot;MD_ID IS NOT NULL AND FIRST_TIME &amp;lt;= LAST_TIME AND LAST_TIME &amp;lt;= &#39;2025-06-13&#39;&quot;&#xa;&amp;nbsp; },&#xa;&amp;nbsp; &quot;table_data_count&quot;: {&#xa;&amp;nbsp; &amp;nbsp; &quot;massdata.ADM_REL_MOBILE&quot;: 5&#xa;&amp;nbsp; }&#xa;}" style="text;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;fontColor=#000000;fontStyle=1;labelBackgroundColor=none;" vertex="1" parent="1">
+          <mxGeometry x="680" y="120" width="400" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-35" value="&lt;ul&gt;&lt;li&gt;表中文名称、存储类型（FRC、ORC）、元数据来源（盘古、数据域等）&lt;/li&gt;&lt;li&gt;表字段信息（字段英文名、字段中文名、字段描述、字段类型、是否必填、字典、样例数据）&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;fontFamily=LXGW WenKai GB Screen R;labelBackgroundColor=none;" vertex="1" parent="1">
+          <mxGeometry x="625" y="355" width="390" height="107.5" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-36" value="DataGenius&amp;nbsp;&lt;div style=&quot;font-size: 13px;&quot;&gt;Web / API&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="760" y="758" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-40" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;exitX=1;exitY=0.5;exitDx=0;exitDy=0;startArrow=classic;startFill=1;entryX=0.4;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-37" target="CECK6BH28crwyE_l5nWH-36">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-42" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-37" target="CECK6BH28crwyE_l5nWH-41">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-37" value="DataGenius&lt;div&gt;字段类别&lt;div&gt;推荐映射&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="514" y="540" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-44" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-41" target="CECK6BH28crwyE_l5nWH-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="714" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-47" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-41" target="CECK6BH28crwyE_l5nWH-46">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-41" value="DataGeninus&lt;div&gt;任务配置&lt;/div&gt;&lt;div&gt;生成&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="514" y="660" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-63" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-45" target="CECK6BH28crwyE_l5nWH-54">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="295" y="1020" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-45" value="&lt;span style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;DataGeninus&lt;/span&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;任务配置&lt;/div&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;JSON文件&lt;/div&gt;" style="whiteSpace=wrap;html=1;shape=mxgraph.basic.document;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" vertex="1" parent="1">
+          <mxGeometry x="230" y="650" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-51" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-46" target="CECK6BH28crwyE_l5nWH-50">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-65" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.07;entryY=0.4;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-46" target="CECK6BH28crwyE_l5nWH-36">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="714" y="790.0000000000002" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-46" value="创建&lt;div&gt;DataGenius&lt;/div&gt;&lt;div&gt;任务并启动&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="514" y="760" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-53" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.55;entryY=0.95;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-50" target="CECK6BH28crwyE_l5nWH-36">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="434" y="950" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-55" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-50" target="CECK6BH28crwyE_l5nWH-54">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-50" value="查询&lt;div&gt;DataGenius&lt;/div&gt;&lt;div&gt;任务结果&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="514" y="880" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-59" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-54" target="CECK6BH28crwyE_l5nWH-60">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="574" y="1090" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-54" value="DataGenius&lt;div&gt;结果整合拼接&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="514" y="990" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-60" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;用户查看结果&lt;/font&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;position2=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="514" y="1089" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-66" value="&lt;div style=&quot;background-color:#1e1f22;color:#bcbec4;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;white-space:pre;&quot;&gt;&lt;span style=&quot;color:#6aab73;&quot;&gt;genius/task/add/&lt;/span&gt;&lt;/div&gt;" style="text;whiteSpace=wrap;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" vertex="1" parent="1">
+          <mxGeometry x="650" y="758" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-67" value="&lt;div style=&quot;background-color:#1e1f22;color:#bcbec4;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;white-space:pre;&quot;&gt;&lt;span style=&quot;color:#6aab73;&quot;&gt;genius/generate-record/&lt;/span&gt;&lt;/div&gt;" style="text;whiteSpace=wrap;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" vertex="1" parent="1">
+          <mxGeometry x="650" y="880" width="210" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-68" value="&lt;div style=&quot;background-color:#1e1f22;color:#bcbec4;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;white-space:pre;&quot;&gt;&lt;span style=&quot;color:#6aab73;&quot;&gt;genius/data-category/&lt;/span&gt;&lt;/div&gt;" style="text;whiteSpace=wrap;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" vertex="1" parent="1">
+          <mxGeometry x="640" y="570" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-69" value="&lt;ul&gt;&lt;li&gt;DataGenius任务名称&lt;/li&gt;&lt;li&gt;DataGenius运行耗时&lt;/li&gt;&lt;li&gt;DataGenius生成数据大小&lt;/li&gt;&lt;li&gt;DataGenius数据下载地址&lt;/li&gt;&lt;li&gt;DataGenius任务编辑地址&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;fontFamily=LXGW WenKai GB Screen R;labelBackgroundColor=none;" vertex="1" parent="1">
+          <mxGeometry x="625" y="973.13" width="210" height="93.75" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-71" value="用户交互" style="rounded=0;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=0;dashed=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="322.5" width="106" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-72" value="LLM调用" style="rounded=0;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=0;dashed=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="40" y="372.5" width="106" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-73" value="DataGenius&lt;span style=&quot;background-color: initial;&quot;&gt;调用&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=0;dashed=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="40" y="422.5" width="106" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-77" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;exitX=0.525;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-81" target="CECK6BH28crwyE_l5nWH-75">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1238" y="150" as="sourcePoint" />
+            <mxPoint x="1238" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-75" value="SQLite" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1158" y="405" width="90" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-81" value="&lt;span style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 14px; font-weight: 700;&quot;&gt;表元数据信息&lt;/span&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 14px; font-weight: 700;&quot;&gt;提取服务&lt;/div&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="1140" y="275" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-84" value="&lt;h1&gt;单表数据智能生成服务&lt;/h1&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="340" y="30" width="360" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-85" value="&lt;h1&gt;业务库表元数据提取服务&lt;/h1&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1060" y="30" width="290" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-88" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-86" target="CECK6BH28crwyE_l5nWH-81">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-86" value="盘古" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="130" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-89" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-87" target="CECK6BH28crwyE_l5nWH-81">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-87" value="数据域" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="1211" y="130" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-96" value="&lt;h1&gt;仿真库建模服务&lt;/h1&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1560" y="30" width="290" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

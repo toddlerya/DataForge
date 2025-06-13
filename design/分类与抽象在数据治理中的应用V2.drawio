@@ -1,0 +1,133 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.17 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.17">
+  <diagram name="第 1 页" id="0v7HM42zOz5wwmNCZd1w">
+    <mxGraphModel dx="1195" dy="712" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-1" value="" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=0;" parent="1" source="Wmy3WnoXa5B4VLRR3Ze0-3" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="40" y="120" as="sourcePoint" />
+            <mxPoint x="440" y="120" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-3" value="分类" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry y="90" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-4" value="人员属性" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="80" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-5" value="上网行为" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="160" y="80" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-6" value="位置轨迹" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="320" y="80" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-7" value="......" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="246" y="80" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-8" value="" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=0;" parent="1" source="Wmy3WnoXa5B4VLRR3Ze0-9" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="40" y="200" as="sourcePoint" />
+            <mxPoint x="440" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-9" value="抽象" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry y="150" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-10" value="特征表" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="140" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-11" value="特征表" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="160" y="140" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-12" value="特征表" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="320" y="140" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-13" value="......" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="246" y="210" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-14" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" source="Wmy3WnoXa5B4VLRR3Ze0-10" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="60" y="160" as="sourcePoint" />
+            <mxPoint x="110" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-15" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="189.70999999999998" y="140" as="sourcePoint" />
+            <mxPoint x="189.70999999999998" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-16" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="349.71000000000004" y="140" as="sourcePoint" />
+            <mxPoint x="349.71000000000004" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-17" value="实体表01" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="20" y="220" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-19" value="实体表02" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="96" y="220" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-20" value="实体表03" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="170" y="220" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-21" value="......" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="246" y="150" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-22" value="实体表N" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="320" y="220" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-24" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="Wmy3WnoXa5B4VLRR3Ze0-17" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="60" y="220" as="sourcePoint" />
+            <mxPoint x="110" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-25" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="Wmy3WnoXa5B4VLRR3Ze0-19" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="60" y="220" as="sourcePoint" />
+            <mxPoint x="110" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-26" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="Wmy3WnoXa5B4VLRR3Ze0-20" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="220" as="sourcePoint" />
+            <mxPoint x="120" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-27" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="Wmy3WnoXa5B4VLRR3Ze0-20" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="140" y="220" as="sourcePoint" />
+            <mxPoint x="190" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-28" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="Wmy3WnoXa5B4VLRR3Ze0-22" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="300" y="220" as="sourcePoint" />
+            <mxPoint x="350" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-29" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" parent="1" target="Wmy3WnoXa5B4VLRR3Ze0-11" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="350" y="220" as="sourcePoint" />
+            <mxPoint x="400" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-30" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;&lt;b&gt;分类与抽象在数据治理中的应用&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="40" y="10" width="360" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-31" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;2.应用场景&lt;/h1&gt;&lt;p&gt;1.在数据治理过程中，将面向实体表的治理方案抽象成面向特征表的治理方案，不妨称为“特征表治理”。特征表治理类似于模版编程，对于任意一张实体表，只要将其对应到所属类别的特征表，那么面向该特征表的治理方案都可以用于该实体表。这个过程类似模版实例化的过程。总结上述过程为：实体表-&amp;gt;分类（人工/分类模型）-&amp;gt;对标特征表-&amp;gt;治理模版应用&lt;/p&gt;&lt;p&gt;2.在NL2SQL场景中，首先搜集作用于实体表的SQL，然后将SQL中的实体表替换成特征表（忽略对实体表自有字段的操作），再用替换后的SQL作为训练样本对大模型进行训练。经过训练后的大模型学习到的是针对特征表的SQL操作知识，生成的也是操作特征表的SQL。这些SQL可以称为模版SQL。在执行SQL时只要对模版SQL进行实例化，替换成对应的实体表即可。&lt;/p&gt;&lt;p&gt;3.在淘沙模型漂移的场景，TSML语言可以直接操作目标局点的特征表。目标局点的TRE在执行TSML时将特征表替换为本地的实体表。&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="20" y="290" width="800" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="Wmy3WnoXa5B4VLRR3Ze0-32" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;1.基本定义&lt;/h1&gt;&lt;p&gt;1.现有的数据治理主要面向实体表展开。面对纷繁复杂的实体表，以每张表为治理对象，逐一击破。引入分类与抽象的目的是为了找到数据治理中的共性工作并进行模版化。&lt;/p&gt;&lt;p&gt;2.分类是从业务概念出发，对实体表进行划分的过程。抽象则完成每个分类的特征提取与总结。在面向对象的编程中，分类完成类的定义，抽象则是定义虚类、虚函数和接口。&lt;/p&gt;&lt;p&gt;3.实体表可以对应多个分类。每个分类中的实体表都要一一对应该类别特征表定义的字段（派生）。实体表可以有自己的特有字段。&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="450" y="45" width="360" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="wWgwH7CHhC2FFtvpy8Ib-1" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;3.经验总结&lt;/h1&gt;&lt;p&gt;1.没有抽象就没有泛化，没有泛化就无法进行知识迁移。知识迁移的目标是用已经总结出来的经验去应对新出现的工作。以数据治理的工作举例，对已有实体表的治理方案抽象出对特征表的治理方案，对特征表的治理方案可以泛化于新出现的同类实体表。&lt;/p&gt;&lt;p&gt;2.对于API网关上的服务接口治理也可以使用分类和抽象的方法论。对服务接口进行分类，对每个分类定义特征Interface。同一个分类中的服务接口对应Implement特征Interface。&lt;/p&gt;&lt;p&gt;3.抽象和泛化有利于大模型学习到共性经验，避免个性特征的过拟合。&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="20" y="510" width="800" height="250" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

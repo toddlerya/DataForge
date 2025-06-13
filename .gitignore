@@ -24,3 +24,4 @@ data/dg_payload
 database/data_forge.db
 
 .langgraph_api
+/design/*.bkp

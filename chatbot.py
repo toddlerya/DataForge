@@ -5,12 +5,8 @@
 # @Project:  DataForge
 
 import asyncio
-import json
 import pathlib
-import uuid
-from typing import List
 
-from langchain.schema.runnable.config import RunnableConfig
 import chainlit as cl
 import pandas as pd
 from dotenv import load_dotenv
@@ -19,7 +15,6 @@ from loguru import logger
 from agent.graph import data_forge_graph
 
 from agent.state import TableMetadataSchema, UserIntentSchema, PydanticDataGeniusPlan
-from agent.utils import save_json_data_async
 
 # 加载 .env 文件
 load_dotenv()
@@ -34,11 +29,12 @@ async def start_chat():
 请输入需要构造的表名称，期望的表字段约束条件，期望生成的数据条数。\n
 ====输入内容示例====\n
 数据库表名称 (必填):
-ADM_DOMAIN_WHOIS
-期望表约束条件 (可选):
-ADM_DOMAIN_WHOIS: DOMAIN IS NOT NULL AND ADM_DOMAIN_WHOIS.DOMAIN = ODS_TC_DOMAIN_WHOIS.DOMAIN AND ADM_DOMAIN_WHOIS.LAST_TIME >= '2025-04-08'
+massdata.ADM_REL_MOBILE
 期望生成数据条数 (必填):
-ADM_DOMAIN_WHOIS: 5
+massdata.ADM_REL_MOBILE: 5
+期望表约束条件 (可选):
+massdata.ADM_REL_MOBILE: MD_ID IS NOT NULL AND FIRST_TIME <= LAST_TIME AND LAST_TIME <= '2025-06-13'
+
 """
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(author="Assistant", content="请输入测试数据构造需求", elements=elements).send()
@@ -179,7 +175,7 @@ async def process_step(event, graph):
             data_genius_plan_output_filesize = state.get("data_genius_plan_output_filesize")
             data_genius_plan_output_url = state.get("data_genius_plan_output_url")
             done_message = "DataGenius任务已完成。\n" \
-                           f"- **DG任务名称**：{pydantic_data_genius_plan.rule_name}\n" \
+                           f"- **DG任务名称**: {pydantic_data_genius_plan.rule_name}\n" \
                            f"- **DG运行耗时**: {data_genius_plan_run_duration}\n" \
                            f"- **生成数据大小**: {data_genius_plan_output_filesize}\n" \
                            f"- **数据下载地址**: {data_genius_plan_output_url}\n" \
