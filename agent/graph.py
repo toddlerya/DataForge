@@ -26,7 +26,7 @@ from agent.state import (
     TableMetadataSchema,
     UserIntentSchema,
 )
-from config import DG_PLAN_CONFIG_PREFIX, DG_HEADERS
+from config import DG_PLAN_CONFIG_PREFIX
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
 from faker_utils.dg_configs import (DG_FIELD_CATEGORY_CONFIG, DG_STORAGE_PATH, DG_SERVER_BASE_URL, DG_TASK_ADD_URL,
@@ -61,13 +61,22 @@ def should_intent_continue(state: DataForgeState):
     # Check if human feedback
     human_intent_feedback = state.get("human_intent_feedback", "").strip()
     if human_intent_feedback == "正确":
-        return "create_table_raw_field_info"
+        return "query_table_raw_field_info"
 
     # Otherwise proceed to create table info
     return "analyze_intent"
 
 
-def create_table_raw_field_info(state: DataForgeState) -> DataForgeState:
+def should_table_raw_field_info_continue(state: DataForgeState):
+    table_metadata_error = state.get("table_metadata_error", [])
+    if len(table_metadata_error) >= 1:
+        logger.error(f"存在table_metadata_error: {' '.join(table_metadata_error)}")
+        return END
+    else:
+        return "dg_category_recommend"
+
+
+def query_table_raw_field_info(state: DataForgeState) -> DataForgeState:
     if "table_metadata_array" not in state:
         state["table_metadata_array"] = []
 
@@ -345,7 +354,7 @@ def query_dg_task_status(state: DataForgeState) -> DataForgeState:
 data_forge_builder = StateGraph(DataForgeState)
 data_forge_builder.add_node("analyze_intent", analyze_intent)
 data_forge_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
-data_forge_builder.add_node("create_table_raw_field_info", create_table_raw_field_info)
+data_forge_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_forge_builder.add_node("dg_category_recommend", dg_category_recommend)
 data_forge_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 data_forge_builder.add_node("create_dg_task", create_dg_task)
@@ -354,9 +363,12 @@ data_forge_builder.add_node("query_dg_task_status", query_dg_task_status)
 data_forge_builder.add_edge(START, "analyze_intent")
 data_forge_builder.add_edge("analyze_intent", "intent_human_feedback_node")
 data_forge_builder.add_conditional_edges(
-    "intent_human_feedback_node", should_intent_continue, ["analyze_intent", "create_table_raw_field_info"]
+    "intent_human_feedback_node", should_intent_continue, ["analyze_intent", "query_table_raw_field_info"]
 )
-data_forge_builder.add_edge("create_table_raw_field_info", "dg_category_recommend")
+data_forge_builder.add_conditional_edges(
+    "query_table_raw_field_info", should_table_raw_field_info_continue, ["dg_category_recommend", END]
+)
+# data_forge_builder.add_edge("query_table_raw_field_info", "dg_category_recommend")
 data_forge_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
 data_forge_builder.add_edge("save_dg_plan2json", "create_dg_task")
 data_forge_builder.add_edge("create_dg_task", "query_dg_task_status")
@@ -367,43 +379,43 @@ data_forge_graph = data_forge_builder.compile(interrupt_before=["intent_human_fe
 
 if __name__ == "__main__":
     print(data_forge_graph.get_graph(xray=True).draw_mermaid())
-    user_input = """数据库表名称:
-massdata.ADM_REL_MOBILE
-期望生成数据条数:
-massdata.ADM_REL_MOBILE: 5"""
-    thread = {"configurable": {"thread_id": "123"}}
-
-    init_state = {
-        "user_input": user_input,
-        "max_retries": 5,
-    }
-
-    for event in data_forge_graph.stream(init_state, thread, stream_mode="values"):
-        # Review
-        user_intent: UserIntentSchema = event.get("user_intent")
-        if user_intent:
-            logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
-
-    # 模拟用户意图识别的研判反馈
-    data_forge_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback")
-
-    for event in data_forge_graph.stream(None, thread, stream_mode="values"):
-        # Review
-        intent_human_feedback = event.get("intent_human_feedback")
-        if intent_human_feedback:
-            logger.info(f"intent_human_feedback: {intent_human_feedback}")
-
-        if event.get("create_data_genius_task_error"):
-            logger.info("create_data_genius_task_error", event["create_data_genius_task_error"])
-
-        if event.get("query_data_genius_task_error"):
-            logger.info("query_data_genius_task_error", event["query_data_genius_task_error"])
-
-        if event.get("data_genius_plan_run_duration"):
-            logger.info("data_genius_plan_run_duration", event["data_genius_plan_run_duration"])
-
-        if event.get("data_genius_plan_output_url"):
-            logger.info("data_genius_plan_output_url", event["data_genius_plan_output_url"])
-
-        if event.get("data_genius_plan_output_filesize"):
-            logger.info("data_genius_plan_output_filesize", event["data_genius_plan_output_filesize"])
+#     user_input = """数据库表名称:
+# massdata.ADM_REL_MOBILE
+# 期望生成数据条数:
+# massdata.ADM_REL_MOBILE: 5"""
+#     thread = {"configurable": {"thread_id": "123"}}
+#
+#     init_state = {
+#         "user_input": user_input,
+#         "max_retries": 5,
+#     }
+#
+#     for event in data_forge_graph.stream(init_state, thread, stream_mode="values"):
+#         # Review
+#         user_intent: UserIntentSchema = event.get("user_intent")
+#         if user_intent:
+#             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
+#
+#     # 模拟用户意图识别的研判反馈
+#     data_forge_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback")
+#
+#     for event in data_forge_graph.stream(None, thread, stream_mode="values"):
+#         # Review
+#         intent_human_feedback = event.get("intent_human_feedback")
+#         if intent_human_feedback:
+#             logger.info(f"intent_human_feedback: {intent_human_feedback}")
+#
+#         if event.get("create_data_genius_task_error"):
+#             logger.info("create_data_genius_task_error", event["create_data_genius_task_error"])
+#
+#         if event.get("query_data_genius_task_error"):
+#             logger.info("query_data_genius_task_error", event["query_data_genius_task_error"])
+#
+#         if event.get("data_genius_plan_run_duration"):
+#             logger.info("data_genius_plan_run_duration", event["data_genius_plan_run_duration"])
+#
+#         if event.get("data_genius_plan_output_url"):
+#             logger.info("data_genius_plan_output_url", event["data_genius_plan_output_url"])
+#
+#         if event.get("data_genius_plan_output_filesize"):
+#             logger.info("data_genius_plan_output_filesize", event["data_genius_plan_output_filesize"])

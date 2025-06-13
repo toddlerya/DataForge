@@ -77,16 +77,8 @@ async def process_step(event, graph):
 
                 await cl.Message(content="正在获取表元数据信息...").send()
 
-        # elif node == "intent_human_feedback_node":
-        #     logger.info("[process] intent_human_feedback_node")
-        #     logger.info("human_intent_feedback:", cl.user_session.get("human_intent_feedback"))
-        #     graph.update_state(
-        #         cl.user_session.get("config"),
-        #         {"human_intent_feedback": cl.user_session.get("human_intent_feedback")},
-        #         as_node="intent_human_feedback_node")
-
-        elif node == "create_table_raw_field_info":
-            logger.info("[process] create_table_raw_field_info")
+        elif node == "query_table_raw_field_info":
+            logger.info("[process] query_table_raw_field_info")
             await cl.Message(content="已获取表元数据信息...").send()
             table_metadata_array = state.get("table_metadata_array")
             table_metadata_error = state.get("table_metadata_error")
@@ -205,6 +197,7 @@ async def main(message: cl.Message):
     if not current_state.values.get("user_input"):
         init_state = {
             "user_input": message.content.strip(),
+            "table_metadata_error": list(),
             "max_retries": 5,
         }
         async for event in data_forge_graph.astream(init_state, config):
