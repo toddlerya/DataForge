@@ -20,7 +20,8 @@ intent_system_prompt = SystemMessagePromptTemplate.from_template(
 )
 
 intent_human_prompt = HumanMessagePromptTemplate.from_template(
-    "分析如下信息并结构化输出: {user_input}\n" "这是用户之前的反馈信息: {human_intent_feedback}"
+    "分析如下信息并结构化输出: {user_input}\n"
+    "这是用户之前的反馈信息: {human_intent_feedback}"
 )
 
 intent_prompt = ChatPromptTemplate.from_messages(

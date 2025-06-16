@@ -12,9 +12,9 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from agent.graph import data_forge_graph
+from agent.data_graph import data_gen_graph
 
-from agent.state import TableMetadataSchema, UserIntentSchema, PydanticDataGeniusPlan
+from agent.state import UserIntentSchema, PydanticDataGeniusPlan
 
 # 加载 .env 文件
 load_dotenv()
@@ -191,7 +191,7 @@ async def main(message: cl.Message):
     config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 50}
     cl.user_session.set("config", config)
 
-    current_state = data_forge_graph.get_state(config)
+    current_state = data_gen_graph.get_state(config)
 
     logger.debug(f"current_state: {current_state}")
     if not current_state.values.get("user_input"):
@@ -200,8 +200,8 @@ async def main(message: cl.Message):
             "table_metadata_error": list(),
             "max_retries": 5,
         }
-        async for event in data_forge_graph.astream(init_state, config):
-            await process_step(event, data_forge_graph)
+        async for event in data_gen_graph.astream(init_state, config):
+            await process_step(event, data_gen_graph)
 
-    async for step_output in data_forge_graph.astream(None, config):
-        await process_step(step_output, data_forge_graph)
+    async for step_output in data_gen_graph.astream(None, config):
+        await process_step(step_output, data_gen_graph)

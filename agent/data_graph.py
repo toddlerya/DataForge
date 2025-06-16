@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @File    :   graph.py
+# @File    :   data_graph.py
 # @Time    :   2025/06/03 15:34:28
 # @Author  :   toddlerya
 # @Desc    :   None
@@ -16,7 +16,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from agent.llm import chat_llm, ollama_llm
+from agent.llm import chat_llm
 from agent.prompt import dg_category_prompt, intent_prompt
 from agent.state import (
     DataForgeState,
@@ -29,8 +29,14 @@ from agent.state import (
 from config import DG_PLAN_CONFIG_PREFIX
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
-from faker_utils.dg_configs import (DG_FIELD_CATEGORY_CONFIG, DG_STORAGE_PATH, DG_SERVER_BASE_URL, DG_TASK_ADD_URL,
-                                    DG_TASK_HISTORY, DG_NEW_TASK)
+from faker_utils.dg_configs import (
+    DG_FIELD_CATEGORY_CONFIG,
+    DG_STORAGE_PATH,
+    DG_SERVER_BASE_URL,
+    DG_TASK_ADD_URL,
+    DG_TASK_HISTORY,
+    DG_NEW_TASK,
+)
 from utils.db import Database
 from utils.file import save_dict2jl
 
@@ -38,7 +44,9 @@ from utils.file import save_dict2jl
 def analyze_intent(state: DataForgeState) -> DataForgeState:
     user_input = state.get("user_input").strip()
     human_intent_feedback = state.get("human_intent_feedback", "")
-    logger.debug(f"user_input: {user_input} human_intent_feedback: {human_intent_feedback}")
+    logger.debug(
+        f"user_input: {user_input} human_intent_feedback: {human_intent_feedback}"
+    )
     structured_llm = chat_llm.with_structured_output(UserIntentSchema)
     chat_prompt = intent_prompt.format_messages(
         user_input=user_input, human_intent_feedback=human_intent_feedback
@@ -50,7 +58,7 @@ def analyze_intent(state: DataForgeState) -> DataForgeState:
     return state
 
 
-def intent_human_feedback_node(state: DataForgeState):
+def intent_human_feedback_node():
     """No-op node that should be interrupted on"""
     pass
 
@@ -193,7 +201,8 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
         try:
             llm_dg_field_category_recommendation = structured_llm.invoke(chat_prompt)
             logger.trace(
-                f"llm_dg_field_category_recommendation.model_dump_json(): {llm_dg_field_category_recommendation.model_dump_json()}"
+                f"llm_dg_field_category_recommendation.model_dump_json(): "
+                f"{llm_dg_field_category_recommendation.model_dump_json()}"
             )
         except Exception as e:
             logger.error(f"llm_dg_field_category_recommendation error: {e}")
@@ -208,7 +217,8 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
                 name="",
                 ename=field_info.en_name,
                 cname=field_info.cn_name,
-                preview=f"score: {llm_dg_field_category_recommendation.score}, reason: {llm_dg_field_category_recommendation.reason}",
+                preview=f"score: {llm_dg_field_category_recommendation.score}, "
+                f"reason: {llm_dg_field_category_recommendation.reason}",
                 value=field_info.example,
             )
             logger.trace(
@@ -246,9 +256,11 @@ def save_dg_plan2json(state: DataForgeState):
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
-        save_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\dg_plans").joinpath(
-            f"{pydantic_data_genius_plan.rule_name}"
-        ).absolute()
+        save_json_path = (
+            pathlib.Path(r"F:\GITLAB\DataForge\data\dg_plans")
+            .joinpath(f"{pydantic_data_genius_plan.rule_name}")
+            .absolute()
+        )
         save_dict2jl(json_data=data, save_path=str(save_json_path))
     return state
 
@@ -268,35 +280,47 @@ def create_dg_task(state: DataForgeState) -> DataForgeState:
     logger.info(f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name}")
     pydantic_data_genius_plan_dict = pydantic_data_genius_plan.model_dump()
     payload = {
-        "task": json.dumps({"step": "2", "name": pydantic_data_genius_plan.rule_name,
-                            "type_": pydantic_data_genius_plan.type_,
-                            "modelName": table_en_name,
-                            "mode": "create",
-                            "task_id": "None",
-                            "duration": None,
-                            "output_filesize": None}),
+        "task": json.dumps(
+            {
+                "step": "2",
+                "name": pydantic_data_genius_plan.rule_name,
+                "type_": pydantic_data_genius_plan.type_,
+                "modelName": table_en_name,
+                "mode": "create",
+                "task_id": "None",
+                "duration": None,
+                "output_filesize": None,
+            }
+        ),
         "rules": json.dumps(pydantic_data_genius_plan_dict["rules"]),
         "separator": pydantic_data_genius_plan.separator,
         "rows": pydantic_data_genius_plan.rows,
         "cols": pydantic_data_genius_plan.cols,
-        "send": json.dumps({"send_type": 1,
-                            "id": None,
-                            "tip": "无配置，点击刷新或添加。",
-                            "connect_test": False,
-                            "connect_test_tip": "",
-                            "table_name": "",
-                            "table_test": False,
-                            "table_test_tip": "",
-                            "table_columns": [],
-                            "schema": "public"}),
+        "send": json.dumps(
+            {
+                "send_type": 1,
+                "id": None,
+                "tip": "无配置，点击刷新或添加。",
+                "connect_test": False,
+                "connect_test_tip": "",
+                "table_name": "",
+                "table_test": False,
+                "table_test_tip": "",
+                "table_columns": [],
+                "schema": "public",
+            }
+        ),
         "saveRuleFile": False,
         "blockSize": 100000,
         "source": "",
-        "alam": json.dumps({"isRule": "1", "rule": "", "name": ""})
+        "alam": json.dumps({"isRule": "1", "rule": "", "name": ""}),
     }
 
-    save_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\dg_payload").joinpath(
-        f"payload_{pydantic_data_genius_plan.rule_name}").absolute()
+    save_json_path = (
+        pathlib.Path(r"F:\GITLAB\DataForge\data\dg_payload")
+        .joinpath(f"payload_{pydantic_data_genius_plan.rule_name}")
+        .absolute()
+    )
     save_dict2jl(json_data=payload, save_path=str(save_json_path))
     create_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_ADD_URL}"
 
@@ -304,8 +328,12 @@ def create_dg_task(state: DataForgeState) -> DataForgeState:
         response = client.post(create_task_url, data=payload)
     if response.status_code != 200:
         logger.error(f"请求{create_task_url}异常, status_code: {response.status_code}")
-        state["create_data_genius_task_error"] = f"请求{create_task_url}异常, status_code: {response.status_code}"
-        logger.debug(f"state.create_data_genius_task_error: {state['create_data_genius_task_error']}")
+        state["create_data_genius_task_error"] = (
+            f"请求{create_task_url}异常, status_code: {response.status_code}"
+        )
+        logger.debug(
+            f"state.create_data_genius_task_error: {state['create_data_genius_task_error']}"
+        )
     return state
 
 
@@ -326,8 +354,12 @@ def query_dg_task_status(state: DataForgeState) -> DataForgeState:
         for _ in range(60):
             response = client.get(query_task_url, params=payload)
             if response.status_code != 200:
-                logger.error(f"请求{query_task_url}异常, status_code: {response.status_code}")
-                state["query_data_genius_task_error"] = f"请求{query_task_url}异常, status_code: {response.status_code}"
+                logger.error(
+                    f"请求{query_task_url}异常, status_code: {response.status_code}"
+                )
+                state["query_data_genius_task_error"] = (
+                    f"请求{query_task_url}异常, status_code: {response.status_code}"
+                )
                 return state
             resp_json = response.json()
             for result in resp_json.get("results", [{}]):
@@ -337,10 +369,23 @@ def query_dg_task_status(state: DataForgeState) -> DataForgeState:
                         task_id = result.get("task_id", "not_found_task_id")
                         duration = result.get("duration_", "not_found_duration")
                         output_url = f"{DG_SERVER_BASE_URL}/{result.get('output', 'not_found_output_url')}"
-                        output_filesize = result.get("output_filesize", "not_found_output_filesize")
-                        data_genius_plan_edit_url = f"{DG_SERVER_BASE_URL}/{DG_NEW_TASK}?step=2&name={pydantic_data_genius_plan.rule_name}&type_={pydantic_data_genius_plan.type_}&modelName={pydantic_data_genius_plan.model}&mode=edit&task_id={task_id}"
+                        output_filesize = result.get(
+                            "output_filesize", "not_found_output_filesize"
+                        )
+                        data_genius_plan_edit_url = (
+                            f"{DG_SERVER_BASE_URL}/{DG_NEW_TASK}?"
+                            f"step=2&"
+                            f"name={pydantic_data_genius_plan.rule_name}&"
+                            f"type_={pydantic_data_genius_plan.type_}&"
+                            f"modelName={pydantic_data_genius_plan.model}&"
+                            f"mode=edit&"
+                            f"task_id={task_id}"
+                        )
                         logger.debug(
-                            f"duration: {duration}\n output_url: {output_url}\n output_filesize: {output_filesize}\ndata_genius_plan_edit_url: {data_genius_plan_edit_url}")
+                            f"duration: {duration}\n output_url: {output_url}\n "
+                            f"output_filesize: {output_filesize}\n"
+                            f"data_genius_plan_edit_url: {data_genius_plan_edit_url}"
+                        )
                         state["data_genius_plan_task_id"] = task_id
                         state["data_genius_plan_run_duration"] = duration
                         state["data_genius_plan_output_url"] = output_url
@@ -351,34 +396,40 @@ def query_dg_task_status(state: DataForgeState) -> DataForgeState:
     return state
 
 
-data_forge_builder = StateGraph(DataForgeState)
-data_forge_builder.add_node("analyze_intent", analyze_intent)
-data_forge_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
-data_forge_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
-data_forge_builder.add_node("dg_category_recommend", dg_category_recommend)
-data_forge_builder.add_node("save_dg_plan2json", save_dg_plan2json)
-data_forge_builder.add_node("create_dg_task", create_dg_task)
-data_forge_builder.add_node("query_dg_task_status", query_dg_task_status)
+data_gen_builder = StateGraph(DataForgeState)
+data_gen_builder.add_node("analyze_intent", analyze_intent)
+data_gen_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
+data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
+data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
+data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
+data_gen_builder.add_node("create_dg_task", create_dg_task)
+data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
 
-data_forge_builder.add_edge(START, "analyze_intent")
-data_forge_builder.add_edge("analyze_intent", "intent_human_feedback_node")
-data_forge_builder.add_conditional_edges(
-    "intent_human_feedback_node", should_intent_continue, ["analyze_intent", "query_table_raw_field_info"]
+data_gen_builder.add_edge(START, "analyze_intent")
+data_gen_builder.add_edge("analyze_intent", "intent_human_feedback_node")
+data_gen_builder.add_conditional_edges(
+    "intent_human_feedback_node",
+    should_intent_continue,
+    ["analyze_intent", "query_table_raw_field_info"],
 )
-data_forge_builder.add_conditional_edges(
-    "query_table_raw_field_info", should_table_raw_field_info_continue, ["dg_category_recommend", END]
+data_gen_builder.add_conditional_edges(
+    "query_table_raw_field_info",
+    should_table_raw_field_info_continue,
+    ["dg_category_recommend", END],
 )
 # data_forge_builder.add_edge("query_table_raw_field_info", "dg_category_recommend")
-data_forge_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
-data_forge_builder.add_edge("save_dg_plan2json", "create_dg_task")
-data_forge_builder.add_edge("create_dg_task", "query_dg_task_status")
-data_forge_builder.add_edge("query_dg_task_status", END)
+data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
+data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
+data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
+data_gen_builder.add_edge("query_dg_task_status", END)
 
 memory = MemorySaver()
-data_forge_graph = data_forge_builder.compile(interrupt_before=["intent_human_feedback_node"], checkpointer=memory)
+data_gen_graph = data_gen_builder.compile(
+    interrupt_before=["intent_human_feedback_node"], checkpointer=memory
+)
 
 if __name__ == "__main__":
-    print(data_forge_graph.get_graph(xray=True).draw_mermaid())
+    print(data_gen_graph.get_graph(xray=True).draw_mermaid())
 #     user_input = """数据库表名称:
 # massdata.ADM_REL_MOBILE
 # 期望生成数据条数:
