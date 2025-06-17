@@ -12,8 +12,10 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from agent.llm import chat_llm
-from agent.prompt import dg_category_prompt, table_intent_prompt
+from agent.prompt import table_intent_prompt
 from agent.state import (TableGenState, TableGenUserIntentSchema)
+from utils.db import Database
+
 
 
 def analyze_table_intent(state: TableGenState) -> TableGenState:
