@@ -1,16 +1,19 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.17 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.17">
   <diagram name="第 1 页" id="K-cl1vzY9knZKWMjM1jg">
-    <mxGraphModel dx="1247" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+    <mxGraphModel dx="989" dy="589" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="CECK6BH28crwyE_l5nWH-179" value="" style="rounded=0;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;dashed=1;dashPattern=8 8;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="360" width="540" height="700" as="geometry" />
+        </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;startArrow=classic;startFill=1;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-4" target="CECK6BH28crwyE_l5nWH-9">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-4" target="CECK6BH28crwyE_l5nWH-13">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="CECK6BH28crwyE_l5nWH-4" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;意图解析&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
+        <mxCell id="CECK6BH28crwyE_l5nWH-4" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;意图识别解析&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
           <mxGeometry x="314" y="180" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-39" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=classic;startFill=1;exitX=0.55;exitY=0.95;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-9" target="CECK6BH28crwyE_l5nWH-37">
@@ -20,7 +23,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="CECK6BH28crwyE_l5nWH-9" value="LLM&lt;div&gt;Qwen3-30B:A3B&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=1" vertex="1" parent="1">
+        <mxCell id="CECK6BH28crwyE_l5nWH-9" value="LLM&lt;div&gt;Qwen3-30B:A3B&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;hachureGap=4;fontFamily=LXGW WenKai GB Screen R;fontStyle=1;fillColor=#b0e3e6;strokeColor=#0e8088;sketch=1;curveFitting=1;jiggle=2;" vertex="1" parent="1">
           <mxGeometry x="297" y="397.5" width="154" height="80" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;exitX=0;exitY=0;exitDx=120;exitDy=25;exitPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-11" target="CECK6BH28crwyE_l5nWH-4">
@@ -47,7 +50,7 @@
         <mxCell id="CECK6BH28crwyE_l5nWH-38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-18" target="CECK6BH28crwyE_l5nWH-37">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="CECK6BH28crwyE_l5nWH-83" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-18" target="CECK6BH28crwyE_l5nWH-75">
+        <mxCell id="CECK6BH28crwyE_l5nWH-83" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-18" target="CECK6BH28crwyE_l5nWH-75">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="714" y="445" as="targetPoint" />
           </mxGeometry>
@@ -85,9 +88,9 @@
         <mxCell id="CECK6BH28crwyE_l5nWH-37" value="DataGenius&lt;div&gt;字段类别&lt;div&gt;推荐映射&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1" vertex="1" parent="1">
           <mxGeometry x="514" y="540" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="CECK6BH28crwyE_l5nWH-44" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-41" target="CECK6BH28crwyE_l5nWH-45">
+        <mxCell id="CECK6BH28crwyE_l5nWH-44" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-41" target="CECK6BH28crwyE_l5nWH-170">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="714" y="690" as="targetPoint" />
+            <mxPoint x="285" y="820" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-47" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-41" target="CECK6BH28crwyE_l5nWH-46">
@@ -95,16 +98,6 @@
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-41" value="DataGeninus&lt;div&gt;任务配置&lt;/div&gt;&lt;div&gt;生成&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;" vertex="1" parent="1">
           <mxGeometry x="514" y="660" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="CECK6BH28crwyE_l5nWH-63" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-45" target="CECK6BH28crwyE_l5nWH-54">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="295" y="1020" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="CECK6BH28crwyE_l5nWH-45" value="&lt;span style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;DataGeninus&lt;/span&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;任务配置&lt;/div&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;JSON文件&lt;/div&gt;" style="whiteSpace=wrap;html=1;shape=mxgraph.basic.document;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" vertex="1" parent="1">
-          <mxGeometry x="220" y="820" width="130" height="80" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-51" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-46" target="CECK6BH28crwyE_l5nWH-50">
           <mxGeometry relative="1" as="geometry" />
@@ -166,7 +159,7 @@
             <mxPoint x="1238" y="230" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="CECK6BH28crwyE_l5nWH-75" value="SQLite" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+        <mxCell id="CECK6BH28crwyE_l5nWH-75" value="SQLite" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=1;fillColor=#d0cee2;strokeColor=#56517e;" vertex="1" parent="1">
           <mxGeometry x="1158" y="405" width="90" height="80" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-81" value="&lt;span style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 14px; font-weight: 700;&quot;&gt;表元数据信息&lt;/span&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 14px; font-weight: 700;&quot;&gt;提取服务&lt;/div&gt;" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
@@ -191,35 +184,35 @@
           <mxGeometry x="1211" y="130" width="60" height="80" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-96" value="&lt;h1&gt;仿真库建模服务&lt;/h1&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="1560" y="30" width="290" height="30" as="geometry" />
+          <mxGeometry x="1660" y="30" width="290" height="30" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-100" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-98" target="CECK6BH28crwyE_l5nWH-99">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-98" value="analyze_and_propose_classifications_node" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
-          <mxGeometry x="1540" y="140" width="270" height="60" as="geometry" />
+          <mxGeometry x="2630" y="102.5" width="270" height="60" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-102" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-99" target="CECK6BH28crwyE_l5nWH-101">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-108" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;dashed=1;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-99" target="CECK6BH28crwyE_l5nWH-105">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1890" y="310" as="targetPoint" />
+            <mxPoint x="2980" y="272.5" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="1900" y="310" />
-              <mxPoint x="1900" y="590" />
+              <mxPoint x="2990" y="272.5" />
+              <mxPoint x="2990" y="552.5" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-99" value="conditional_router_node" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
-          <mxGeometry x="1540" y="280" width="270" height="60" as="geometry" />
+          <mxGeometry x="2630" y="242.5" width="270" height="60" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-104" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;dashed=1;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-101" target="CECK6BH28crwyE_l5nWH-99">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1455" y="447.5" as="targetPoint" />
+            <mxPoint x="2545" y="410" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="1470" y="448" />
-              <mxPoint x="1470" y="310" />
+              <mxPoint x="2560" y="410.5" />
+              <mxPoint x="2560" y="272.5" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -227,10 +220,10 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-101" value="generate_table_schema_for_classification_node" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
-          <mxGeometry x="1535" y="417.5" width="280" height="60" as="geometry" />
+          <mxGeometry x="2625" y="380" width="280" height="60" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-105" value="END" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
-          <mxGeometry x="1632.5" y="560" width="85" height="60" as="geometry" />
+          <mxGeometry x="2722.5" y="522.5" width="85" height="60" as="geometry" />
         </mxCell>
         <mxCell id="CECK6BH28crwyE_l5nWH-112" value="&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;brace&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bold; background: rgb(255, 255, 85); color: red; font-size: 10px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;ellipsis&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bold; background: rgb(255, 255, 85); color: red; font-size: 10px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;&lt;/span&gt;&lt;/font&gt;&lt;div class=&quot;kv-list&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; border-left: 1px dashed rgb(187, 187, 187); display: block; padding-left: 24px; margin-left: 2px; color: rgb(68, 68, 68); font-size: 10px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;&lt;div class=&quot;item item-line&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; display: block; padding-left: 20px; margin-left: -20px; position: relative; padding-top: 1px; padding-bottom: 1px; font-size: 10px;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;key&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;col&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;colon&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;:&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;number&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bold; color: rgb(26, 1, 204); font-size: 10px;&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;comma&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;,&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div class=&quot;item item-line&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; display: block; padding-left: 20px; margin-left: -20px; position: relative; padding-top: 1px; padding-bottom: 1px; background: rgb(249, 249, 249); font-size: 10px;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;key&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(0, 0, 0); font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;category&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;colon&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;:&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;string&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(11, 117, 0); overflow-wrap: break-word; font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;手机号&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;comma&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bolder; background: rgb(255, 255, 85); font-size: 10px;&quot;&gt;,&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div class=&quot;item item-line&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; display: block; padding-left: 20px; margin-left: -20px; position: relative; padding-top: 1px; padding-bottom: 1px; font-size: 10px;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;key&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;colon&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;:&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;string&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(11, 117, 0); overflow-wrap: break-word; font-size: 10px;&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;comma&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;,&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div class=&quot;item item-line&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; display: block; padding-left: 20px; margin-left: -20px; position: relative; padding-top: 1px; padding-bottom: 1px; font-size: 10px;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;key&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;ename&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;colon&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;:&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;string&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(11, 117, 0); overflow-wrap: break-word; font-size: 10px;&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;FIRST_VALUE&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;comma&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;,&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div class=&quot;item item-line&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; display: block; padding-left: 20px; margin-left: -20px; position: relative; padding-top: 1px; padding-bottom: 1px; font-size: 10px;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;key&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;cname&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;colon&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;:&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;string&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(11, 117, 0); overflow-wrap: break-word; font-size: 10px;&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;属性类型一的值&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;comma&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;,&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div class=&quot;item item-line&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; display: block; padding-left: 20px; margin-left: -20px; position: relative; padding-top: 1px; padding-bottom: 1px; font-size: 10px;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;key&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;preview&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;colon&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;:&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;string&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(11, 117, 0); overflow-wrap: break-word; font-size: 10px;&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;score: 95, reason: 字段示例数据&#39;13000125858&#39;是11位数字，符合中国大陆手机号码的格式特征，与&amp;lt;config&amp;gt;中&#39;手机号&#39;条目匹配。&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;comma&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;,&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div class=&quot;item item-line&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; display: block; padding-left: 20px; margin-left: -20px; position: relative; padding-top: 1px; padding-bottom: 1px; font-size: 10px;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;key&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;colon&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;:&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;string&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(11, 117, 0); overflow-wrap: break-word; font-size: 10px;&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;13000125858&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;comma&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;,&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div class=&quot;item item-object&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; display: block; padding-left: 20px; margin-left: -20px; position: relative; padding-top: 1px; padding-bottom: 1px; font-size: 10px;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;key&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;quote&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;colon&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-size: 10px;&quot;&gt;:&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;brace&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bold; font-size: 10px;&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;brace&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bold; font-size: 10px;&quot;&gt;}&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;brace&quot; style=&quot;box-sizing: border-box; -webkit-font-smoothing: antialiased; font-weight: bold; background: rgb(255, 255, 85); color: red; font-size: 10px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;&lt;font style=&quot;font-size: 10px;&quot; face=&quot;Lucida Console&quot;&gt;}&lt;/font&gt;&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fontSize=10;strokeColor=default;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="10" y="490" width="360" height="180" as="geometry" />
@@ -243,6 +236,155 @@
               <mxPoint x="440" y="630" />
             </Array>
           </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-119" value="LLM&lt;div&gt;Qwen3-30B:A3B&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontStyle=1;fillColor=#b0e3e6;strokeColor=#0e8088;" vertex="1" parent="1">
+          <mxGeometry x="2060" y="245" width="154" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-122" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;exitX=0;exitY=0;exitDx=120;exitDy=27.5;exitPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-120" target="CECK6BH28crwyE_l5nWH-123">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1880" y="145" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-120" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;用户自然语言&lt;/font&gt;&lt;div style=&quot;font-size: 16px;&quot;&gt;&lt;font&gt;数据&lt;/font&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;生成需求&lt;/span&gt;&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;position2=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;size=25;position=0.33;" vertex="1" parent="1">
+          <mxGeometry x="1530" y="118" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-127" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-123" target="CECK6BH28crwyE_l5nWH-126">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-147" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.4;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-123" target="CECK6BH28crwyE_l5nWH-119">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1940" y="145" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-123" value="意图识别解析" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1740" y="115" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-129" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-126" target="CECK6BH28crwyE_l5nWH-128">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-126" value="表建模任务&lt;div&gt;结构化参数&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1740" y="255" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-131" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-128" target="CECK6BH28crwyE_l5nWH-75">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1555" y="427.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-128" value="根据任务条件获取&lt;div&gt;已有表&lt;span style=&quot;background-color: initial;&quot;&gt;信息&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;(表名称/字段信息)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1700" y="415" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-142" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-132" target="CECK6BH28crwyE_l5nWH-137">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-149" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.31;entryY=0.8;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-132" target="CECK6BH28crwyE_l5nWH-119">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1972.5" y="612.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-132" value="素材表分组映射" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1707.5" y="582.5" width="185" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-134" value="&lt;ul&gt;&lt;li&gt;表中文名称、存储类型（FRC、ORC）、元数据来源（盘古、数据域等）&lt;/li&gt;&lt;li&gt;表字段信息（字段英文名、字段中文名、字段描述、字段类型、是否必填、字典、样例数据）&lt;/li&gt;&lt;/ul&gt;" style="text;strokeColor=none;fillColor=none;html=1;whiteSpace=wrap;verticalAlign=middle;overflow=hidden;fontFamily=LXGW WenKai GB Screen R;labelBackgroundColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1230" y="355" width="390" height="107.5" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-162" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;exitX=0;exitY=0;exitDx=55;exitDy=60;exitPerimeter=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-137" target="CECK6BH28crwyE_l5nWH-163">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1600.0000000000005" y="800.0000000000002" as="sourcePoint" />
+            <mxPoint x="1600.0000000000005" y="870" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-137" value="&lt;font face=&quot;LXGW WenKai GB Screen R&quot;&gt;X组映射关系清单&lt;/font&gt;" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.layered_rect;dx=10;outlineConnect=0;whiteSpace=wrap;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1750" y="700" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-143" value="" style="curved=1;endArrow=classic;html=1;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.75;entryY=0;entryDx=0;entryDy=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-128" target="CECK6BH28crwyE_l5nWH-132">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1950" y="470" as="sourcePoint" />
+            <mxPoint x="2000" y="420" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1950" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-151" value="&lt;div&gt;&lt;span style=&quot;text-wrap: wrap; background-color: rgb(251, 251, 251); font-size: 11px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=right;verticalAlign=middle;resizable=0;points=[];sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=11;" vertex="1" connectable="0" parent="CECK6BH28crwyE_l5nWH-143">
+          <mxGeometry x="-0.4082" y="-20" relative="1" as="geometry">
+            <mxPoint x="-25" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-144" value="" style="curved=1;endArrow=classic;html=1;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.25;entryY=1;entryDx=0;entryDy=0;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-132" target="CECK6BH28crwyE_l5nWH-128">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1843" y="485" as="sourcePoint" />
+            <mxPoint x="1856" y="560" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1640" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-153" value="&lt;span style=&quot;font-size: 13px; text-align: right;&quot;&gt;M张表一组&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1832.5" y="510" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-154" value="&lt;span style=&quot;font-size: 13px; text-align: left;&quot;&gt;滑动窗口获取新表&lt;/span&gt;&lt;span style=&quot;font-size: 13px; text-align: left;&quot;&gt;offset=N，&lt;/span&gt;&lt;span style=&quot;font-size: 13px; text-align: left; background-color: initial;&quot;&gt;N&amp;lt;M/4&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1690" y="510" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-155" value="&lt;span style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 11px; text-wrap: nowrap; background-color: rgb(255, 255, 255);&quot;&gt;T1, T2, T3 --&amp;gt; X1&lt;/span&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 11px; text-wrap: nowrap;&quot;&gt;T3, T4, T6 --&amp;gt; X2&lt;/div&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 11px; text-wrap: nowrap;&quot;&gt;T4, T7 --&amp;gt; X3&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 11px; text-wrap: nowrap;&quot;&gt;......&lt;/div&gt;" style="text;html=1;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" vertex="1" parent="1">
+          <mxGeometry x="1850" y="700" width="100" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-156" value="T1,T2,...,Tn" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="430" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-159" value="" style="curved=1;endArrow=classic;html=1;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;dashed=1;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-160" target="CECK6BH28crwyE_l5nWH-155">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="2050" y="670" as="sourcePoint" />
+            <mxPoint x="2100" y="710" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="2030" y="720" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-160" value="&lt;span style=&quot;font-size: 13px; text-wrap: nowrap; background-color: rgb(255, 255, 255);&quot;&gt;一组表按照分类提示词&lt;/span&gt;&lt;div style=&quot;font-size: 13px; text-wrap: nowrap;&quot;&gt;由LLM根据特征分类&lt;/div&gt;&lt;div style=&quot;font-size: 13px; text-wrap: nowrap;&quot;&gt;聚合出X组素材表-特征表映射关系&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="620" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-177" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-163" target="CECK6BH28crwyE_l5nWH-178">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1800" y="939.9999999999998" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-163" value="特征表生成" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1737.75" y="830" width="132.5" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-166" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.55;entryY=0.95;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-163" target="CECK6BH28crwyE_l5nWH-119">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1903" y="623" as="sourcePoint" />
+            <mxPoint x="2060" y="317" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-173" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="CECK6BH28crwyE_l5nWH-170" target="CECK6BH28crwyE_l5nWH-54">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="368.5" y="978" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="368" y="1020" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-170" value="" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#4D4D4D;strokeColor=none;dashed=1;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.json_script;hachureGap=4;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fillStyle=auto;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="820" width="57" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-174" value="&lt;span style=&quot;font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;DataGeninus&lt;/span&gt;&lt;span style=&quot;background-color: initial; font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;任务配置&lt;/span&gt;&lt;span style=&quot;background-color: initial; font-family: &amp;quot;LXGW WenKai GB Screen R&amp;quot;; font-size: 16px;&quot;&gt;文件&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;" vertex="1" parent="1">
+          <mxGeometry x="410" y="840" width="90" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-175" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;&lt;span style=&quot;font-size: 13px; text-wrap: nowrap; background-color: rgb(255, 255, 255);&quot;&gt;多张素材表字段提取，LLM推荐组合&lt;/span&gt;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 13px;&quot;&gt;&lt;span style=&quot;font-size: 13px; text-wrap: nowrap; background-color: rgb(255, 255, 255);&quot;&gt;生成新的特征表字段信息&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1892.5" y="798" width="190" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-178" value="&lt;font face=&quot;LXGW WenKai GB Screen R&quot;&gt;特征表JSON配置&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#4D4D4D;strokeColor=none;dashed=1;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.json_script;hachureGap=4;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fillStyle=auto;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="1775.75" y="950" width="58.5" height="80.05" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-181" value="根据任务按时循环迭代直到生成所有表模型配置" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fontStyle=0" vertex="1" parent="1">
+          <mxGeometry x="1480" y="695" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-182" value="帮我生成一些&lt;div&gt;人员属性、上网行为、位置轨迹类别的表，&lt;div&gt;每个类别的表最少2张，最多10张，&lt;/div&gt;&lt;div&gt;每个表的字段数量最少10个，最多100个&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="1430" y="198" width="240" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="CECK6BH28crwyE_l5nWH-184" value="{&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; &quot;categories&quot;: [&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;人员属性&quot;,&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;上网行为&quot;,&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;位置轨迹&quot;&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; ],&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; &quot;category_table_number_min&quot;: 2,&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; &quot;category_table_number_max&quot;: 10,&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; &quot;table_field_col_min&quot;: 10,&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; &amp;nbsp; &quot;table_field_col_max&quot;: 100&lt;br style=&quot;font-size: 9px;&quot;&gt;&amp;nbsp; }" style="text;whiteSpace=wrap;fontFamily=Lucida Console;html=1;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1860" y="222.5" width="210" height="132.5" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

@@ -14,7 +14,7 @@ from loguru import logger
 
 from agent.data_graph import data_gen_graph
 
-from agent.state import UserIntentSchema, PydanticDataGeniusPlan
+from agent.state import DataGenUserIntentSchema, PydanticDataGeniusPlan
 
 # 加载 .env 文件
 load_dotenv()
@@ -54,7 +54,7 @@ async def process_step(event, graph):
 
         if node == "analyze_intent":
             logger.info(f"[process] analyze_intent")
-            user_intent: UserIntentSchema = state.get("user_intent")
+            user_intent: DataGenUserIntentSchema = state.get("user_intent")
             await cl.Message(
                 author="AI",
                 content=user_intent.model_dump_json(indent=2), language="python"

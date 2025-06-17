@@ -17,14 +17,14 @@ from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
 from agent.llm import chat_llm
-from agent.prompt import dg_category_prompt, intent_prompt
+from agent.prompt import dg_category_prompt, data_intent_prompt
 from agent.state import (
-    DataForgeState,
+    DataGenState,
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
     PydanticDataGeniusRule,
     TableMetadataSchema,
-    UserIntentSchema,
+    DataGenUserIntentSchema,
 )
 from config import DG_PLAN_CONFIG_PREFIX
 from cruds.table_metadata import table_metadata_query
@@ -41,14 +41,14 @@ from utils.db import Database
 from utils.file import save_dict2jl
 
 
-def analyze_intent(state: DataForgeState) -> DataForgeState:
+def analyze_data_intent(state: DataGenState) -> DataGenState:
     user_input = state.get("user_input").strip()
     human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
-        f"user_input: {user_input} human_intent_feedback: {human_intent_feedback}"
+        f"analyze_data_intent => user_input: {user_input} human_intent_feedback: {human_intent_feedback}"
     )
-    structured_llm = chat_llm.with_structured_output(UserIntentSchema)
-    chat_prompt = intent_prompt.format_messages(
+    structured_llm = chat_llm.with_structured_output(DataGenUserIntentSchema)
+    chat_prompt = data_intent_prompt.format_messages(
         user_input=user_input, human_intent_feedback=human_intent_feedback
     )
     logger.trace(f"analyze_intent chat_prompt: {chat_prompt}")
@@ -58,12 +58,12 @@ def analyze_intent(state: DataForgeState) -> DataForgeState:
     return state
 
 
-def intent_human_feedback_node():
+def data_intent_human_feedback_node():
     """No-op node that should be interrupted on"""
     pass
 
 
-def should_intent_continue(state: DataForgeState):
+def should_data_intent_continue(state: DataGenState):
     """Return the next node to execute"""
 
     # Check if human feedback
@@ -75,7 +75,7 @@ def should_intent_continue(state: DataForgeState):
     return "analyze_intent"
 
 
-def should_table_raw_field_info_continue(state: DataForgeState):
+def should_table_raw_field_info_continue(state: DataGenState):
     table_metadata_error = state.get("table_metadata_error", [])
     if len(table_metadata_error) >= 1:
         logger.error(f"存在table_metadata_error: {' '.join(table_metadata_error)}")
@@ -84,7 +84,7 @@ def should_table_raw_field_info_continue(state: DataForgeState):
         return "dg_category_recommend"
 
 
-def query_table_raw_field_info(state: DataForgeState) -> DataForgeState:
+def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     if "table_metadata_array" not in state:
         state["table_metadata_array"] = []
 
@@ -119,7 +119,7 @@ def query_table_raw_field_info(state: DataForgeState) -> DataForgeState:
     return state
 
 
-def dg_category_recommend(state: DataForgeState) -> DataForgeState:
+def dg_category_recommend(state: DataGenState) -> DataGenState:
     """
     DataGenius字段分类推荐节点
     Args:
@@ -243,7 +243,7 @@ def dg_category_recommend(state: DataForgeState) -> DataForgeState:
     return state
 
 
-def save_dg_plan2json(state: DataForgeState):
+def save_dg_plan2json(state: DataGenState):
     """
     存储DG执行计划任务配置
     Args:
@@ -265,7 +265,7 @@ def save_dg_plan2json(state: DataForgeState):
     return state
 
 
-def create_dg_task(state: DataForgeState) -> DataForgeState:
+def create_dg_task(state: DataGenState) -> DataGenState:
     """
     创建人DataGenius任务
     Args:
@@ -337,7 +337,7 @@ def create_dg_task(state: DataForgeState) -> DataForgeState:
     return state
 
 
-def query_dg_task_status(state: DataForgeState) -> DataForgeState:
+def query_dg_task_status(state: DataGenState) -> DataGenState:
     """
     查询当前任务状态
     Args:
@@ -396,9 +396,9 @@ def query_dg_task_status(state: DataForgeState) -> DataForgeState:
     return state
 
 
-data_gen_builder = StateGraph(DataForgeState)
-data_gen_builder.add_node("analyze_intent", analyze_intent)
-data_gen_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
+data_gen_builder = StateGraph(DataGenState)
+data_gen_builder.add_node("analyze_intent", analyze_data_intent)
+data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
 data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
@@ -409,7 +409,7 @@ data_gen_builder.add_edge(START, "analyze_intent")
 data_gen_builder.add_edge("analyze_intent", "intent_human_feedback_node")
 data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
-    should_intent_continue,
+    should_data_intent_continue,
     ["analyze_intent", "query_table_raw_field_info"],
 )
 data_gen_builder.add_conditional_edges(
@@ -441,7 +441,7 @@ if __name__ == "__main__":
 #         "max_retries": 5,
 #     }
 #
-#     for event in data_forge_graph.stream(init_state, thread, stream_mode="values"):
+#     for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):
 #         # Review
 #         user_intent: UserIntentSchema = event.get("user_intent")
 #         if user_intent:
@@ -450,11 +450,11 @@ if __name__ == "__main__":
 #     # 模拟用户意图识别的研判反馈
 #     data_forge_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback")
 #
-#     for event in data_forge_graph.stream(None, thread, stream_mode="values"):
+#     for event in data_gen_graph.stream(None, thread, stream_mode="values"):
 #         # Review
-#         intent_human_feedback = event.get("intent_human_feedback")
-#         if intent_human_feedback:
-#             logger.info(f"intent_human_feedback: {intent_human_feedback}")
+#         human_intent_feedback = event.get("human_intent_feedback")
+#         if human_intent_feedback:
+#             logger.info(f"human_intent_feedback: {human_intent_feedback}")
 #
 #         if event.get("create_data_genius_task_error"):
 #             logger.info("create_data_genius_task_error", event["create_data_genius_task_error"])
