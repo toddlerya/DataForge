@@ -79,7 +79,6 @@ dg_category_prompt = ChatPromptTemplate.from_messages(
     [dg_category_system_prompt, dg_category_human_prompt]
 )
 
-
 table_intent_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是数据资产专家，你的任务如下\n"
     "1. 识别出用户期望生成的表类别，对应categories\n"
@@ -99,7 +98,22 @@ table_intent_prompt = ChatPromptTemplate.from_messages(
     [table_intent_system_prompt, table_intent_human_prompt]
 )
 
-
+table_mapping_dimension_system_prompt = SystemMessagePromptTemplate.from_template(
+    "你是资深数据架构师，任务是从现有数据结构中识别新的业务建模机会，将分析的结果按照要求输出结构化数据\n"
+    "1. 这些表可以聚合衍生出的新的推荐类别应该在{user_intent_categories}范围内，对应recommend_category\n"
+    "2. 创建的新的表英文名称，表名称命名规范为英文全部大写+下划线，对应dimension_table_en_name\n"
+    "4. 推荐的置信度评分，对应score\n"
+    "5. 推荐的理由，对应reason\n"
+    "6. 参考的素材表英文名称清单列表，对应reference_material_table_slice\n"
+)
+table_mapping_dimension_human_prompt = HumanMessagePromptTemplate.from_template(
+    "这是我们现有数仓中的一些表元数据"
+    "---"
+    "{material_table_infos}"
+)
+table_mapping_dimension_prompt = ChatPromptTemplate.from_messages(
+    [table_mapping_dimension_system_prompt, table_mapping_dimension_human_prompt]
+)
 
 # faker_plan_system_prompt = SystemMessagePromptTemplate.from_template(
 #     "您是一个智能助手，任务是根据数据库表结构和用户指定的条件，为 Python Faker 库生成数据生成计划配置"

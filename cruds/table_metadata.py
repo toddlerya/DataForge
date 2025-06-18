@@ -5,14 +5,14 @@
 # @FileName : table_metadata.py
 # @Project  : DataForge
 
-from typing import Tuple
+from typing import Tuple, Optional, Dict
 
 from database_models.models import TableMetaDataInfo
 from utils.db import Database
 
 
 def table_metadata_query_by_entity_id(
-    entity_id: str, db_handler: Database
+        entity_id: str, db_handler: Database
 ) -> Tuple[bool, str, TableMetaDataInfo | None]:
     """
     查询表元数据信息
@@ -58,7 +58,7 @@ def table_metadata_save(record: dict, db_handler: Database) -> Tuple[bool, str]:
 
 
 def table_metadata_query(
-    table_en_name: str, db_handler: Database
+        table_en_name: str, db_handler: Database
 ) -> Tuple[bool, str, TableMetaDataInfo | None]:
     """
     查询数据

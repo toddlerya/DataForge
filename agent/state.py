@@ -157,11 +157,24 @@ class TableGenUserIntentSchema(BaseModel):
     table_field_col_max: int = Field(500, description="每个表的最大字段数量<=1000", le=500)
 
 
+class DimensionMappingResult(BaseModel):
+    recommend_category: str = Field(..., description="LLM推荐的表类别")
+    dimension_table_en_name: str = Field(..., description="特征表英文名")
+    dimension_table_cn_name: str = Field(..., description="特征表中文名")
+    dimension_table_description: str = Field(..., description="特征表描述")
+    reference_material_table_slice: List[str] = Field(..., description="参考的素材表英文名", min_length=2, max_length=6)
+    reason: str = Field(description="推荐理由说明")
+    score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
+
+
 class TableGenState(TypedDict):
     messages: Annotated[List[AnyMessage], add_messages]
     user_input: str
     user_intent: TableGenUserIntentSchema
     human_intent_feedback: str
+    material_table_groups: List[List[Dict]]
+    mapping_dimension_table_info_slice: List[DimensionMappingResult]
+    max_retries: int
 
 # class TableFieldDefinition(TypedDict):
 #     en_name: str

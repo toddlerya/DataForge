@@ -5,17 +5,19 @@
 # @FileName : table_graph.py
 # @Project  : DataForge
 
+import pathlib
 
 from loguru import logger
-import httpx
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from agent.llm import chat_llm
-from agent.prompt import table_intent_prompt
-from agent.state import (TableGenState, TableGenUserIntentSchema)
+from agent.prompt import table_intent_prompt, table_mapping_dimension_prompt
+from agent.state import (TableGenState, TableGenUserIntentSchema, DimensionMappingResult, TableGenUserIntentSchema)
+from cruds.advanced_query import sliding_window_query
+from database_models.models import TableMetaDataInfo
 from utils.db import Database
-
+from utils.file import save_dict2jl
 
 
 def analyze_table_intent(state: TableGenState) -> TableGenState:
@@ -46,23 +48,126 @@ def should_table_intent_continue(state: TableGenState):
     # Check if human feedback
     human_intent_feedback = state.get("human_intent_feedback", "").strip()
     if human_intent_feedback == "正确":
-        return END
+        return "material_table_group_strategy"
 
     # Otherwise proceed to create table info
     return "analyze_intent"
 
 
+def material_table_group_sliding_window_strategy(state: TableGenState):
+    """
+    元数据表作为素材分组策略，当前策略为滑动窗口拼接数据
+    Args:
+        state:
+
+    Returns:
+
+    """
+
+    def print_cb(windows_data, window_index, offset):
+        logger.debug(f"当前窗口: {window_index} 当前偏移量: {offset} 当前数据: {windows_data}")
+        pass
+
+    all_results = sliding_window_query(db_handler=Database(),
+                                       model_class=TableMetaDataInfo,
+                                       fields=["table_en_name", "table_cn_name", "description"],
+                                       window_size=50,
+                                       step_size=10
+                                       # filters={"source": "盘古"},
+                                       # callback=print_cb
+                                       )
+    state["material_table_groups"] = all_results
+    return state
+
+
+def material_tables_mapping_dimension_table(state: TableGenState):
+    """
+    素材表输入LLM映射出一组特征表
+    Args:
+        state:
+
+    Returns:
+
+    """
+    material_table_groups: list[list[dict]] = state.get("material_table_groups")
+    user_intent: TableGenUserIntentSchema = state["user_intent"]
+    mapping_dimension_table_info_slice = list()
+    recommend_dimension_table_en_name_slice = list()
+    for each_group in material_table_groups[:5]:
+        # 构建每一组素材的提示词
+        material_table_infos = ""
+        for index, material_table in enumerate(each_group):
+            each_material_table_info = f"表 {index}: \n" \
+                                       f"表英文名称: {material_table.get('table_en_name')}\n" \
+                                       f"表中文名称: {material_table.get('table_cn_name')}\n" \
+                                       f"表描述: {material_table.get('description')}\n\n"
+            material_table_infos += each_material_table_info
+        chat_prompt = table_mapping_dimension_prompt.format_messages(user_intent_categories=user_intent.categories,
+                                                                     material_table_infos=material_table_infos)
+        # 构建每一组的结构化信息
+        structured_llm = chat_llm.with_structured_output(DimensionMappingResult)
+        logger.trace(f"material_tables_mapping_dimension_table chat_prompt: {chat_prompt}")
+
+        retry_count = 0
+        # 设置最大重试次数
+        max_retries = state["max_retries"]
+        while True:
+            if retry_count >= max_retries:
+                break
+            try:
+                dimension_mapping_result: DimensionMappingResult = structured_llm.invoke(chat_prompt)
+            except Exception as e:
+                logger.error(f"material_tables_mapping_dimension_table error: {e}")
+                retry_count += 1
+            else:
+                dimension_mapping_result.dimension_table_en_name = dimension_mapping_result.dimension_table_cn_name + "_BYTS"
+                logger.debug(f"dimension_mapping_result: {dimension_mapping_result}")
+                if dimension_mapping_result.recommend_category in user_intent.categories:
+                    # 如果推荐的类别在用户意图范围内采纳
+                    logger.info(dimension_mapping_result)
+                    # 如果生成的特征表名称没保存则保存下，否则跳过
+                    if dimension_mapping_result.dimension_table_en_name not in recommend_dimension_table_en_name_slice:
+                        recommend_dimension_table_en_name_slice.append(dimension_mapping_result.dimension_table_en_name)
+                        mapping_dimension_table_info_slice.append(dimension_mapping_result)
+                    else:
+                        logger.warning(f"推荐生成的特征表重复，丢弃: {dimension_mapping_result}")
+                break
+    state["mapping_dimension_table_info_slice"] = mapping_dimension_table_info_slice
+    return state
+
+
+def save_mapping_dimension_table_info(state: TableGenState):
+    logger.info("存储mapping_dimension_table_info")
+    mapping_dimension_table_info_slice = state.get("mapping_dimension_table_info_slice")
+    if mapping_dimension_table_info_slice:
+        for mapping_dimension_table_info in mapping_dimension_table_info_slice:
+            data = mapping_dimension_table_info.model_dump()
+            save_json_path = (
+                pathlib.Path(r"F:\GITLAB\DataForge\data\gen_models")
+                .joinpath(f"{mapping_dimension_table_info.dimension_table_en_name}.json")
+                .absolute()
+            )
+            save_dict2jl(json_data=data, save_path=str(save_json_path))
+    return state
+
+
 table_gen_builder = StateGraph(TableGenState)
 table_gen_builder.add_node("analyze_table_intent", analyze_table_intent)
 table_gen_builder.add_node("table_intent_human_feedback", table_intent_human_feedback)
+table_gen_builder.add_node("material_table_group_strategy", material_table_group_sliding_window_strategy)
+table_gen_builder.add_node("material_tables_mapping_dimension_table", material_tables_mapping_dimension_table)
+table_gen_builder.add_node("save_mapping_dimension_table_info", save_mapping_dimension_table_info)
 
 table_gen_builder.add_edge(START, "analyze_table_intent")
 table_gen_builder.add_edge("analyze_table_intent", "table_intent_human_feedback")
 table_gen_builder.add_conditional_edges(
     "table_intent_human_feedback",
     should_table_intent_continue,
-    ["analyze_table_intent", END],
+    ["analyze_table_intent", "material_table_group_strategy"],
 )
+table_gen_builder.add_edge("material_table_group_strategy", "material_tables_mapping_dimension_table")
+table_gen_builder.add_edge("material_tables_mapping_dimension_table", "save_mapping_dimension_table_info")
+table_gen_builder.add_edge("save_mapping_dimension_table_info", END)
 
 memory = MemorySaver()
 table_gen_graph = table_gen_builder.compile(
@@ -74,7 +179,8 @@ if __name__ == "__main__":
     user_input = """帮我生成一些人员属性、上网行为、位置轨迹类别的表，每个类别的表最少2张，最多10张，每个表的字段数量最少10个，最多100个"""
     thread = {"configurable": {"thread_id": "123"}}
     init_state = {
-        "user_input": user_input
+        "user_input": user_input,
+        "max_retries": 5
     }
     for event in table_gen_graph.stream(init_state, thread, stream_mode="values"):
         user_intent: TableGenUserIntentSchema = event.get("user_intent")
