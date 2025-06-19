@@ -105,6 +105,7 @@ table_mapping_dimension_system_prompt = SystemMessagePromptTemplate.from_templat
     "4. 推荐的置信度评分，对应score\n"
     "5. 推荐的理由，对应reason\n"
     "6. 参考的素材表英文名称清单列表，对应reference_material_table_slice\n"
+    "7. 创建的新的表英文名称(`dimension_table_en_name`)不应在参考的素材表英文名称清单列表(`reference_material_table_slice`)范围内\n"
 )
 table_mapping_dimension_human_prompt = HumanMessagePromptTemplate.from_template(
     "这是我们现有数仓中的一些表元数据"
@@ -114,6 +115,24 @@ table_mapping_dimension_human_prompt = HumanMessagePromptTemplate.from_template(
 table_mapping_dimension_prompt = ChatPromptTemplate.from_messages(
     [table_mapping_dimension_system_prompt, table_mapping_dimension_human_prompt]
 )
+
+
+table_ename_translate_system_prompt = ChatPromptTemplate.from_template(
+    "你是数仓软件专家，精通英语翻译，你的任务是把用户给的表名称翻译为英文。"
+    "请遵循如下命名规范："
+    "1. 全部使用大写英文"
+    "2. 英文字符见可以使用`_`分割单词"
+    "3. 不可以已`_`开头和结尾"
+)
+
+table_ename_translate_human_prompt = ChatPromptTemplate.from_template(
+    "用户的输入的表名称如下：{table_name}"
+)
+
+table_ename_translate_prompt = ChatPromptTemplate.from_messages(
+    [table_ename_translate_system_prompt, table_ename_translate_human_prompt]
+)
+
 
 # faker_plan_system_prompt = SystemMessagePromptTemplate.from_template(
 #     "您是一个智能助手，任务是根据数据库表结构和用户指定的条件，为 Python Faker 库生成数据生成计划配置"

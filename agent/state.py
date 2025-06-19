@@ -167,6 +167,10 @@ class DimensionMappingResult(BaseModel):
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
 
 
+class TranslateTableEname(BaseModel):
+    table_ename: str = Field(..., description="表英文名称", pattern="^[A-Z][A-Z_]+[A-Z]$")
+
+
 class TableGenState(TypedDict):
     messages: Annotated[List[AnyMessage], add_messages]
     user_input: str
@@ -175,6 +179,7 @@ class TableGenState(TypedDict):
     material_table_groups: List[List[Dict]]
     mapping_dimension_table_info_slice: List[DimensionMappingResult]
     max_retries: int
+
 
 # class TableFieldDefinition(TypedDict):
 #     en_name: str

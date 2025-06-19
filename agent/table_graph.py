@@ -6,14 +6,15 @@
 # @Project  : DataForge
 
 import pathlib
+import re
 
 from loguru import logger
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from agent.llm import chat_llm
-from agent.prompt import table_intent_prompt, table_mapping_dimension_prompt
-from agent.state import (TableGenState, TableGenUserIntentSchema, DimensionMappingResult, TableGenUserIntentSchema)
+from agent.prompt import table_intent_prompt, table_mapping_dimension_prompt, table_ename_translate_prompt
+from agent.state import (TableGenState, TranslateTableEname, DimensionMappingResult, TableGenUserIntentSchema)
 from cruds.advanced_query import sliding_window_query
 from database_models.models import TableMetaDataInfo
 from utils.db import Database
@@ -21,19 +22,20 @@ from utils.file import save_dict2jl
 
 
 def analyze_table_intent(state: TableGenState) -> TableGenState:
-    user_input = state.get("user_input").strip()
-    human_intent_feedback = state.get("human_intent_feedback", "")
+    logger.info(f"[+] 用户意图分析节点")
+    table_user_input = state.get("user_input").strip()
+    table_human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
-        f"analyze_data_intent => user_input: {user_input} human_intent_feedback: {human_intent_feedback}"
+        f"analyze_data_intent => user_input: {table_user_input} human_intent_feedback: {table_human_intent_feedback}"
     )
     structured_llm = chat_llm.with_structured_output(TableGenUserIntentSchema)
     chat_prompt = table_intent_prompt.format_messages(
-        user_input=user_input, human_intent_feedback=human_intent_feedback
+        user_input=table_user_input, human_intent_feedback=table_human_intent_feedback
     )
     logger.trace(f"analyze_intent chat_prompt: {chat_prompt}")
-    user_intent = structured_llm.invoke(chat_prompt)
-    state["user_intent"] = user_intent
-    logger.debug(f"user_intent: {user_intent}")
+    table_user_intent = structured_llm.invoke(chat_prompt)
+    state["user_intent"] = table_user_intent
+    logger.debug(f"user_intent: {table_user_intent}")
     return state
 
 
@@ -68,10 +70,11 @@ def material_table_group_sliding_window_strategy(state: TableGenState):
         logger.debug(f"当前窗口: {window_index} 当前偏移量: {offset} 当前数据: {windows_data}")
         pass
 
+    logger.info(f"[+] 元数据表作为素材分组策略，当前策略为滑动窗口拼接数据")
     all_results = sliding_window_query(db_handler=Database(),
                                        model_class=TableMetaDataInfo,
                                        fields=["table_en_name", "table_cn_name", "description"],
-                                       window_size=50,
+                                       window_size=20,
                                        step_size=10
                                        # filters={"source": "盘古"},
                                        # callback=print_cb
@@ -89,6 +92,7 @@ def material_tables_mapping_dimension_table(state: TableGenState):
     Returns:
 
     """
+    logger.info(f"[+] 素材表输入LLM映射出一组特征表节点")
     material_table_groups: list[list[dict]] = state.get("material_table_groups")
     user_intent: TableGenUserIntentSchema = state["user_intent"]
     mapping_dimension_table_info_slice = list()
@@ -120,7 +124,6 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                 logger.error(f"material_tables_mapping_dimension_table error: {e}")
                 retry_count += 1
             else:
-                dimension_mapping_result.dimension_table_en_name = dimension_mapping_result.dimension_table_cn_name + "_BYTS"
                 logger.debug(f"dimension_mapping_result: {dimension_mapping_result}")
                 if dimension_mapping_result.recommend_category in user_intent.categories:
                     # 如果推荐的类别在用户意图范围内采纳
@@ -136,8 +139,56 @@ def material_tables_mapping_dimension_table(state: TableGenState):
     return state
 
 
+def translate_table_name(state: TableGenState):
+    """
+    将生成的table_ename为中文的情况翻译为英文
+    Args:
+        state:
+
+    Returns:
+
+    """
+    logger.info(f"[+] 将生成的table_ename为中文的情况翻译为英文节点")
+    mapping_dimension_table_info_slice = state.get("mapping_dimension_table_info_slice")
+    if mapping_dimension_table_info_slice:
+        for index, mapping_dimension_table_info in enumerate(mapping_dimension_table_info_slice):
+            stop_flag = True
+            if mapping_dimension_table_info.dimension_table_en_name in \
+                    mapping_dimension_table_info.reference_material_table_slice \
+                    or not re.match(pattern=r"^[A-Z][A-Z_]+[A-Z]$",
+                                    string=mapping_dimension_table_info.dimension_table_en_name):
+                # 表的英文名在参照表清单中，或表的英文名称称为中文，需要根据表的中文名称翻译处理
+                chat_prompt = table_ename_translate_prompt.format_messages(
+                    table_name=mapping_dimension_table_info.dimension_table_cn_name
+                )
+                structured_llm = chat_llm.with_structured_output(TranslateTableEname)
+                retry_count = 0
+                # 设置最大重试次数
+                max_retries = state["max_retries"]
+                while stop_flag:
+                    if retry_count >= max_retries:
+                        break
+                    try:
+                        translate_table_ename: TranslateTableEname = structured_llm.invoke(chat_prompt)
+                    except Exception as e:
+                        logger.error(f"translate_table_name error: {e}")
+                        retry_count += 1
+                    else:
+                        logger.debug(f"dimension_table_en_name: {mapping_dimension_table_info.dimension_table_en_name} "
+                                     f"dimension_table_cn_name: {mapping_dimension_table_info.dimension_table_cn_name} "
+                                     f"translated_table_ename: {translate_table_ename}")
+                        mapping_dimension_table_info.dimension_table_en_name = translate_table_ename.table_ename
+                        stop_flag = False
+            # 给表名称加后缀
+            mapping_dimension_table_info.dimension_table_en_name = mapping_dimension_table_info.dimension_table_en_name + "_BYTS"
+            # 更新
+            mapping_dimension_table_info_slice[index] = mapping_dimension_table_info
+        state["mapping_dimension_table_info_slice"] = mapping_dimension_table_info_slice
+    return state
+
+
 def save_mapping_dimension_table_info(state: TableGenState):
-    logger.info("存储mapping_dimension_table_info")
+    logger.info("[+] 存储mapping_dimension_table_info节点")
     mapping_dimension_table_info_slice = state.get("mapping_dimension_table_info_slice")
     if mapping_dimension_table_info_slice:
         for mapping_dimension_table_info in mapping_dimension_table_info_slice:
@@ -156,6 +207,7 @@ table_gen_builder.add_node("analyze_table_intent", analyze_table_intent)
 table_gen_builder.add_node("table_intent_human_feedback", table_intent_human_feedback)
 table_gen_builder.add_node("material_table_group_strategy", material_table_group_sliding_window_strategy)
 table_gen_builder.add_node("material_tables_mapping_dimension_table", material_tables_mapping_dimension_table)
+table_gen_builder.add_node("translate_table_name", translate_table_name)
 table_gen_builder.add_node("save_mapping_dimension_table_info", save_mapping_dimension_table_info)
 
 table_gen_builder.add_edge(START, "analyze_table_intent")
@@ -166,7 +218,8 @@ table_gen_builder.add_conditional_edges(
     ["analyze_table_intent", "material_table_group_strategy"],
 )
 table_gen_builder.add_edge("material_table_group_strategy", "material_tables_mapping_dimension_table")
-table_gen_builder.add_edge("material_tables_mapping_dimension_table", "save_mapping_dimension_table_info")
+table_gen_builder.add_edge("material_tables_mapping_dimension_table", "translate_table_name")
+table_gen_builder.add_edge("translate_table_name", "save_mapping_dimension_table_info")
 table_gen_builder.add_edge("save_mapping_dimension_table_info", END)
 
 memory = MemorySaver()
