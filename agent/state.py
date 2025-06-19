@@ -153,22 +153,38 @@ class TableGenUserIntentSchema(BaseModel):
     categories: List[str] = Field(..., description="期望生成的表类别, 例如: 人员属性,上网行为,位置轨迹等")
     category_table_number_min: int = Field(1, description="每个类别最小表数量", ge=1)
     category_table_number_max: int = Field(30, description="每个类别最大表数量", le=30)
-    table_field_col_min: int = Field(2, description="每个表的最小字段数量>=2", ge=2)
+    table_field_col_min: int = Field(5, description="每个表的最小字段数量>=5", ge=5)
     table_field_col_max: int = Field(500, description="每个表的最大字段数量<=1000", le=500)
 
 
-class DimensionMappingResult(BaseModel):
+class StructuredDimensionMappingSchema(BaseModel):
     recommend_category: str = Field(..., description="LLM推荐的表类别")
     dimension_table_en_name: str = Field(..., description="特征表英文名")
     dimension_table_cn_name: str = Field(..., description="特征表中文名")
     dimension_table_description: str = Field(..., description="特征表描述")
-    reference_material_table_slice: List[str] = Field(..., description="参考的素材表英文名", min_length=2, max_length=6)
+    reference_material_table_en_name_slice: List[str] = Field(..., description="参考的素材表英文名", min_length=2, max_length=6)
+    reference_material_table_metadata_slice: List[TableMetadataSchema] = Field([], description="参考的素材表字段信息", min_length=2, max_length=6)
     reason: str = Field(description="推荐理由说明")
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
 
 
-class TranslateTableEname(BaseModel):
+class StructuredTranslateTableEnameSchema(BaseModel):
     table_ename: str = Field(..., description="表英文名称", pattern="^[A-Z][A-Z_]+[A-Z]$")
+
+
+class DimensionTableFieldsRecommendation(BaseModel):
+    field_en_name_slice: List[str] = Field(description=f"推荐的字段名称清单，必须在允许的字段列表中",
+                                           min_length=5, max_length=500)
+    score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
+    reason: str = Field(description="推荐理由说明")
+
+
+class DimensionTableFillFieldResult(BaseModel):
+    recommend_category: str = Field(..., description="LLM推荐的表类别")
+    dimension_table_en_name: str = Field(..., description="特征表英文名")
+    dimension_table_cn_name: str = Field(..., description="特征表中文名")
+    dimension_table_fields_recommendations: List[DimensionTableFieldsRecommendation] = Field(description="推荐结果")
+    dimension_table_fields: List[TableRawFieldSchema] = Field(description="特征表字段信息")
 
 
 class TableGenState(TypedDict):
@@ -177,7 +193,8 @@ class TableGenState(TypedDict):
     user_intent: TableGenUserIntentSchema
     human_intent_feedback: str
     material_table_groups: List[List[Dict]]
-    mapping_dimension_table_info_slice: List[DimensionMappingResult]
+    mapping_dimension_table_info_slice: List[StructuredDimensionMappingSchema]
+    dimension_table_config_slice: List[DimensionTableFillFieldResult]
     max_retries: int
 
 
@@ -188,8 +205,6 @@ class TableGenState(TypedDict):
 #     field_type: str
 #     # 字段样例值
 #     sample_value: str
-#     # 字段约束条件列表, e.g., ["age > 18", "name is not null"]
-#     constraints: List[str]
 
 
 # class FakerExecutionInstruction(TypedDict):

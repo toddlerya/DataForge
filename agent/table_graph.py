@@ -7,14 +7,19 @@
 
 import pathlib
 import re
+from typing import List
 
 from loguru import logger
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from agent.llm import chat_llm
-from agent.prompt import table_intent_prompt, table_mapping_dimension_prompt, table_ename_translate_prompt
-from agent.state import (TableGenState, TranslateTableEname, DimensionMappingResult, TableGenUserIntentSchema)
+from agent.prompt import table_intent_prompt, table_mapping_dimension_prompt, table_ename_translate_prompt, \
+    table_fields_fill_prompt
+from agent.state import (TableGenState, StructuredTranslateTableEnameSchema, StructuredDimensionMappingSchema,
+                         TableGenUserIntentSchema, TableMetadataSchema,
+                         DimensionTableFieldsRecommendation, DimensionTableFillFieldResult)
+from database_models.schema import TableRawFieldSchema
 from cruds.advanced_query import sliding_window_query
 from database_models.models import TableMetaDataInfo
 from utils.db import Database
@@ -73,7 +78,7 @@ def material_table_group_sliding_window_strategy(state: TableGenState):
     logger.info(f"[+] 元数据表作为素材分组策略，当前策略为滑动窗口拼接数据")
     all_results = sliding_window_query(db_handler=Database(),
                                        model_class=TableMetaDataInfo,
-                                       fields=["table_en_name", "table_cn_name", "description"],
+                                       fields=["table_en_name", "table_cn_name", "description", "table_fields"],
                                        window_size=20,
                                        step_size=10
                                        # filters={"source": "盘古"},
@@ -92,6 +97,29 @@ def material_tables_mapping_dimension_table(state: TableGenState):
     Returns:
 
     """
+
+    def extract_reference_table_metadata_info(each_material_table_group: list[dict],
+                                              reference_table_en_name_slice: list[str]):
+        """
+        提取补全参照表字段信息备用
+        Args:
+            each_material_table_group:
+            reference_table_en_name_slice:
+
+        Returns:
+
+        """
+        reference_table_metadata_slice: list[TableMetadataSchema] = list()
+        for each_material_table in each_material_table_group:
+            if each_material_table.get("table_en_name", "") in reference_table_en_name_slice:
+                reference_table_metadata = TableMetadataSchema(
+                    table_en_name=each_material_table.get("table_en_name", ""),
+                    table_cn_name=each_material_table.get("table_cn_name", ""),
+                    raw_fields_info=each_material_table.get("table_fields", []),
+                )
+                reference_table_metadata_slice.append(reference_table_metadata)
+        return reference_table_metadata_slice
+
     logger.info(f"[+] 素材表输入LLM映射出一组特征表节点")
     material_table_groups: list[list[dict]] = state.get("material_table_groups")
     user_intent: TableGenUserIntentSchema = state["user_intent"]
@@ -109,7 +137,7 @@ def material_tables_mapping_dimension_table(state: TableGenState):
         chat_prompt = table_mapping_dimension_prompt.format_messages(user_intent_categories=user_intent.categories,
                                                                      material_table_infos=material_table_infos)
         # 构建每一组的结构化信息
-        structured_llm = chat_llm.with_structured_output(DimensionMappingResult)
+        structured_llm = chat_llm.with_structured_output(StructuredDimensionMappingSchema)
         logger.trace(f"material_tables_mapping_dimension_table chat_prompt: {chat_prompt}")
 
         retry_count = 0
@@ -119,7 +147,7 @@ def material_tables_mapping_dimension_table(state: TableGenState):
             if retry_count >= max_retries:
                 break
             try:
-                dimension_mapping_result: DimensionMappingResult = structured_llm.invoke(chat_prompt)
+                dimension_mapping_result: StructuredDimensionMappingSchema = structured_llm.invoke(chat_prompt)
             except Exception as e:
                 logger.error(f"material_tables_mapping_dimension_table error: {e}")
                 retry_count += 1
@@ -131,6 +159,9 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                     # 如果生成的特征表名称没保存则保存下，否则跳过
                     if dimension_mapping_result.dimension_table_en_name not in recommend_dimension_table_en_name_slice:
                         recommend_dimension_table_en_name_slice.append(dimension_mapping_result.dimension_table_en_name)
+                        # 提取补全参照表字段信息备用，更新reference_material_table_fields_slice信息
+                        dimension_mapping_result.reference_material_table_metadata_slice = extract_reference_table_metadata_info(
+                            each_group, dimension_mapping_result.reference_material_table_en_name_slice)
                         mapping_dimension_table_info_slice.append(dimension_mapping_result)
                     else:
                         logger.warning(f"推荐生成的特征表重复，丢弃: {dimension_mapping_result}")
@@ -154,14 +185,14 @@ def translate_table_name(state: TableGenState):
         for index, mapping_dimension_table_info in enumerate(mapping_dimension_table_info_slice):
             stop_flag = True
             if mapping_dimension_table_info.dimension_table_en_name in \
-                    mapping_dimension_table_info.reference_material_table_slice \
+                    mapping_dimension_table_info.reference_material_table_en_name_slice \
                     or not re.match(pattern=r"^[A-Z][A-Z_]+[A-Z]$",
                                     string=mapping_dimension_table_info.dimension_table_en_name):
                 # 表的英文名在参照表清单中，或表的英文名称称为中文，需要根据表的中文名称翻译处理
                 chat_prompt = table_ename_translate_prompt.format_messages(
                     table_name=mapping_dimension_table_info.dimension_table_cn_name
                 )
-                structured_llm = chat_llm.with_structured_output(TranslateTableEname)
+                structured_llm = chat_llm.with_structured_output(StructuredTranslateTableEnameSchema)
                 retry_count = 0
                 # 设置最大重试次数
                 max_retries = state["max_retries"]
@@ -169,7 +200,7 @@ def translate_table_name(state: TableGenState):
                     if retry_count >= max_retries:
                         break
                     try:
-                        translate_table_ename: TranslateTableEname = structured_llm.invoke(chat_prompt)
+                        translate_table_ename: StructuredTranslateTableEnameSchema = structured_llm.invoke(chat_prompt)
                     except Exception as e:
                         logger.error(f"translate_table_name error: {e}")
                         retry_count += 1
@@ -199,6 +230,79 @@ def save_mapping_dimension_table_info(state: TableGenState):
                 .absolute()
             )
             save_dict2jl(json_data=data, save_path=str(save_json_path))
+    return state
+
+
+def gen_dimension_table_config(state: TableGenState):
+    """
+    回填字段生成特征表
+    Args:
+        state:
+
+    Returns:
+
+    """
+
+    def reformat_reference_material_table_fields(raw_fields_info: List[TableRawFieldSchema]):
+        """
+        提取精简表字段信息用作提示词
+        Args:
+            table_metadata_slice:
+
+        Returns:
+
+        """
+        result = list()
+        for field_metadata in raw_fields_info:
+            result.append(
+                {
+                    "en_name": field_metadata.en_name,
+                    "cn_name": field_metadata.cn_name
+                }
+            )
+        return result
+
+    logger.info("[+] 回填字段生成特征表节点")
+    mapping_dimension_table_info_slice = state.get("mapping_dimension_table_info_slice")
+    dimension_table_config_slice = list()
+    for mapping_dimension_table_info in mapping_dimension_table_info_slice:
+        # 依次处理每个参照表，提取填充特征表字段
+        for each_reference_material_table in mapping_dimension_table_info.reference_material_table_metadata_slice:
+            chat_prompt = table_fields_fill_prompt.format_messages(
+                category=mapping_dimension_table_info.recommend_category,
+                table_cn_name=mapping_dimension_table_info.dimension_table_cn_name,
+                table_fields_list=reformat_reference_material_table_fields(
+                    each_reference_material_table.raw_fields_info)
+            )
+            structured_llm = chat_llm.with_structured_output(DimensionTableFieldsRecommendation)
+            # TODO
+            retry_count = 0
+            # 设置最大重试次数
+            max_retries = state["max_retries"]
+            stop_flag = True
+            while stop_flag:
+                if retry_count >= max_retries:
+                    break
+                try:
+                    dimension_mapping_result: StructuredDimensionMappingSchema = structured_llm.invoke(chat_prompt)
+                except Exception as e:
+                    logger.error(f"material_tables_mapping_dimension_table error: {e}")
+                    retry_count += 1
+                else:
+                    logger.debug(f"dimension_mapping_result: {dimension_mapping_result}")
+                    if dimension_mapping_result.recommend_category in user_intent.categories:
+                        # 如果推荐的类别在用户意图范围内采纳
+                        logger.info(dimension_mapping_result)
+                    stop_flag = False
+        dimension_table_fill_fields_result = DimensionTableFillFieldResult(
+            recommend_category=mapping_dimension_table_info.recommend_category,
+            dimension_table_en_name=mapping_dimension_table_info.dimension_table_en_name,
+            dimension_table_cn_name=mapping_dimension_table_info.dimension_table_cn_name,
+            dimension_table_fields_recommendations=[],
+            dimension_table_fields=[]
+        )
+        dimension_table_config_slice.append(dimension_table_fill_fields_result)
+    state["dimension_table_config_slice"] = dimension_table_config_slice
     return state
 
 

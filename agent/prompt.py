@@ -116,7 +116,6 @@ table_mapping_dimension_prompt = ChatPromptTemplate.from_messages(
     [table_mapping_dimension_system_prompt, table_mapping_dimension_human_prompt]
 )
 
-
 table_ename_translate_system_prompt = ChatPromptTemplate.from_template(
     "你是数仓软件专家，精通英语翻译，你的任务是把用户给的表名称翻译为英文。"
     "请遵循如下命名规范："
@@ -133,6 +132,33 @@ table_ename_translate_prompt = ChatPromptTemplate.from_messages(
     [table_ename_translate_system_prompt, table_ename_translate_human_prompt]
 )
 
+table_fields_fill_system_prompt = ChatPromptTemplate.from_template(
+    "你是资深数据架构师，任务是根据用户提供的已有的素材表字段列表和用户需求设计新特征表信息，将分析的结果按照要求输出结构化数据"
+    "1. 理解用户需要创建的新表的名称和含义"
+    "2. 根据用户提供的表字段来推荐选取新表所需的字段"
+    "3. 只能选取用户提供字段信息，然后输出对应的字段英文名列表"
+    "4. 输出为List[str]格式"
+    "---"
+    "用户提供信息示例"
+    "新特征表类别: 人员属性"
+    "新特征表名称: 新浪微博_手机号邮箱注册信息"
+    """素材表字段列表: `[{{"en_name":"rcid","cn_name":"信息唯一标识"}},{{"en_name":"doma","cn_name":"应用域名"}},{{"en_name":"sccjsj","cn_name":"采集时间"}},{{"en_name":"copl","cn_name":"采集地"}},{{"en_name":"hard","cn_name":"硬件特征串"}},{{"en_name":"osve","cn_name":"终端操作系统版本"}},{{"en_name":"fite","cn_name":"手机号"}},{{"en_name":"nm","cn_name":"注册用户姓名"}},{{"en_name":"birt","cn_name":"用户生日"}},{{"en_name":"sexc","cn_name":"用户性别"}},{{"en_name":"fiph","cn_name":"用户联系电话"}}]`"""
+    "---"
+    "输出结构化数据示例"
+    """["rcid","fite","nm", "birt", "sexc", "fiph"]"""
+)
+
+table_fields_fill_human_prompt = ChatPromptTemplate.from_template(
+    "用户提供信息如下"
+    "---"
+    "新特征表类别: {category}"
+    "新特征表名称: {table_cn_name}"
+    "素材表字段列表: {table_fields_list}"
+)
+
+table_fields_fill_prompt = ChatPromptTemplate.from_messages([
+    table_fields_fill_system_prompt, table_fields_fill_human_prompt
+])
 
 # faker_plan_system_prompt = SystemMessagePromptTemplate.from_template(
 #     "您是一个智能助手，任务是根据数据库表结构和用户指定的条件，为 Python Faker 库生成数据生成计划配置"
