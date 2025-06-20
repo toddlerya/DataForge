@@ -8,6 +8,7 @@
 
 from typing import Tuple, Optional, Dict, List
 
+
 from utils.db import Database
 
 
@@ -17,7 +18,7 @@ def sliding_window_query(db_handler: Database,
                          window_size: int = 50,
                          step_size: int = 10,
                          order_by_field: str = "id",
-                         filters: Optional[Dict] = None,
+                         filters: Optional[Dict[str, List[str]]] = None,
                          callback: Optional[callable] = None):
     """
     执行滑动窗口查询
@@ -42,9 +43,9 @@ def sliding_window_query(db_handler: Database,
     # 首先获取总记录数
     total_count_query = db_handler.session.query(model_class)
     if filters:
-        for field, value in filters.items():
+        for field, value_slice in filters.items():
             total_count_query = total_count_query.filter(
-                getattr(model_class, field) == value
+                getattr(model_class, field).in_(value_slice)
             )
     total_count = total_count_query.count()
 
@@ -53,9 +54,10 @@ def sliding_window_query(db_handler: Database,
         query = db_handler.session.query(*[getattr(model_class, field) for field in fields])
 
         # 应用过滤条件
-        if filters:
-            for field, value in filters.items():
-                query = query.filter(getattr(model_class, field) == value)
+        for field, value_slice in filters.items():
+            total_count_query = total_count_query.filter(
+                getattr(model_class, field).in_(value_slice)
+            )
 
         # 排序、分页
         query = query.order_by(getattr(model_class, order_by_field))

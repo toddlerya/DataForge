@@ -76,15 +76,17 @@ def material_table_group_sliding_window_strategy(state: TableGenState):
         pass
 
     logger.info(f"[+] 元数据表作为素材分组策略，当前策略为滑动窗口拼接数据")
-    all_results = sliding_window_query(db_handler=Database(),
-                                       model_class=TableMetaDataInfo,
-                                       fields=["table_en_name", "table_cn_name", "description", "table_fields"],
-                                       window_size=20,
-                                       step_size=10
-                                       # filters={"source": "盘古"},
-                                       # callback=print_cb
-                                       )
-    state["material_table_groups"] = all_results
+    material_table_groups = sliding_window_query(db_handler=Database(),
+                                                 model_class=TableMetaDataInfo,
+                                                 fields=["table_en_name", "table_cn_name", "description",
+                                                         "table_fields"],
+                                                 window_size=20,
+                                                 step_size=10,
+                                                 filters={"source": ["盘古", "数据域"]},
+                                                 # callback=print_cb
+                                                 )
+    logger.debug(f"material_table_groups count: {len(material_table_groups)}")
+    state["material_table_groups"] = material_table_groups
     return state
 
 
@@ -124,7 +126,6 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                         "source_table_cn_name": table_cn_name
                     })
                     source_fields_info.append(ele)
-                logger.warning(f"source_fields_info: {source_fields_info}")
                 reference_table_metadata = GenSourceTableMetadataSchema(
                     table_en_name=table_en_name,
                     table_cn_name=table_cn_name,
