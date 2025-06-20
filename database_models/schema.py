@@ -21,6 +21,11 @@ class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     example: str | int | float = Field(default="", description="数据样例")
 
 
+class GenTableFieldSchema(TableRawFieldSchema):
+    source_table_en_name: str = Field(default="", description="来源表英文名")
+    source_table_cn_name: str = Field(default="", description="来源表中文名")
+
+
 class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     uuid: str = Field(
         default="",

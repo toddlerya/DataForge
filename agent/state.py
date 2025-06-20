@@ -14,11 +14,11 @@ from typing import (
     TypedDict,
 )
 
-from langchain_core.messages import HumanMessage, AnyMessage
+from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
 
-from database_models.schema import TableRawFieldSchema
+from database_models.schema import TableRawFieldSchema, GenTableFieldSchema
 from faker_utils.dg_configs import DG_FIELD_CATEGORY_CONFIG
 
 
@@ -151,10 +151,21 @@ class DataGenState(TypedDict):
 
 class TableGenUserIntentSchema(BaseModel):
     categories: List[str] = Field(..., description="期望生成的表类别, 例如: 人员属性,上网行为,位置轨迹等")
-    category_table_number_min: int = Field(1, description="每个类别最小表数量", ge=1)
-    category_table_number_max: int = Field(30, description="每个类别最大表数量", le=30)
+    table_number: int = Field(30, description="需要生成的表数量", le=500)
     table_field_col_min: int = Field(5, description="每个表的最小字段数量>=5", ge=5)
     table_field_col_max: int = Field(500, description="每个表的最大字段数量<=1000", le=500)
+
+
+class GenSourceTableMetadataSchema(BaseModel):
+    table_en_name: str = Field(
+        description="表英文名称", default=""
+    )
+    table_cn_name: str = Field(
+        description="表中文名称", default=""
+    )
+    source_fields_info: List[GenTableFieldSchema] = Field(
+        description="原始字段信息", default=[]
+    )
 
 
 class StructuredDimensionMappingSchema(BaseModel):
@@ -162,8 +173,11 @@ class StructuredDimensionMappingSchema(BaseModel):
     dimension_table_en_name: str = Field(..., description="特征表英文名")
     dimension_table_cn_name: str = Field(..., description="特征表中文名")
     dimension_table_description: str = Field(..., description="特征表描述")
-    reference_material_table_en_name_slice: List[str] = Field(..., description="参考的素材表英文名", min_length=2, max_length=6)
-    reference_material_table_metadata_slice: List[TableMetadataSchema] = Field([], description="参考的素材表字段信息", min_length=2, max_length=6)
+    reference_material_table_en_name_slice: List[str] = Field(..., description="参考的素材表英文名", min_length=2,
+                                                              max_length=6)
+    reference_material_table_metadata_slice: List[GenSourceTableMetadataSchema] = Field([],
+                                                                                        description="参考的素材表字段信息",
+                                                                                        min_length=2, max_length=6)
     reason: str = Field(description="推荐理由说明")
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
 
@@ -173,10 +187,13 @@ class StructuredTranslateTableEnameSchema(BaseModel):
 
 
 class DimensionTableFieldsRecommendation(BaseModel):
+    material_table_en_name: str = Field(default="", description="素材表英文名称")
+    material_table_cn_name: str = Field(default="", description="素材表中文名称")
     field_en_name_slice: List[str] = Field(description=f"推荐的字段名称清单，必须在允许的字段列表中",
                                            min_length=5, max_length=500)
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
     reason: str = Field(description="推荐理由说明")
+    top_num: int = Field(description="推荐的TopN提示词参数")
 
 
 class DimensionTableFillFieldResult(BaseModel):
@@ -184,7 +201,7 @@ class DimensionTableFillFieldResult(BaseModel):
     dimension_table_en_name: str = Field(..., description="特征表英文名")
     dimension_table_cn_name: str = Field(..., description="特征表中文名")
     dimension_table_fields_recommendations: List[DimensionTableFieldsRecommendation] = Field(description="推荐结果")
-    dimension_table_fields: List[TableRawFieldSchema] = Field(description="特征表字段信息")
+    dimension_table_fields: List[GenTableFieldSchema] = Field(description="特征表字段信息")
 
 
 class TableGenState(TypedDict):
@@ -196,91 +213,6 @@ class TableGenState(TypedDict):
     mapping_dimension_table_info_slice: List[StructuredDimensionMappingSchema]
     dimension_table_config_slice: List[DimensionTableFillFieldResult]
     max_retries: int
-
-
-# class TableFieldDefinition(TypedDict):
-#     en_name: str
-#     cn_name: str
-#     # 字段类型, e.g., "INT", "VARCHAR", "DATE", "BOOLEAN"
-#     field_type: str
-#     # 字段样例值
-#     sample_value: str
-
-
-# class FakerExecutionInstruction(TypedDict):
-#     field_en_name: str
-#     faker_provider: str
-#     faker_func: str
-#     faker_parameters: Dict[str, Any]
-#     is_nullable: bool
-#     null_probability: float
-#     dependencies: List[str]
-#     custom_logic_description: str
-#     string_format_template: Optional[str]
-
-
-# class FakerExecutionPlan(TypedDict):
-#     plan_description: str
-#     faker_locale: Optional[str]
-#     table_en_name: str
-#     row_count: int
-#     instructions_for_fields: List[FakerExecutionInstruction]
-
-
-# Pydantic models for LLM output as defined in section 3.2.3
-# class PydanticFakerInstruction(BaseModel):
-#     """LLM 输出的单个字段Faker指令 Pydantic模型"""
-#
-#     field_name: str = Field(description="需要生成数据的字段的英文名称。")
-#     faker_provider: str = Field(
-#         default="",
-#         description="要使用的 Python Faker provider (例如 'internet', 'address', 'ChineseIdCardProvider'。 没有需要映射的可以为空)。",
-#     )
-#     faker_func: str = Field(
-#         description="要使用的 Python Faker provider 方法 (例如 'pyint', 'name', 'address', 'date_between')。如果无法直接映射，则使用 'custom_logic'。"
-#     )
-#     faker_parameters: Dict[str, Any] = Field(
-#         default_factory=dict,
-#         description="传递给 Faker provider 方法的参数字典。例如：pyint 的 {'min_value': 0, 'max_value': 99}。对于 date_between，可使用 {'start_date': '-1y', 'end_date': 'today'}。",
-#     )
-#     is_nullable: bool = Field(
-#         default=False,
-#         description="该字段是否可以为 null。如果为 True，还需考虑 null_probability。",
-#     )
-#     null_probability: Optional[float] = Field(
-#         default=0.0,
-#         description="如果 is_nullable 为 True，则此字段生成 null 值的概率 (0.0 到 1.0)。",
-#     )
-#     dependencies: Optional[List[str]] = Field(
-#         default_factory=list,
-#         description="此字段生成所依赖的其他 field_name 列表 (用于复杂的字段间约束)。",
-#     )
-#     custom_logic_description: Optional[str] = Field(
-#         default=None,
-#         description="如果 Faker 无法通过 provider 和参数直接处理，则需要自定义逻辑或验证的自然语言描述。例如：'确保值是质数'，或 '结束日期必须在开始日期字段之后'。",
-#     )
-#     string_format_template: Optional[str] = Field(
-#         default=None,
-#         description="如果字段类型是字符串但需要特定格式 (例如 'ID-####')，请提供模板。使用 # 表示数字，? 表示字母。示例：'USER_??_####'。",
-#     )
-
-
-# class PydanticFakerPlan(BaseModel):
-#     """LLM 输出的Faker执行计划 Pydantic模型"""
-#
-#     plan_description: str = Field(
-#         default="使用 Python Faker 生成伪造数据的执行计划。",
-#         description="此计划的简要描述。",
-#     )
-#     faker_locale: Optional[str] = Field(
-#         default=None,
-#         description="Faker 使用的区域设置，例如 'en_US', 'zh_CN'。如果可能，从输入上下文中确定。",
-#     )
-#     table_en_name: str = Field(..., description="表名称")
-#     row_count: int = Field(1, gt=0, description="需要生成的数据条数")
-#     instructions_for_fields: List[PydanticFakerInstruction] = Field(
-#         description="指令列表，表中的每个字段对应一个指令。"
-#     )
 
 
 if __name__ == "__main__":

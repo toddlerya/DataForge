@@ -69,7 +69,7 @@ async def process_step(event, graph):
                 logger.info(f"human_intent_feedback: {res_text}")
                 cl.user_session.set("human_intent_feedback", res_text)
                 graph.update_state(
-                    cl.user_session.get("config"),
+                    cl.user_session.get("configs"),
                     {"human_intent_feedback": res_text},
                     as_node="intent_human_feedback_node")
                 start_time = asyncio.get_event_loop().time()
@@ -189,7 +189,7 @@ async def main(message: cl.Message):
     thread_id = cl.user_session.get("thread_id")
     logger.info(f"{thread_id}: {message.content}")
     config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 50}
-    cl.user_session.set("config", config)
+    cl.user_session.set("configs", config)
 
     current_state = data_gen_graph.get_state(config)
 

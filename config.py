@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @File    :   config.py
+# @File    :   configs.py
 # @Time    :   2023/11/3 18:30
 # @Author  :   guo qun X2590
 # @Desc    :   None

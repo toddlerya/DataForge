@@ -17,9 +17,9 @@ from agent.llm import chat_llm
 from agent.prompt import table_intent_prompt, table_mapping_dimension_prompt, table_ename_translate_prompt, \
     table_fields_fill_prompt
 from agent.state import (TableGenState, StructuredTranslateTableEnameSchema, StructuredDimensionMappingSchema,
-                         TableGenUserIntentSchema, TableMetadataSchema,
+                         TableGenUserIntentSchema, GenSourceTableMetadataSchema,
                          DimensionTableFieldsRecommendation, DimensionTableFillFieldResult)
-from database_models.schema import TableRawFieldSchema
+from database_models.schema import GenTableFieldSchema
 from cruds.advanced_query import sliding_window_query
 from database_models.models import TableMetaDataInfo
 from utils.db import Database
@@ -109,13 +109,26 @@ def material_tables_mapping_dimension_table(state: TableGenState):
         Returns:
 
         """
-        reference_table_metadata_slice: list[TableMetadataSchema] = list()
+        logger.debug(f"each_material_table_group count: {len(each_material_table_group)}")
+        reference_table_metadata_slice: list[GenSourceTableMetadataSchema] = list()
         for each_material_table in each_material_table_group:
             if each_material_table.get("table_en_name", "") in reference_table_en_name_slice:
-                reference_table_metadata = TableMetadataSchema(
-                    table_en_name=each_material_table.get("table_en_name", ""),
-                    table_cn_name=each_material_table.get("table_cn_name", ""),
-                    raw_fields_info=each_material_table.get("table_fields", []),
+                raw_fields_info = each_material_table.get("table_fields", [])
+                table_en_name = each_material_table.get("table_en_name", "")
+                table_cn_name = each_material_table.get("table_cn_name", "")
+                # 补充字段的来源表信息
+                source_fields_info = []
+                for ele in raw_fields_info:
+                    ele.update({
+                        "source_table_en_name": table_en_name,
+                        "source_table_cn_name": table_cn_name
+                    })
+                    source_fields_info.append(ele)
+                logger.warning(f"source_fields_info: {source_fields_info}")
+                reference_table_metadata = GenSourceTableMetadataSchema(
+                    table_en_name=table_en_name,
+                    table_cn_name=table_cn_name,
+                    source_fields_info=source_fields_info,
                 )
                 reference_table_metadata_slice.append(reference_table_metadata)
         return reference_table_metadata_slice
@@ -125,7 +138,7 @@ def material_tables_mapping_dimension_table(state: TableGenState):
     user_intent: TableGenUserIntentSchema = state["user_intent"]
     mapping_dimension_table_info_slice = list()
     recommend_dimension_table_en_name_slice = list()
-    for each_group in material_table_groups[:5]:
+    for each_group in material_table_groups[:int(user_intent.table_number)]:
         # 构建每一组素材的提示词
         material_table_infos = ""
         for index, material_table in enumerate(each_group):
@@ -152,10 +165,10 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                 logger.error(f"material_tables_mapping_dimension_table error: {e}")
                 retry_count += 1
             else:
-                logger.debug(f"dimension_mapping_result: {dimension_mapping_result}")
+                logger.trace(f"dimension_mapping_result: {dimension_mapping_result}")
                 if dimension_mapping_result.recommend_category in user_intent.categories:
                     # 如果推荐的类别在用户意图范围内采纳
-                    logger.info(dimension_mapping_result)
+                    logger.debug(f"dimension_mapping_result: {dimension_mapping_result}")
                     # 如果生成的特征表名称没保存则保存下，否则跳过
                     if dimension_mapping_result.dimension_table_en_name not in recommend_dimension_table_en_name_slice:
                         recommend_dimension_table_en_name_slice.append(dimension_mapping_result.dimension_table_en_name)
@@ -224,8 +237,10 @@ def save_mapping_dimension_table_info(state: TableGenState):
     if mapping_dimension_table_info_slice:
         for mapping_dimension_table_info in mapping_dimension_table_info_slice:
             data = mapping_dimension_table_info.model_dump()
+            # 移除此字段信息，因为此输出过程不需要体现这个信息
+            data.pop("reference_material_table_metadata_slice")
             save_json_path = (
-                pathlib.Path(r"F:\GITLAB\DataForge\data\gen_models")
+                pathlib.Path(r"F:\GITLAB\DataForge\data\gen_models\materials")
                 .joinpath(f"{mapping_dimension_table_info.dimension_table_en_name}.json")
                 .absolute()
             )
@@ -243,17 +258,17 @@ def gen_dimension_table_config(state: TableGenState):
 
     """
 
-    def reformat_reference_material_table_fields(raw_fields_info: List[TableRawFieldSchema]):
+    def reformat_reference_material_table_fields(source_fields_info: List[GenTableFieldSchema]):
         """
         提取精简表字段信息用作提示词
         Args:
-            table_metadata_slice:
+            source_fields_info:
 
         Returns:
 
         """
         result = list()
-        for field_metadata in raw_fields_info:
+        for field_metadata in source_fields_info:
             result.append(
                 {
                     "en_name": field_metadata.en_name,
@@ -263,46 +278,100 @@ def gen_dimension_table_config(state: TableGenState):
         return result
 
     logger.info("[+] 回填字段生成特征表节点")
+    user_intent = state.get("user_intent")
     mapping_dimension_table_info_slice = state.get("mapping_dimension_table_info_slice")
     dimension_table_config_slice = list()
     for mapping_dimension_table_info in mapping_dimension_table_info_slice:
-        # 依次处理每个参照表，提取填充特征表字段
+        # 生成每个特征表的配置信息
+        dimension_table_fields_recommendations = list()
+        dimension_table_fields = list()
         for each_reference_material_table in mapping_dimension_table_info.reference_material_table_metadata_slice:
+            # 依次处理每个参照表，提取填充特征表字段
+            reference_material_table_en_name_count = len(
+                mapping_dimension_table_info.reference_material_table_en_name_slice)
+            try:
+                recommend_top_num = int(user_intent.table_field_col_max / reference_material_table_en_name_count) + 1
+            except Exception as err:
+                logger.warning(f"计算推荐字段TopN参数错误: {err}, 给默认值50")
+                recommend_top_num = 50
             chat_prompt = table_fields_fill_prompt.format_messages(
                 category=mapping_dimension_table_info.recommend_category,
                 table_cn_name=mapping_dimension_table_info.dimension_table_cn_name,
                 table_fields_list=reformat_reference_material_table_fields(
-                    each_reference_material_table.raw_fields_info)
+                    each_reference_material_table.source_fields_info),
+                top_num=recommend_top_num,
             )
+            logger.debug(f"gen_dimension_table_config call llm args: "
+                         f"recommend_category: {mapping_dimension_table_info.recommend_category} "
+                         f"dimension_table_en_name: {mapping_dimension_table_info.dimension_table_en_name} "
+                         f"dimension_table_cn_name: {mapping_dimension_table_info.dimension_table_cn_name} "
+                         f"top_num: {recommend_top_num} "
+                         f"each_reference_material_table: {each_reference_material_table.table_en_name}")
             structured_llm = chat_llm.with_structured_output(DimensionTableFieldsRecommendation)
-            # TODO
             retry_count = 0
             # 设置最大重试次数
             max_retries = state["max_retries"]
             stop_flag = True
             while stop_flag:
                 if retry_count >= max_retries:
+                    logger.error(f"达到最大重试次数: {max_retries}! 退出处理dimension_table_fields_recommendation")
                     break
                 try:
-                    dimension_mapping_result: StructuredDimensionMappingSchema = structured_llm.invoke(chat_prompt)
+                    dimension_table_fields_recommendation: DimensionTableFieldsRecommendation = structured_llm.invoke(
+                        chat_prompt)
                 except Exception as e:
-                    logger.error(f"material_tables_mapping_dimension_table error: {e}")
+                    logger.error(f"gen_dimension_table_config error: {e}")
                     retry_count += 1
                 else:
-                    logger.debug(f"dimension_mapping_result: {dimension_mapping_result}")
-                    if dimension_mapping_result.recommend_category in user_intent.categories:
-                        # 如果推荐的类别在用户意图范围内采纳
-                        logger.info(dimension_mapping_result)
+                    # 补充素材表信息：
+                    dimension_table_fields_recommendation.material_table_en_name = each_reference_material_table.table_en_name
+                    dimension_table_fields_recommendation.material_table_cn_name = each_reference_material_table.table_cn_name
+                    dimension_table_fields_recommendation.top_num = recommend_top_num
+                    # 对dimension_table_fields_recommendation的field_en_name_slice去重，保证一张表的推荐字段没有重复
+                    dimension_table_fields_recommendation.field_en_name_slice = list(
+                        set(dimension_table_fields_recommendation.field_en_name_slice))
+                    logger.debug(
+                        f"gen_dimension_table_config dimension_table_fields_recommendation: {dimension_table_fields_recommendation}")
+                    dimension_table_fields_recommendations.append(dimension_table_fields_recommendation)
+                    # 根据推荐字段获取对应字段的元数据信息
+                    dimension_table_field = [ele for ele in each_reference_material_table.source_fields_info if
+                                             ele.en_name in dimension_table_fields_recommendation.field_en_name_slice]
+                    dimension_table_fields.extend(dimension_table_field)
+                    # 去重特征表推荐的字段元数据信息
+                    seen_field_en_name = set()
+                    unique_data_list = list()
+                    for item in dimension_table_fields:
+                        if item.en_name not in seen_field_en_name:
+                            unique_data_list.append(item)
+                            seen_field_en_name.add(item.en_name)
+                    dimension_table_fields = unique_data_list
                     stop_flag = False
+        # 每张特征表的结果
         dimension_table_fill_fields_result = DimensionTableFillFieldResult(
             recommend_category=mapping_dimension_table_info.recommend_category,
             dimension_table_en_name=mapping_dimension_table_info.dimension_table_en_name,
             dimension_table_cn_name=mapping_dimension_table_info.dimension_table_cn_name,
-            dimension_table_fields_recommendations=[],
-            dimension_table_fields=[]
+            dimension_table_fields_recommendations=dimension_table_fields_recommendations,
+            dimension_table_fields=dimension_table_fields
         )
+        # logger.debug(f"dimension_table_fill_fields_result: {dimension_table_fill_fields_result}")
         dimension_table_config_slice.append(dimension_table_fill_fields_result)
     state["dimension_table_config_slice"] = dimension_table_config_slice
+    return state
+
+
+def save_dimension_table_config(state: TableGenState):
+    logger.info("[+] 存储dimension_table_config节点")
+    dimension_table_config_slice = state.get("dimension_table_config_slice")
+    if dimension_table_config_slice:
+        for dimension_table_fill_fields_result in dimension_table_config_slice:
+            data = dimension_table_fill_fields_result.model_dump()
+            save_json_path = (
+                pathlib.Path(r"F:\GITLAB\DataForge\data\gen_models\configs")
+                .joinpath(f"{dimension_table_fill_fields_result.dimension_table_en_name}.json")
+                .absolute()
+            )
+            save_dict2jl(json_data=data, save_path=str(save_json_path))
     return state
 
 
@@ -313,6 +382,8 @@ table_gen_builder.add_node("material_table_group_strategy", material_table_group
 table_gen_builder.add_node("material_tables_mapping_dimension_table", material_tables_mapping_dimension_table)
 table_gen_builder.add_node("translate_table_name", translate_table_name)
 table_gen_builder.add_node("save_mapping_dimension_table_info", save_mapping_dimension_table_info)
+table_gen_builder.add_node("gen_dimension_table_config", gen_dimension_table_config)
+table_gen_builder.add_node("save_dimension_table_config", save_dimension_table_config)
 
 table_gen_builder.add_edge(START, "analyze_table_intent")
 table_gen_builder.add_edge("analyze_table_intent", "table_intent_human_feedback")
@@ -324,7 +395,9 @@ table_gen_builder.add_conditional_edges(
 table_gen_builder.add_edge("material_table_group_strategy", "material_tables_mapping_dimension_table")
 table_gen_builder.add_edge("material_tables_mapping_dimension_table", "translate_table_name")
 table_gen_builder.add_edge("translate_table_name", "save_mapping_dimension_table_info")
-table_gen_builder.add_edge("save_mapping_dimension_table_info", END)
+table_gen_builder.add_edge("save_mapping_dimension_table_info", "gen_dimension_table_config")
+table_gen_builder.add_edge("gen_dimension_table_config", "save_dimension_table_config")
+table_gen_builder.add_edge("save_dimension_table_config", END)
 
 memory = MemorySaver()
 table_gen_graph = table_gen_builder.compile(
@@ -333,7 +406,7 @@ table_gen_graph = table_gen_builder.compile(
 
 if __name__ == "__main__":
     print(table_gen_graph.get_graph(xray=True).draw_mermaid())
-    user_input = """帮我生成一些人员属性、上网行为、位置轨迹类别的表，每个类别的表最少2张，最多10张，每个表的字段数量最少10个，最多100个"""
+    user_input = """帮我生成一些人员属性、上网行为、位置轨迹类别的表，每个表的字段数量最少10个，最多100个，至少生成2张表"""
     thread = {"configurable": {"thread_id": "123"}}
     init_state = {
         "user_input": user_input,
@@ -348,6 +421,10 @@ if __name__ == "__main__":
 
     for event in table_gen_graph.stream(None, thread, stream_mode="values"):
         # Review
-        human_intent_feedback = event.get("human_intent_feedback")
-        if human_intent_feedback:
-            logger.info(f"human_intent_feedback: {human_intent_feedback}")
+        # human_intent_feedback = event.get("human_intent_feedback")
+        # if human_intent_feedback:
+        #     logger.info(f"human_intent_feedback: {human_intent_feedback}")
+
+        dimension_table_config_slice = event.get("dimension_table_config_slice")
+        if dimension_table_config_slice:
+            logger.info(f"dimension_table_config_slice count: {len(dimension_table_config_slice)}")
