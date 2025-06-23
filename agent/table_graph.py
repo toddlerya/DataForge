@@ -40,7 +40,7 @@ def analyze_table_intent(state: TableGenState) -> TableGenState:
     logger.trace(f"analyze_intent chat_prompt: {chat_prompt}")
     table_user_intent = structured_llm.invoke(chat_prompt)
     state["user_intent"] = table_user_intent
-    logger.debug(f"user_intent: {table_user_intent}")
+    logger.debug(f"user_intent structured_output: {table_user_intent}")
     return state
 
 
@@ -302,7 +302,7 @@ def gen_dimension_table_config(state: TableGenState):
                     each_reference_material_table.source_fields_info),
                 top_num=recommend_top_num,
             )
-            logger.debug(f"gen_dimension_table_config call llm args: "
+            logger.trace(f"gen_dimension_table_config call llm args: "
                          f"recommend_category: {mapping_dimension_table_info.recommend_category} "
                          f"dimension_table_en_name: {mapping_dimension_table_info.dimension_table_en_name} "
                          f"dimension_table_cn_name: {mapping_dimension_table_info.dimension_table_cn_name} "
@@ -331,8 +331,9 @@ def gen_dimension_table_config(state: TableGenState):
                     # 对dimension_table_fields_recommendation的field_en_name_slice去重，保证一张表的推荐字段没有重复
                     dimension_table_fields_recommendation.field_en_name_slice = list(
                         set(dimension_table_fields_recommendation.field_en_name_slice))
-                    logger.debug(
-                        f"gen_dimension_table_config dimension_table_fields_recommendation: {dimension_table_fields_recommendation}")
+                    logger.trace(
+                        f"gen_dimension_table_config dimension_table_fields_recommendation: "
+                        f"{dimension_table_fields_recommendation}")
                     dimension_table_fields_recommendations.append(dimension_table_fields_recommendation)
                     # 根据推荐字段获取对应字段的元数据信息
                     dimension_table_field = [ele for ele in each_reference_material_table.source_fields_info if
@@ -426,6 +427,7 @@ if __name__ == "__main__":
         # if human_intent_feedback:
         #     logger.info(f"human_intent_feedback: {human_intent_feedback}")
 
-        dimension_table_config_slice = event.get("dimension_table_config_slice")
-        if dimension_table_config_slice:
-            logger.info(f"dimension_table_config_slice count: {len(dimension_table_config_slice)}")
+        # dimension_table_config_slice = event.get("dimension_table_config_slice")
+        # if dimension_table_config_slice:
+        #     logger.info(f"dimension_table_config_slice count: {len(dimension_table_config_slice)}")
+        pass
