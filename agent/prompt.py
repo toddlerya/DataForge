@@ -100,16 +100,14 @@ table_intent_prompt = ChatPromptTemplate.from_messages(
 table_mapping_dimension_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是资深数据架构师，任务是从现有数据结构中识别新的业务建模机会，将分析的结果按照要求输出结构化数据\n"
     "1. 这些表可以聚合衍生出的新的推荐类别应该在{user_intent_categories}范围内，对应recommend_category\n"
-    "2. 创建的新的表英文名称，表名称命名规范为英文全部大写+下划线，对应dimension_table_en_name\n"
+    "2. 创建的新的表英文名称，表名称命名规范为英文全部大写+下划线，对应recommend_dimension_table_en_name\n"
     "4. 推荐的置信度评分，对应score\n"
     "5. 推荐的理由，对应reason\n"
-    "6. 参考的素材表英文名称清单列表，对应reference_material_table_slice\n"
-    "7. 创建的新的表英文名称(`dimension_table_en_name`)不应在参考的素材表英文名称清单列表(`reference_material_table_slice`)范围内\n"
+    "6. 参考的素材表英文名称清单列表，对应recommend_reference_material_table_en_name_slice\n"
+    "7. 创建的新的表英文名称(`recommend_dimension_table_en_name`)不应在参考的素材表英文名称清单列表(`recommend_reference_material_table_en_name_slice`)范围内\n"
 )
 table_mapping_dimension_human_prompt = HumanMessagePromptTemplate.from_template(
-    "这是我们现有数仓中的一些表元数据"
-    "---"
-    "{material_table_infos}"
+    "这是我们现有数仓中的一些表元数据---{material_table_infos}"
 )
 table_mapping_dimension_prompt = ChatPromptTemplate.from_messages(
     [table_mapping_dimension_system_prompt, table_mapping_dimension_human_prompt]
@@ -156,6 +154,6 @@ table_fields_fill_human_prompt = HumanMessagePromptTemplate.from_template(
     "素材表字段列表: {table_fields_list}"
 )
 
-table_fields_fill_prompt = ChatPromptTemplate.from_messages([
-    table_fields_fill_system_prompt, table_fields_fill_human_prompt
-])
+table_fields_fill_prompt = ChatPromptTemplate.from_messages(
+    [table_fields_fill_system_prompt, table_fields_fill_human_prompt]
+)

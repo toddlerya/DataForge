@@ -150,19 +150,19 @@ class DataGenState(TypedDict):
 
 
 class TableGenUserIntentSchema(BaseModel):
-    categories: List[str] = Field(..., description="期望生成的表类别, 例如: 人员属性,上网行为,位置轨迹等")
+    categories: List[str] = Field(
+        ..., description="期望生成的表类别, 例如: 人员属性,上网行为,位置轨迹等"
+    )
     table_number: int = Field(30, description="需要生成的表数量", le=500)
     table_field_col_min: int = Field(5, description="每个表的最小字段数量>=5", ge=5)
-    table_field_col_max: int = Field(500, description="每个表的最大字段数量<=1000", le=500)
+    table_field_col_max: int = Field(
+        500, description="每个表的最大字段数量<=1000", le=500
+    )
 
 
 class GenSourceTableMetadataSchema(BaseModel):
-    table_en_name: str = Field(
-        description="表英文名称", default=""
-    )
-    table_cn_name: str = Field(
-        description="表中文名称", default=""
-    )
+    table_en_name: str = Field(description="表英文名称", default="")
+    table_cn_name: str = Field(description="表中文名称", default="")
     source_fields_info: List[GenTableFieldSchema] = Field(
         description="原始字段信息", default=[]
     )
@@ -173,24 +173,36 @@ class StructuredDimensionMappingSchema(BaseModel):
     dimension_table_en_name: str = Field(..., description="特征表英文名")
     dimension_table_cn_name: str = Field(..., description="特征表中文名")
     dimension_table_description: str = Field(..., description="特征表描述")
-    reference_material_table_en_name_slice: List[str] = Field(..., description="参考的素材表英文名", min_length=2,
-                                                              max_length=6)
-    reference_material_table_metadata_slice: List[GenSourceTableMetadataSchema] = Field([],
-                                                                                        description="参考的素材表字段信息",
-                                                                                        min_length=2, max_length=6)
+    recommend_dimension_table_en_name: str = Field(
+        "", description="LLM推荐的特征表英文名称"
+    )
+    recommend_reference_material_table_en_name_slice: List[str] = Field(
+        ..., description="LLM推荐参考的素材表英文名", min_length=2, max_length=6
+    )
+    reference_material_table_en_name_slice: List[str] = Field(
+        [], description="归一化后参考的素材表英文名", min_length=2, max_length=6
+    )
+    reference_material_table_metadata_slice: List[GenSourceTableMetadataSchema] = Field(
+        [], description="参考的素材表字段信息", min_length=2, max_length=6
+    )
     reason: str = Field(description="推荐理由说明")
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
 
 
 class StructuredTranslateTableEnameSchema(BaseModel):
-    table_ename: str = Field(..., description="表英文名称", pattern="^[A-Z][A-Z_]+[A-Z]$")
+    table_ename: str = Field(
+        ..., description="表英文名称", pattern="^[A-Z][A-Z_]+[A-Z]$"
+    )
 
 
 class DimensionTableFieldsRecommendation(BaseModel):
     material_table_en_name: str = Field(default="", description="素材表英文名称")
     material_table_cn_name: str = Field(default="", description="素材表中文名称")
-    field_en_name_slice: List[str] = Field(description=f"推荐的字段名称清单，必须在允许的字段列表中",
-                                           min_length=5, max_length=500)
+    field_en_name_slice: List[str] = Field(
+        description=f"推荐的字段名称清单，必须在允许的字段列表中",
+        min_length=5,
+        max_length=500,
+    )
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
     reason: str = Field(description="推荐理由说明")
     top_num: int = Field(description="推荐的TopN提示词参数")
@@ -200,8 +212,12 @@ class DimensionTableFillFieldResult(BaseModel):
     recommend_category: str = Field(..., description="LLM推荐的表类别")
     dimension_table_en_name: str = Field(..., description="特征表英文名")
     dimension_table_cn_name: str = Field(..., description="特征表中文名")
-    dimension_table_fields_recommendations: List[DimensionTableFieldsRecommendation] = Field(description="推荐结果")
-    dimension_table_fields: List[GenTableFieldSchema] = Field(description="特征表字段信息")
+    dimension_table_fields_recommendations: List[DimensionTableFieldsRecommendation] = (
+        Field(description="推荐结果")
+    )
+    dimension_table_fields: List[GenTableFieldSchema] = Field(
+        description="特征表字段信息"
+    )
 
 
 class TableGenState(TypedDict):
