@@ -170,21 +170,19 @@ class GenSourceTableMetadataSchema(BaseModel):
 
 class StructuredDimensionMappingSchema(BaseModel):
     recommend_category: str = Field(..., description="LLM推荐的表类别")
-    dimension_table_en_name: str = Field(..., description="特征表英文名")
-    dimension_table_cn_name: str = Field(..., description="特征表中文名")
-    dimension_table_description: str = Field(..., description="特征表描述")
-    recommend_dimension_table_en_name: str = Field(
-        "", description="LLM推荐的特征表英文名称"
-    )
+    recommend_dimension_table_en_name: str = Field(..., description="LLM推荐的特征表英文名称")
     recommend_reference_material_table_en_name_slice: List[str] = Field(
         ..., description="LLM推荐参考的素材表英文名", min_length=2, max_length=6
     )
-    reference_material_table_en_name_slice: List[str] = Field(
-        [], description="归一化后参考的素材表英文名", min_length=2, max_length=6
-    )
-    reference_material_table_metadata_slice: List[GenSourceTableMetadataSchema] = Field(
-        [], description="参考的素材表字段信息", min_length=2, max_length=6
-    )
+    reference_material_table_en_name_slice: List[str] = Field([], description="归一化后参考的素材表英文名",
+                                                              min_length=2, max_length=6)
+    reference_material_table_metadata_slice: List[GenSourceTableMetadataSchema] = Field([],
+                                                                                        description="参考的素材表字段信息",
+                                                                                        min_length=2, max_length=6
+                                                                                        )
+    dimension_table_en_name: str = Field("", description="特征表英文名")
+    dimension_table_cn_name: str = Field(..., description="特征表中文名")
+    dimension_table_description: str = Field(..., description="特征表描述")
     reason: str = Field(description="推荐理由说明")
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
 

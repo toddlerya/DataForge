@@ -116,13 +116,13 @@ def material_tables_mapping_dimension_table(state: TableGenState):
 
     def extract_reference_table_metadata_info(
         each_material_table_group: list[dict],
-        raw_reference_table_en_name_slice: list[str],
+        recommend_reference_material_table_en_name_slice: list[str],
     ) -> Tuple[list[GenSourceTableMetadataSchema], list[str]]:
         """
         提取补全参照表字段信息备用
         Args:
             each_material_table_group:
-            raw_reference_table_en_name_slice:
+            recommend_reference_material_table_en_name_slice:
 
         Returns:
 
@@ -135,8 +135,8 @@ def material_tables_mapping_dimension_table(state: TableGenState):
         for each_material_table in each_material_table_group:
             table_en_name = each_material_table.get("table_en_name", "")
             if (
-                table_en_name.upper() in raw_reference_table_en_name_slice
-                or table_en_name.lower() in raw_reference_table_en_name_slice
+                table_en_name.upper() in recommend_reference_material_table_en_name_slice
+                or table_en_name.lower() in recommend_reference_material_table_en_name_slice
             ):
                 raw_fields_info = each_material_table.get("table_fields", [])
                 table_cn_name = each_material_table.get("table_cn_name", "")
@@ -203,14 +203,14 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                 logger.error(f"material_tables_mapping_dimension_table error: {e}")
                 retry_count += 1
             else:
-                logger.trace(f"dimension_mapping_result: {dimension_mapping_result}")
+                logger.trace(f"输出 dimension_mapping_result: {dimension_mapping_result}")
                 if (
                     dimension_mapping_result.recommend_category
                     in user_intent.categories
                 ):
                     # 如果推荐的类别在用户意图范围内采纳
                     logger.debug(
-                        f"dimension_mapping_result: {dimension_mapping_result}"
+                        f"采纳 dimension_mapping_result: {dimension_mapping_result}"
                     )
                     # 如果生成的特征表名称没保存则保存下，否则跳过
                     if (
@@ -234,7 +234,10 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                         )
                     else:
                         logger.warning(
-                            f"推荐生成的特征表重复，丢弃: {dimension_mapping_result}"
+                            f"推荐生成的特征表重复，丢弃-> "
+                            f"result.recommend_dimension_table_en_name: {dimension_mapping_result.recommend_dimension_table_en_name} "
+                            f"result.dimension_table_en_name: {dimension_mapping_result.dimension_table_en_name} "
+                            f"recommend_dimension_table_en_name_slice: {recommend_dimension_table_en_name_slice}"
                         )
                 break
     state["mapping_dimension_table_info_slice"] = mapping_dimension_table_info_slice
@@ -525,6 +528,8 @@ table_gen_graph = table_gen_builder.compile(
 )
 
 if __name__ == "__main__":
+    from utils.log import LogManager
+    LogManager(base_path=r"F:\GITLAB\DataForge\logs", log_path="agent", log_name="agent.log", file_log_level="TRACE")
     print(table_gen_graph.get_graph(xray=True).draw_mermaid())
     user_input = """帮我生成一些人员属性、上网行为、位置轨迹类别的表，每个表的字段数量最少10个，最多100个，至少生成2张表"""
     thread = {"configurable": {"thread_id": "123"}}

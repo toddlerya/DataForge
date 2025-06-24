@@ -100,7 +100,7 @@ table_intent_prompt = ChatPromptTemplate.from_messages(
 table_mapping_dimension_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是资深数据架构师，任务是从现有数据结构中识别新的业务建模机会，将分析的结果按照要求输出结构化数据\n"
     "1. 这些表可以聚合衍生出的新的推荐类别应该在{user_intent_categories}范围内，对应recommend_category\n"
-    "2. 创建的新的表英文名称，表名称命名规范为英文全部大写+下划线，对应recommend_dimension_table_en_name\n"
+    "2. 推荐新表的表英文名称，表名称命名规范为英文全部大写+下划线，对应recommend_dimension_table_en_name\n"
     "4. 推荐的置信度评分，对应score\n"
     "5. 推荐的理由，对应reason\n"
     "6. 参考的素材表英文名称清单列表，对应recommend_reference_material_table_en_name_slice\n"
