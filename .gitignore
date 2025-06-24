@@ -26,3 +26,4 @@ database/data_forge.db
 .langgraph_api
 /design/*.bkp
 /data/gen_models/
+*.log
