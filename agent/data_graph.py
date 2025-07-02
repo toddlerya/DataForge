@@ -87,6 +87,7 @@ def should_table_raw_field_info_continue(state: DataGenState):
 def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     if "table_metadata_array" not in state:
         state["table_metadata_array"] = []
+        state["table_metadata_error"] = []
 
     intent_table_en_names = state.get("user_intent", {}).table_en_names
     # 查询知识库获取表的字段配置信息
@@ -307,7 +308,7 @@ def create_dg_task(state: DataGenState) -> DataGenState:
                 "table_test": False,
                 "table_test_tip": "",
                 "table_columns": [],
-                "schema": "public",
+                "schemas": "public",
             }
         ),
         "saveRuleFile": False,
@@ -443,12 +444,12 @@ if __name__ == "__main__":
 #
 #     for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):
 #         # Review
-#         user_intent: UserIntentSchema = event.get("user_intent")
+#         user_intent: DataGenUserIntentSchema = event.get("user_intent")
 #         if user_intent:
 #             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
 #
 #     # 模拟用户意图识别的研判反馈
-#     data_forge_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback")
+#     data_forge_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback_node")
 #
 #     for event in data_gen_graph.stream(None, thread, stream_mode="values"):
 #         # Review

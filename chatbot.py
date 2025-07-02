@@ -34,7 +34,6 @@ massdata.ADM_REL_MOBILE
 massdata.ADM_REL_MOBILE: 5
 期望表约束条件 (可选):
 massdata.ADM_REL_MOBILE: MD_ID IS NOT NULL AND FIRST_TIME <= LAST_TIME AND LAST_TIME <= '2025-06-13'
-
 """
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(author="Assistant", content="请输入测试数据构造需求", elements=elements).send()
@@ -44,6 +43,7 @@ async def process_step(event, graph):
     """
     辅助函数，用于处理和显示Langgraph的每一步
     Args:
+        graph:
         event:
 
     Returns:

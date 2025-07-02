@@ -9,10 +9,10 @@
 import os
 import pathlib
 
-ENV_LOG_LEVEL = os.getenv("TESTTOOLHUB_LOG_LEVEL", default="INFO")
+ENV_LOG_LEVEL = os.getenv("LOG_LEVEL", default="INFO")
 ENV_SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", default=False)
-ENV_HOST = os.getenv("TESTTOOLHUB_HOST", default="127.0.0.1")
-ENV_PORT = os.getenv("TESTTOOLHUB_PORT", default=20211)
+ENV_HOST = os.getenv("SERVER_HOST", default="127.0.0.1")
+ENV_PORT = os.getenv("SERVER_PORT", default=25702)
 dev3_env = "172.16.112.99"
 ENV_APOLLO_IP = os.getenv("APOLLO_WEB_IP", default=dev3_env)
 ENV_APOLLO_WEB_PORT = os.getenv("APOLLO_WEB_PORT", default=8070)
@@ -103,7 +103,7 @@ VMODEL_DB_PASSWORD = "Cdas@123456"
 # VmodelPgDbn_dbName
 VMODEL_DB_NAME = "cdas"
 
-print(f"当前运行日志级别: {ENV_LOG_LEVEL} 数据默认保留{ENV_DATA_EXPIRED_DAY}天")
+print(f"当前运行日志级别: {ENV_LOG_LEVEL} 数据默认保留{ENV_DATA_EXPIRED_DAY}天, {__file__}")
 
 ENV_DB_MODE = "SQLITE"
 DIALECT = "sqlite"
@@ -117,8 +117,6 @@ SQLALCHEMY_ECHO = ENV_SQLALCHEMY_ECHO
 SQLALCHEMY_AUTO_FLUSH = True
 SQLALCHEMY_AUTO_COMMIT = False
 
-# API Config
-API_PREFIX = "/api"
 
 HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
