@@ -34,6 +34,7 @@ from utils.log import logger
 from utils.db import Database
 from utils.file import create_dir
 from server.api.routers import agent_data_gen
+from server.api.routers import chat_app
 
 # 实例化动态任务调度器
 scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
@@ -97,34 +98,38 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-async def root():
-    return {"msg": "Be Happy"}
+@app.get("/test")
+async def test():
+    return {"message": "Be Happy"}
 
 
 app.include_router(agent_data_gen.router)
+# app.include_router(chat_app.router)
 
-@app.get('/docs', include_in_schema=False)
-async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url=app.openapi_url,
-        title=app.title + '- Swagger UI',
-        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
-        swagger_js_url='/static/swagger-ui-bundle.js',
-        swagger_css_url='/static/swagger-ui.css',
-        swagger_favicon_url='/static/favicon.png'
-    )
+# @app.get('/docs', include_in_schema=False)
+# async def custom_swagger_ui_html():
+#     return get_swagger_ui_html(
+#         openapi_url=app.openapi_url,
+#         title=app.title + '- Swagger UI',
+#         oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+#         swagger_js_url='/static/swagger-ui-bundle.js',
+#         swagger_css_url='/static/swagger-ui.css',
+#         swagger_favicon_url='/static/favicon.png'
+#     )
+#
+#
+# @app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
+# async def swagger_ui_redirect():
+#     return get_swagger_ui_oauth2_redirect_html()
+#
+#
+# @app.get("/redoc", include_in_schema=False)
+# async def redoc_html():
+#     return get_redoc_html(
+#         openapi_url=app.openapi_url,
+#         title=app.title + "- ReDoc",
+#         redoc_js_url="/static/redoc.standalone.js",
+#     )
 
-
-@app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
-async def swagger_ui_redirect():
-    return get_swagger_ui_oauth2_redirect_html()
-
-
-@app.get("/redoc", include_in_schema=False)
-async def redoc_html():
-    return get_redoc_html(
-        openapi_url=app.openapi_url,
-        title=app.title + "- ReDoc",
-        redoc_js_url="/static/redoc.standalone.js",
-    )
+if __name__ == '__main__':
+    print(TEMP_DATA_PATH)

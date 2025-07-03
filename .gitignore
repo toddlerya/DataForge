@@ -16,7 +16,7 @@ wheels/
 .env
 
 
-.files
+app_data_gen/.files
 
 data/output
 data/dg_plans

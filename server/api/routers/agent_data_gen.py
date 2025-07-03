@@ -4,10 +4,12 @@
 # @Author   : guoqun X2590
 # @FileName : agent_data_gen.py
 # @Project  : DataForge
+
 import json
 import uuid
+from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from utils.log import logger
 from server.api.schemas.base_schema import ResponseBaseSchema
@@ -19,21 +21,54 @@ from utils.err_code import error_code
 router = APIRouter(prefix="/data_gen_agent", tags=["数据生成"], responses={404: {"description": "Not Found"}})
 
 
+def extract_client_ip(request: Request) -> Optional[str]:
+    """
+    从请求中提取真实的客户端IP，按优先级检查各种可能的头部字段
+    :param request:
+    :return:
+    """
+    ip_headers = [
+        "X-Forwarded-For",
+        "X-Real-IP",
+        "X-Forwarded",
+        "X-Cluster-Client-IP"
+    ]
+    for header in ip_headers:
+        # X-Forwarded-For可能包含多个IP，格式：client, proxy1, proxy2
+        ip = request.headers.get(header)
+        if ip:
+            if header == "X-Forwarded-For":
+                ip = ip.split(",")[0].strip()
+
+            # 验证IP格式，简单点
+            if ip and ip != "unknown":
+                return ip
+
+    # 如果所有头部都没有，返回直接连接的客户端IP
+    return request.client.host if request.client else "127.0.0.1"
+
+
 @router.post("/set_intent", response_model=ResponseBaseSchema)
-async def init_data_gen_graph(init_data_gen: InitDataGenSchema):
+async def init_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request):
     """
     设置用户意图，初始化图
     :param init_data_gen:
+    :param request
     :return:
     """
-    logger.info(f"[数据生成Graph] 初始化，分析用户意图: init_data_gen={init_data_gen.model_dump_json()}")
+    client_ip = extract_client_ip(request)
+    logger.info(
+        f"[数据生成Graph] 初始化, client_ip={client_ip}, 分析用户意图: init_data_gen={init_data_gen.model_dump_json()}")
     resp_data = ResponseBaseSchema(description="[数据生成Graph] 初始化，分析用户意图")
-    init_state = {
-        "user_input": init_data_gen.user_input,
-        "max_retries": init_data_gen.max_retries
-    }
     session_id = uuid.uuid4().hex
     resp_data.session_id = session_id
+    init_state = {
+        "user_input": init_data_gen.user_input,
+        "max_retries": init_data_gen.max_retries,
+        "session_id": session_id,
+        "client_ip": client_ip
+    }
+
     thread = {"configurable": {"thread_id": session_id}}
     event = await data_gen_graph.ainvoke(
         init_state, thread, stream_mode="values"
@@ -90,6 +125,7 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
             return resp_data.dict()
     if event.get("data_genius_plan_output_url"):
         result = {
+            "table_metadata_array": event["table_metadata_array"],
             "data_genius_plan_task_id": event["data_genius_plan_task_id"],
             "data_genius_plan_run_duration": event["data_genius_plan_run_duration"],
             "data_genius_plan_output_url": event["data_genius_plan_output_url"],

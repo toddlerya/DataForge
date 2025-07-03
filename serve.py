@@ -7,13 +7,16 @@
 
 
 import logging
-import pathlib
+import os.path
+import sys
 
 from uvicorn import Config, Server
+from chainlit.utils import mount_chainlit
+from chainlit.cli import run_chainlit
 
 from server.api.base import app
 from utils.log import LogManager, logger
-from config import ENV_LOG_LEVEL, ENV_PORT
+from config import ENV_LOG_LEVEL, ENV_PORT, PROJECT_PATH
 
 
 class InterceptHandler(logging.Handler):
@@ -51,8 +54,8 @@ def setup_logging(handlers: list):
 class Serve:
     def __init__(self):
         self.log_config = LogManager(
-            base_path=str(pathlib.Path(__file__).parent.absolute()),
-            log_path='log',
+            base_path=str(PROJECT_PATH.absolute()),
+            log_path='server/log',
             log_name='DataForge.log',
             file_log_level=ENV_LOG_LEVEL,
             console_log_level=ENV_LOG_LEVEL
@@ -62,7 +65,7 @@ class Serve:
         """
         启动API服务
         """
-        server = Server(
+        api_server = Server(
             Config(
                 app=app,
                 host='0.0.0.0',
@@ -71,7 +74,7 @@ class Serve:
             )
         )
         setup_logging(self.log_config['handlers'])
-        server.run()
+        api_server.run()
 
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
 
 from database_models.schema import TableRawFieldSchema, GenTableFieldSchema
-from faker_utils.dg_configs import DG_FIELD_CATEGORY_CONFIG
+from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 
 
 class DataGenUserIntentSchema(BaseModel):
@@ -133,11 +133,14 @@ class PydanticDataGeniusPlan(BaseModel):
 class DataGenState(TypedDict):
     messages: Annotated[List[AnyMessage], add_messages]
     user_input: str
+    session_id: str
+    client_ip: str
     user_intent: DataGenUserIntentSchema
     human_intent_feedback: str
     table_metadata_array: list[TableMetadataSchema]
     table_metadata_error: list[str]
     pydantic_data_genius_plan: PydanticDataGeniusPlan
+    data_genius_headers: dict
     create_data_genius_task_error: str
     query_data_genius_task_error: str
     data_genius_plan_task_id: str

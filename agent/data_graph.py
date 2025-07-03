@@ -29,7 +29,7 @@ from agent.state import (
 from config import DG_PLAN_CONFIG_PREFIX
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
-from faker_utils.dg_configs import (
+from agent.dg_configs import (
     DG_FIELD_CATEGORY_CONFIG,
     DG_STORAGE_PATH,
     DG_SERVER_BASE_URL,
@@ -132,6 +132,8 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
     logger.info("DataGenius字段分类推荐")
     table_metadata_array = state["table_metadata_array"]
     user_intent = state["user_intent"]
+    client_ip = state["client_ip"]
+    state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
     table_en_name = user_intent.table_en_names[0]
     row_count = user_intent.table_data_count.get(table_en_name, 1000)
     table_metadata = table_metadata_array[0] if table_metadata_array else None
@@ -236,8 +238,8 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
         rows=row_count,
         separator="\t",
         rules=rules,
-        output=f"{DG_STORAGE_PATH}/output/10.0.23.57/{rule_uuid}",
-        model=f"{DG_STORAGE_PATH}/models/10.0.23.57/{table_en_name}",
+        output=f"{DG_STORAGE_PATH}/output/{client_ip}/{rule_uuid}",
+        model=f"{DG_STORAGE_PATH}/models/{client_ip}/{table_en_name}",
         cols=len(table_metadata.raw_fields_info),
     )
     state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
@@ -277,6 +279,7 @@ def create_dg_task(state: DataGenState) -> DataGenState:
     """
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     user_intent = state["user_intent"]
+    data_genius_headers = state["data_genius_headers"]
     table_en_name = user_intent.table_en_names[0]
     logger.info(f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name}")
     pydantic_data_genius_plan_dict = pydantic_data_genius_plan.model_dump()
@@ -326,7 +329,7 @@ def create_dg_task(state: DataGenState) -> DataGenState:
     create_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_ADD_URL}"
 
     with httpx.Client() as client:
-        response = client.post(create_task_url, data=payload)
+        response = client.post(create_task_url, data=payload, headers=data_genius_headers)
     if response.status_code != 200:
         logger.error(f"请求{create_task_url}异常, status_code: {response.status_code}")
         state["create_data_genius_task_error"] = (
@@ -351,9 +354,10 @@ def query_dg_task_status(state: DataGenState) -> DataGenState:
     logger.info(f"查询DataGenius进度, 任务名称: {pydantic_data_genius_plan.rule_name}")
     query_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_HISTORY}"
     payload = {"limit": 10}
+    data_genius_headers = state["data_genius_headers"]
     with httpx.Client() as client:
         for _ in range(60):
-            response = client.get(query_task_url, params=payload)
+            response = client.get(query_task_url, params=payload, headers=data_genius_headers)
             if response.status_code != 200:
                 logger.error(
                     f"请求{query_task_url}异常, status_code: {response.status_code}"
@@ -440,6 +444,7 @@ if __name__ == "__main__":
 #     init_state = {
 #         "user_input": user_input,
 #         "max_retries": 5,
+#         "client_ip": "10.0.23.57"
 #     }
 #
 #     for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):

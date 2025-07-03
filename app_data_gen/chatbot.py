@@ -13,19 +13,24 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from agent.data_graph import data_gen_graph
-
 from agent.state import DataGenUserIntentSchema, PydanticDataGeniusPlan
+from config import PROJECT_PATH
 
 # 加载 .env 文件
-load_dotenv()
+load_dotenv(PROJECT_PATH.absolute())
 
 
 @cl.on_chat_start
 async def start_chat():
-    if not cl.user_session.get("thread_id"):
-        cl.user_session.set("thread_id", cl.context.session.id)
+    if hasattr(cl.context.session, "environ") and cl.context.session.environ:
+        client_port_tuple = cl.context.session.environ.get("asgi.scope", {}).get("client")
+        if client_port_tuple and len(client_port_tuple) == 2:
+            logger.info(f"client_port_tuple: {client_port_tuple}")
+            cl.user_session.set("client_ip", client_port_tuple[0])
+    else:
+        cl.user_session.set("client_ip", "127.0.0.1")
 
-    text_content = """您好！我是您的测试数据生成助手\n\n目前支持的表为盘古或数据域管理的表。\n
+    text_content = f"""{cl.user_session.get('client_ip')}，您好！我是您的测试数据生成助手\n\n目前支持的表为盘古或数据域管理的表。\n
 请输入需要构造的表名称，期望的表字段约束条件，期望生成的数据条数。\n
 ====输入内容示例====\n
 数据库表名称 (必填):
@@ -131,7 +136,7 @@ async def process_step(event, graph):
         elif node == "save_dg_plan2json":
             logger.info("[process] save_dg_plan2json")
             pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get("pydantic_data_genius_plan")
-            dg_plan_json_path = pathlib.Path(r"F:\GITLAB\DataForge\data\dg_plans").joinpath(
+            dg_plan_json_path = pathlib.Path(r"../data/dg_plans").joinpath(
                 f"{pydantic_data_genius_plan.rule_name}"
             ).absolute()
             logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
@@ -181,14 +186,13 @@ async def process_step(event, graph):
             final_message = f"本次任务运行完成，总计耗时: {cost_msg}, 如需再次使用请开启新会话."
             logger.info(final_message)
             await cl.Message(author="Assistant",
-                             content=final_message)
+                             content=final_message).send()
 
 
 @cl.on_message
 async def main(message: cl.Message):
-    thread_id = cl.user_session.get("thread_id")
-    logger.info(f"{thread_id}: {message.content}")
-    config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 50}
+    logger.info(f"{cl.context.session.id}: {message.content}")
+    config = {"configurable": {"thread_id": cl.context.session.id}, "recursion_limit": 50}
     cl.user_session.set("configs", config)
 
     current_state = data_gen_graph.get_state(config)
@@ -199,9 +203,17 @@ async def main(message: cl.Message):
             "user_input": message.content.strip(),
             "table_metadata_error": list(),
             "max_retries": 5,
+            "session_id": cl.context.session.id,
+            "client_ip": cl.user_session.get("client_ip")
         }
         async for event in data_gen_graph.astream(init_state, config):
             await process_step(event, data_gen_graph)
 
     async for step_output in data_gen_graph.astream(None, config):
         await process_step(step_output, data_gen_graph)
+
+
+if __name__ == '__main__':
+    from chainlit.cli import run_chainlit
+    run_chainlit(__file__)
+
