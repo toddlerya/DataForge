@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/6/18 9:53 
+# @Time     : 2025/6/18 9:53
 # @Author   : guoqun X2590
 # @FileName : advanced_query.py
 # @Project  : DataForge
@@ -12,14 +12,16 @@ from typing import Tuple, Optional, Dict, List
 from utils.db import Database
 
 
-def sliding_window_query(db_handler: Database,
-                         model_class,
-                         fields: List[str],
-                         window_size: int = 50,
-                         step_size: int = 10,
-                         order_by_field: str = "id",
-                         filters: Optional[Dict[str, List[str]]] = None,
-                         callback: Optional[callable] = None):
+def sliding_window_query(
+    db_handler: Database,
+    model_class,
+    fields: List[str],
+    window_size: int = 50,
+    step_size: int = 10,
+    order_by_field: str = "id",
+    filters: Optional[Dict[str, List[str]]] = None,
+    callback: Optional[callable] = None,
+):
     """
     执行滑动窗口查询
     Args:
@@ -51,7 +53,9 @@ def sliding_window_query(db_handler: Database,
 
     while offset < total_count:
         # 构建查询
-        query = db_handler.session.query(*[getattr(model_class, field) for field in fields])
+        query = db_handler.session.query(
+            *[getattr(model_class, field) for field in fields]
+        )
 
         # 应用过滤条件
         for field, value_slice in filters.items():
@@ -94,16 +98,17 @@ def sliding_window_query(db_handler: Database,
     return all_results
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from database_models.models import TableMetaDataInfo
-
 
     def print_cb(windows_data, window_index, offset):
         print(f"当前窗口: {window_index} 当前偏移量: {offset} 当前数据: {windows_data}")
         pass
 
-    all_results = sliding_window_query(db_handler=Database(),
-                                       model_class=TableMetaDataInfo,
-                                       fields=["table_en_name", "table_cn_name", "description"],
-                                       # filters={"source": "盘古"},
-                                       callback=print_cb)
+    all_results = sliding_window_query(
+        db_handler=Database(),
+        model_class=TableMetaDataInfo,
+        fields=["table_en_name", "table_cn_name", "description"],
+        # filters={"source": "盘古"},
+        callback=print_cb,
+    )

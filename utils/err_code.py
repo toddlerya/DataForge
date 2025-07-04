@@ -90,7 +90,10 @@ class ErrorCode(object):
 
         self.DATA_GEN_ERROR = {"code": "J2000", "description": "数据生成失败"}
 
-        self.FEEDBACK_STOP_GRAPH = {"code": "F1000", "description": "用户反馈不满足图继续运行条件"}
+        self.FEEDBACK_STOP_GRAPH = {
+            "code": "F1000",
+            "description": "用户反馈不满足图继续运行条件",
+        }
 
         self.GRAPH_NODE_ERROR = {"code": "G1000", "description": "Graph节点运行错误"}
 

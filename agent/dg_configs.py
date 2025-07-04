@@ -161,7 +161,10 @@ DG_FIELD_CATEGORY_RAW_CONFIG = {
         {"category": "营业执照编号", "value": "15383150799"},
         {"category": "银行卡号", "value": "4559260525670441"},
         {"category": "信用卡号", "value": "4579463093337123271"},
-        {"category": "文章", "value": "不能显示电子实现这些方式可以.作品过程非常业务社会当前成为."},
+        {
+            "category": "文章",
+            "value": "不能显示电子实现这些方式可以.作品过程非常业务社会当前成为.",
+        },
         {"category": "密码", "value": "i^_Z6!T4hc"},
         {"category": "应用编码", "value": "15913235238"},
         {"category": "资源编码", "value": "18762771370"},

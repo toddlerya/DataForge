@@ -373,7 +373,7 @@ if __name__ == "__main__":
 
     print("\nFull Address Detail (multiple DB queries per call):")
     for i in range(3):
-        print(f"\nAddress {i+1}:")
+        print(f"\nAddress {i + 1}:")
         details = fake.full_chinese_address_detail(use_short_names=True)
         for key, value in details.items():
             if isinstance(value, dict):  # For area_codes

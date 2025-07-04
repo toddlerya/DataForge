@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/7/2 10:44 
+# @Time     : 2025/7/2 10:44
 # @Author   : guoqun X2590
 # @FileName : base.py
 # @Project  : DataForge
@@ -29,7 +29,8 @@ from config import (
     SQLALCHEMY_ECHO,
     SQLALCHEMY_URL,
     TEMP_DATA_PATH,
-    INPUT_DATA_PATH)
+    INPUT_DATA_PATH,
+)
 from utils.log import logger
 from utils.db import Database
 from utils.file import create_dir
@@ -131,5 +132,5 @@ app.include_router(agent_data_gen.router)
 #         redoc_js_url="/static/redoc.standalone.js",
 #     )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(TEMP_DATA_PATH)

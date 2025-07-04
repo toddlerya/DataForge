@@ -103,7 +103,9 @@ VMODEL_DB_PASSWORD = "Cdas@123456"
 # VmodelPgDbn_dbName
 VMODEL_DB_NAME = "cdas"
 
-print(f"当前运行日志级别: {ENV_LOG_LEVEL} 数据默认保留{ENV_DATA_EXPIRED_DAY}天, {__file__}")
+print(
+    f"当前运行日志级别: {ENV_LOG_LEVEL} 数据默认保留{ENV_DATA_EXPIRED_DAY}天, {__file__}"
+)
 
 ENV_DB_MODE = "SQLITE"
 DIALECT = "sqlite"

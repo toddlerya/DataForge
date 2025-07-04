@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/7/4 9:23 
+# @Time     : 2025/7/4 9:23
 # @Author   : guoqun X2590
 # @FileName : run.py
 # @Project  : DataForge
@@ -21,12 +21,5 @@ def read_main():
 mount_chainlit(app=app, target="app.py", path="/")
 
 
-if __name__ == '__main__':
-    Server(
-        Config(
-            app=app,
-            host='0.0.0.0',
-            port=9802,
-            workers=2
-        )
-    ).run()
+if __name__ == "__main__":
+    Server(Config(app=app, host="0.0.0.0", port=9802, workers=2)).run()

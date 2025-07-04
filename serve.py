@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/7/2 15:07 
+# @Time     : 2025/7/2 15:07
 # @Author   : guoqun X2590
 # @FileName : serve.py
 # @Project  : DataForge
@@ -32,7 +32,9 @@ class InterceptHandler(logging.Handler):
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
 def setup_logging(handlers: list):
@@ -47,18 +49,18 @@ def setup_logging(handlers: list):
     # configure loguru
     logger.configure(handlers=handlers)
     # requests禁用debug和info日志，不跟随业务日志级别，其中requests调用的是urllib3.connectionpool，因此设置这个日志级别即可
-    logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-    logging.getLogger('apscheduler').setLevel(logging.WARNING)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+    logging.getLogger("apscheduler").setLevel(logging.WARNING)
 
 
 class Serve:
     def __init__(self):
         self.log_config = LogManager(
             base_path=str(PROJECT_PATH.absolute()),
-            log_path='server/log',
-            log_name='DataForge.log',
+            log_path="server/log",
+            log_name="DataForge.log",
             file_log_level=ENV_LOG_LEVEL,
-            console_log_level=ENV_LOG_LEVEL
+            console_log_level=ENV_LOG_LEVEL,
         ).get_config()
 
     def run(self):
@@ -66,17 +68,12 @@ class Serve:
         启动API服务
         """
         api_server = Server(
-            Config(
-                app=app,
-                host='0.0.0.0',
-                port=int(ENV_PORT),
-                workers=2
-            )
+            Config(app=app, host="0.0.0.0", port=int(ENV_PORT), workers=2)
         )
-        setup_logging(self.log_config['handlers'])
+        setup_logging(self.log_config["handlers"])
         api_server.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     s = Serve()
     s.run()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/7/2 14:53 
+# @Time     : 2025/7/2 14:53
 # @Author   : guoqun X2590
 # @FileName : base_schema.py
 # @Project  : DataForge

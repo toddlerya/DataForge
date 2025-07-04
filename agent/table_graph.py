@@ -135,8 +135,10 @@ def material_tables_mapping_dimension_table(state: TableGenState):
         for each_material_table in each_material_table_group:
             table_en_name = each_material_table.get("table_en_name", "")
             if (
-                table_en_name.upper() in recommend_reference_material_table_en_name_slice
-                or table_en_name.lower() in recommend_reference_material_table_en_name_slice
+                table_en_name.upper()
+                in recommend_reference_material_table_en_name_slice
+                or table_en_name.lower()
+                in recommend_reference_material_table_en_name_slice
             ):
                 raw_fields_info = each_material_table.get("table_fields", [])
                 table_cn_name = each_material_table.get("table_cn_name", "")
@@ -203,7 +205,9 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                 logger.error(f"material_tables_mapping_dimension_table error: {e}")
                 retry_count += 1
             else:
-                logger.trace(f"输出 dimension_mapping_result: {dimension_mapping_result}")
+                logger.trace(
+                    f"输出 dimension_mapping_result: {dimension_mapping_result}"
+                )
                 if (
                     dimension_mapping_result.recommend_category
                     in user_intent.categories
@@ -529,7 +533,13 @@ table_gen_graph = table_gen_builder.compile(
 
 if __name__ == "__main__":
     from utils.log import LogManager
-    LogManager(base_path=r"F:\GITLAB\DataForge\logs", log_path="agent", log_name="agent.log", file_log_level="TRACE")
+
+    LogManager(
+        base_path=r"F:\GITLAB\DataForge\logs",
+        log_path="agent",
+        log_name="agent.log",
+        file_log_level="TRACE",
+    )
     print(table_gen_graph.get_graph(xray=True).draw_mermaid())
     user_input = """帮我生成一些人员属性、上网行为、位置轨迹类别的表，每个表的字段数量最少10个，最多100个，至少生成2张表"""
     thread = {"configurable": {"thread_id": "123"}}

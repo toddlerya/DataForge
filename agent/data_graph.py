@@ -281,7 +281,9 @@ def create_dg_task(state: DataGenState) -> DataGenState:
     user_intent = state["user_intent"]
     data_genius_headers = state["data_genius_headers"]
     table_en_name = user_intent.table_en_names[0]
-    logger.info(f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name}")
+    logger.info(
+        f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name} data_genius_headers: {data_genius_headers}"
+    )
     pydantic_data_genius_plan_dict = pydantic_data_genius_plan.model_dump()
     payload = {
         "task": json.dumps(
@@ -329,7 +331,9 @@ def create_dg_task(state: DataGenState) -> DataGenState:
     create_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_ADD_URL}"
 
     with httpx.Client() as client:
-        response = client.post(create_task_url, data=payload, headers=data_genius_headers)
+        response = client.post(
+            create_task_url, data=payload, headers=data_genius_headers
+        )
     if response.status_code != 200:
         logger.error(f"请求{create_task_url}异常, status_code: {response.status_code}")
         state["create_data_genius_task_error"] = (
@@ -357,7 +361,9 @@ def query_dg_task_status(state: DataGenState) -> DataGenState:
     data_genius_headers = state["data_genius_headers"]
     with httpx.Client() as client:
         for _ in range(60):
-            response = client.get(query_task_url, params=payload, headers=data_genius_headers)
+            response = client.get(
+                query_task_url, params=payload, headers=data_genius_headers
+            )
             if response.status_code != 200:
                 logger.error(
                     f"请求{query_task_url}异常, status_code: {response.status_code}"
