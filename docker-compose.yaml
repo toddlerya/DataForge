@@ -6,7 +6,7 @@ services:
     container_name: DataForgeServer
     hostname: DataForgeServer
     restart: unless-stopped
-    privileged: false
+    privileged: true
     working_dir: /app
     command: bash -c "python -m serve"
     networks:
@@ -43,7 +43,7 @@ services:
     container_name: DFDataGenApp
     hostname: DFDataGenApp
     restart: unless-stopped
-    privileged: false
+    privileged: true
     working_dir: /app
     command: bash -c "python -m app_data_gen.run"
     networks:
@@ -72,7 +72,7 @@ services:
     container_name: DFTableGenApp
     hostname: DFTableGenApp
     restart: unless-stopped
-    privileged: false
+    privileged: true
     working_dir: /app
     command: bash -c "python -m app_table_gen.run"
     networks:
