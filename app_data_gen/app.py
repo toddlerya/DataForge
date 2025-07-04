@@ -154,11 +154,8 @@ async def process_step(event, graph):
             pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
                 "pydantic_data_genius_plan"
             )
-            dg_plan_json_path = (
-                pathlib.Path(r"../data/dg_plans")
-                .joinpath(f"{pydantic_data_genius_plan.rule_name}")
-                .absolute()
-            )
+            dg_plan_json_path = PROJECT_PATH.joinpath("data", "dg_plan",
+                                                      f"{pydantic_data_genius_plan.rule_name}").absolute()
             logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
             download_dg_plan_json_elements = [
                 cl.File(

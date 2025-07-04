@@ -26,7 +26,7 @@ from agent.state import (
     TableMetadataSchema,
     DataGenUserIntentSchema,
 )
-from config import DG_PLAN_CONFIG_PREFIX
+from config import DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import TableRawFieldSchema
 from agent.dg_configs import (
@@ -221,7 +221,7 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
                 ename=field_info.en_name,
                 cname=field_info.cn_name,
                 preview=f"score: {llm_dg_field_category_recommendation.score}, "
-                f"reason: {llm_dg_field_category_recommendation.reason}",
+                        f"reason: {llm_dg_field_category_recommendation.reason}",
                 value=field_info.example,
             )
             logger.trace(
@@ -260,9 +260,7 @@ def save_dg_plan2json(state: DataGenState):
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
         save_json_path = (
-            pathlib.Path(r"F:\GITLAB\DataForge\data\dg_plans")
-            .joinpath(f"{pydantic_data_genius_plan.rule_name}")
-            .absolute()
+            PROJECT_PATH.joinpath("data", "dg_plan", f"{pydantic_data_genius_plan.rule_name}").absolute()
         )
         save_dict2jl(json_data=data, save_path=str(save_json_path))
     return state
@@ -323,9 +321,7 @@ def create_dg_task(state: DataGenState) -> DataGenState:
     }
 
     save_json_path = (
-        pathlib.Path(r"F:\GITLAB\DataForge\data\dg_payload")
-        .joinpath(f"payload_{pydantic_data_genius_plan.rule_name}")
-        .absolute()
+        PROJECT_PATH.joinpath("data", "dg_payload", f"payload_{pydantic_data_genius_plan.rule_name}").absolute()
     )
     save_dict2jl(json_data=payload, save_path=str(save_json_path))
     create_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_ADD_URL}"
