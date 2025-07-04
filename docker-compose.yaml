@@ -3,50 +3,101 @@ version: "3"
 services:
   server:
     image: llm_server_py313_env:1.0.0
-    container_name: DataForge
-    hostname: DataForge
+    container_name: DataForgeServer
+    hostname: DataForgeServer
     restart: unless-stopped
     privileged: false
     working_dir: /app
-    command: bash -c "source /app/.venv/bin/activate && cd server && alembic upgrade head && cd .. && python -m server.manager"
+    command: bash -c "python -m serve"
     networks:
       harbor_net:
     ports:
       - "25702:25702"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./database:/app/server/database
-      - tth_log:/app/server/log
-      # - ./log:/app/server/log
-      - tth_data:/app/server/data
-      # - ./data:/app/server/data
-      - tth_temp:/app/server/temp
-      # - ./temp:/app/server/temp
-      - ./oms_data:/app/server/oms_data
-      - ./oms_meta:/app/server/oms_meta
-      - ./external_call_configs:/app/server/external_call_configs
-      - ./conf:/app/server/conf
-      - ./code:/app/server
+      - ./data:/app/data
+      - ./database:/app/database
+      - ./database_models:/app/database_models
+      - ./agent:/app/agent
+      - ./app_data_gen:/app/app_data_gen
+      - ./app_table_gen:/app/app_table_gen
+      - ./cruds:/app/cruds
+      - ./server:/app/server
+      - ./utils:/app/utils
+      - ./config.py:/app/config.py
+      - ./serve.py:/app/serve.py
     environment:
       # 日志级别
-      - TESTTOOLHUB_LOG_LEVEL=INFO
+      - LOG_LEVEL=INFO
       - SQLALCHEMY_ECHO=false
       # 数据默认保留时间
       - DATA_EXPIRED_DAY=30
       # 部署环境的服务器IP
-      - TESTTOOLHUB_HOST=10.1.2.132
-      - TESTTOOLHUB_PORT=20235
-#      - CONFIG_CENTER_01_HOST=PolarisInspectionConfig
-#      - CONFIG_CENTER_01_PORT=44088
+      - SERVER_HOST=10.1.2.132
+      - SERVER_PORT=25702
       - APOLLO_WEB_IP=172.21.5.130
       - APOLLO_WEB_PORT=8070
+
+  data_gen_chat:
+    image: llm_server_py313_env:1.0.0
+    container_name: DFDataGenApp
+    hostname: DFDataGenApp
+    restart: unless-stopped
+    privileged: false
+    working_dir: /app
+    command: bash -c "python -m app_data_gen.run"
+    networks:
+      harbor_net:
+    ports:
+      - "9801:9801"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data:/app/data
+      - ./database:/app/database
+      - ./database_models:/app/database_models
+      - ./agent:/app/agent
+      - ./app_data_gen:/app/app_data_gen
+      - ./cruds:/app/cruds
+      - ./utils:/app/utils
+      - ./config.py:/app/config.py
+    environment:
+      # 日志级别
+      - LOG_LEVEL=INFO
+      - SQLALCHEMY_ECHO=false
+      # 数据默认保留时间
+      - DATA_EXPIRED_DAY=30
+
+  table_gen_chat:
+    image: llm_server_py313_env:1.0.0
+    container_name: DFTableGenApp
+    hostname: DFTableGenApp
+    restart: unless-stopped
+    privileged: false
+    working_dir: /app
+    command: bash -c "python -m app_table_gen.run"
+    networks:
+      harbor_net:
+    ports:
+      - "9802:9802"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data:/app/data
+      - ./database:/app/database
+      - ./database_models:/app/database_models
+      - ./agent:/app/agent
+      - ./app_table_gen:/app/app_table_gen
+      - ./cruds:/app/cruds
+      - ./utils:/app/utils
+      - ./config.py:/app/config.py
+    environment:
+      # 日志级别
+      - LOG_LEVEL=INFO
+      - SQLALCHEMY_ECHO=false
+      # 数据默认保留时间
+      - DATA_EXPIRED_DAY=30
 
 networks:
   harbor_net:
     external: true
 
-volumes:
-  # 使用docker volumes进行数据持久化，避免重新安装等操作导致历史报告数据无法查看
-  tth_log:
-  tth_data:
-  tth_temp:
+

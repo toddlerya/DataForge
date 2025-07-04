@@ -18,7 +18,7 @@ def read_main():
     return {"message": "Hi"}
 
 
-mount_chainlit(app=app, target="app.py", path="/")
+mount_chainlit(app=app, target="app_data_gen/app.py", path="/")
 
 
 if __name__ == "__main__":

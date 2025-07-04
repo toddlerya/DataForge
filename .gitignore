@@ -27,3 +27,4 @@ database/data_forge.db
 /design/*.bkp
 /data/gen_models/
 *.log
+.files

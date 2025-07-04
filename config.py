@@ -11,7 +11,7 @@ import pathlib
 
 ENV_LOG_LEVEL = os.getenv("LOG_LEVEL", default="INFO")
 ENV_SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", default=False)
-ENV_HOST = os.getenv("SERVER_HOST", default="127.0.0.1")
+ENV_HOST = os.getenv("SERVER_HOST", default="0.0.0.0")
 ENV_PORT = os.getenv("SERVER_PORT", default=25702)
 dev3_env = "172.16.112.99"
 ENV_APOLLO_IP = os.getenv("APOLLO_WEB_IP", default=dev3_env)

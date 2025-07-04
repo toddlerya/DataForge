@@ -11,8 +11,6 @@ import os.path
 import sys
 
 from uvicorn import Config, Server
-from chainlit.utils import mount_chainlit
-from chainlit.cli import run_chainlit
 
 from server.api.base import app
 from utils.log import LogManager, logger
@@ -57,7 +55,7 @@ class Serve:
     def __init__(self):
         self.log_config = LogManager(
             base_path=str(PROJECT_PATH.absolute()),
-            log_path="server/log",
+            log_path="logs",
             log_name="DataForge.log",
             file_log_level=ENV_LOG_LEVEL,
             console_log_level=ENV_LOG_LEVEL,

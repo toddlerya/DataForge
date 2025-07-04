@@ -35,7 +35,6 @@ from utils.log import logger
 from utils.db import Database
 from utils.file import create_dir
 from server.api.routers import agent_data_gen
-from server.api.routers import chat_app
 
 # 实例化动态任务调度器
 scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
@@ -105,7 +104,6 @@ async def test():
 
 
 app.include_router(agent_data_gen.router)
-# app.include_router(chat_app.router)
 
 # @app.get('/docs', include_in_schema=False)
 # async def custom_swagger_ui_html():
