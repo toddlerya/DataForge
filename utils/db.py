@@ -90,7 +90,7 @@ class SQLiteDB:
         # QueuePool limit of size 20 overflow 10 reached, connection time out, timeout 30.00
         self.__engine = create_engine(
             url=url,
-            echo=echo,
+            # echo=echo,
             future=True,
             pool_size=30,
             max_overflow=60,
