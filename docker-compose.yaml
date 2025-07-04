@@ -26,6 +26,7 @@ services:
       - ./utils:/app/utils
       - ./config.py:/app/config.py
       - ./serve.py:/app/serve.py
+      - ./.env:/app/.env
     environment:
       # 日志级别
       - LOG_LEVEL=INFO
@@ -60,6 +61,7 @@ services:
       - ./cruds:/app/cruds
       - ./utils:/app/utils
       - ./config.py:/app/config.py
+      - ./.env:/app/.env
     environment:
       # 日志级别
       - LOG_LEVEL=INFO
@@ -89,6 +91,7 @@ services:
       - ./cruds:/app/cruds
       - ./utils:/app/utils
       - ./config.py:/app/config.py
+      - ./.env:/app/.env
     environment:
       # 日志级别
       - LOG_LEVEL=INFO
