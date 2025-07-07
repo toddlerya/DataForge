@@ -16,6 +16,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
+from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
 from agent.llm import chat_llm
 from agent.prompt import dg_category_prompt, data_intent_prompt
 from agent.state import (
@@ -259,9 +260,7 @@ def save_dg_plan2json(state: DataGenState):
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
-        save_json_path = (
-            PROJECT_PATH.joinpath("data", "dg_plan", f"{pydantic_data_genius_plan.rule_name}").absolute()
-        )
+        save_json_path = DG_PLAN_PATH.joinpath(f"{pydantic_data_genius_plan.rule_name}").absolute()
         save_dict2jl(json_data=data, save_path=str(save_json_path))
     return state
 
@@ -320,9 +319,7 @@ def create_dg_task(state: DataGenState) -> DataGenState:
         "alam": json.dumps({"isRule": "1", "rule": "", "name": ""}),
     }
 
-    save_json_path = (
-        PROJECT_PATH.joinpath("data", "dg_payload", f"payload_{pydantic_data_genius_plan.rule_name}").absolute()
-    )
+    save_json_path = DG_PAYLOAD_PATH.joinpath(f"payload_{pydantic_data_genius_plan.rule_name}").absolute()
     save_dict2jl(json_data=payload, save_path=str(save_json_path))
     create_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_ADD_URL}"
 

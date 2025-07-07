@@ -28,8 +28,8 @@ from config import (
     SQLALCHEMY_AUTO_FLUSH,
     SQLALCHEMY_ECHO,
     SQLALCHEMY_URL,
-    TEMP_DATA_PATH,
-    INPUT_DATA_PATH,
+    DG_PLAN_PATH,
+    DG_PAYLOAD_PATH,
 )
 from utils.log import logger
 from utils.db import Database
@@ -61,7 +61,7 @@ def init_env():
 
     """
     # 创建数据目录
-    for path in [INPUT_DATA_PATH, TEMP_DATA_PATH, SAVE_DATA_PATH, CONF_DATA_PATH]:
+    for path in [SAVE_DATA_PATH, DG_PLAN_PATH, DG_PAYLOAD_PATH, CONF_DATA_PATH]:
         status, message = create_dir(str(path))
         if status is False:
             logger.error(message)
