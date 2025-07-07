@@ -118,7 +118,7 @@ class SQLiteDB:
             .values(kwargs)
             .prefix_with("OR REPLACE")
         )
-        logger.debug(f"sqlite insert_or_update insert_stmt => {insert_stmt}")
+        # logger.debug(f"sqlite insert_or_update insert_stmt => {insert_stmt}")
         # update_stmt = insert_stmt.on_duplicate_key_update(**kwargs)
         # insert_stmt = model_name().insert().values(**kwargs).prefix_with("OR REPLACE")
         self.session.execute(insert_stmt)

@@ -35,12 +35,12 @@ urllib3.disable_warnings(InsecureRequestWarning)
 
 class DataScopeCrawler:
     def __init__(
-        self,
-        inner_db: Database,
-        resource_url: str,
-        detail_url: str,
-        cookie: str,
-        resource_count: int = 2000,
+            self,
+            inner_db: Database,
+            resource_url: str,
+            detail_url: str,
+            cookie: str,
+            resource_count: int = 2000,
     ):
         self.data_scope_resource_url = resource_url
         self.data_scope_resource_detail_url = detail_url
@@ -76,7 +76,7 @@ class DataScopeCrawler:
                 )
             data = resp_json.get("data", {})
             elements = data.get("elements", [])
-            logger.info(f"数据域资源目录获取到{len(elements)}个资源")
+            logger.info(f"数据域资源目录[{resource_id}]获取到{len(elements)}个资源")
             self.resource_elements = elements
         except Exception as err:
             logger.error(err)
@@ -149,7 +149,7 @@ class DataScopeCrawler:
 
     def run(self):
         # resource_ids获取 https://172.17.63.12:12018/offsite/v1/domain/query?type=1&keyword=&_=1747895349267
-        for rs_id in [1, 2, 3]:
+        for rs_id in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]:
             self.crawl_resource(resource_id=rs_id)
             for resource_element in self.resource_elements:
                 resource_id = resource_element.get("id", "-1")
