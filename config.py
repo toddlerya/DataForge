@@ -49,6 +49,7 @@ PANGU_WAIT_SECONDS = 60 * 30
 SAVE_DATA_PATH = PROJECT_PATH.joinpath("data").absolute()
 DG_PLAN_PATH = SAVE_DATA_PATH.joinpath("dg_plan").absolute()
 DG_PAYLOAD_PATH = SAVE_DATA_PATH.joinpath("dg_payload").absolute()
+TABLE_MODELS_PATH = SAVE_DATA_PATH.joinpath("gen_models").absolute()
 CONF_DATA_PATH = PROJECT_PATH.joinpath("conf").absolute()
 DATABASE_PATH = PROJECT_PATH.joinpath("database").absolute()
 

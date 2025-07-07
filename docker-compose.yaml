@@ -17,6 +17,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./data:/app/data
       - ./database:/app/database
+      - ./logs:/app/logs
       - ./database_models:/app/database_models
       - ./agent:/app/agent
       - ./app_data_gen:/app/app_data_gen
@@ -55,6 +56,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./data:/app/data
       - ./database:/app/database
+      - ./logs:/app/logs
       - ./database_models:/app/database_models
       - ./agent:/app/agent
       - ./app_data_gen:/app/app_data_gen
@@ -85,6 +87,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ./data:/app/data
       - ./database:/app/database
+      - ./logs:/app/logs
       - ./database_models:/app/database_models
       - ./agent:/app/agent
       - ./app_table_gen:/app/app_table_gen

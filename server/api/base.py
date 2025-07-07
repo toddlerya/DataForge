@@ -30,6 +30,7 @@ from config import (
     SQLALCHEMY_URL,
     DG_PLAN_PATH,
     DG_PAYLOAD_PATH,
+    TABLE_MODELS_PATH
 )
 from utils.log import logger
 from utils.db import Database
@@ -61,7 +62,8 @@ def init_env():
 
     """
     # 创建数据目录
-    for path in [SAVE_DATA_PATH, DG_PLAN_PATH, DG_PAYLOAD_PATH, CONF_DATA_PATH]:
+    for path in [SAVE_DATA_PATH, DG_PLAN_PATH, DG_PAYLOAD_PATH, TABLE_MODELS_PATH, CONF_DATA_PATH]:
+        logger.info(f"创建所需目录: {path}")
         status, message = create_dir(str(path))
         if status is False:
             logger.error(message)
@@ -80,12 +82,11 @@ app = FastAPI(
 
 __api_path__ = pathlib.Path(__file__).parent.absolute()
 
-app.mount(
-    "/static",
-    StaticFiles(directory=__api_path__.joinpath("static").absolute()),
-    name="static",
-)
-app.mount("/temp", StaticFiles(directory=TEMP_DATA_PATH), name="temp")
+# app.mount(
+#     "/static",
+#     StaticFiles(directory=__api_path__.joinpath("static").absolute()),
+#     name="static",
+# )
 
 origins = ["*"]
 
@@ -129,6 +130,3 @@ app.include_router(agent_data_gen.router)
 #         title=app.title + "- ReDoc",
 #         redoc_js_url="/static/redoc.standalone.js",
 #     )
-
-if __name__ == "__main__":
-    print(TEMP_DATA_PATH)
