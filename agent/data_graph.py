@@ -7,9 +7,9 @@
 
 
 import json
-import pathlib
 import time
 import uuid
+from urllib.parse import urljoin
 
 import httpx
 from langgraph.checkpoint.memory import MemorySaver
@@ -321,7 +321,7 @@ def create_dg_task(state: DataGenState) -> DataGenState:
 
     save_json_path = DG_PAYLOAD_PATH.joinpath(f"payload_{pydantic_data_genius_plan.rule_name}").absolute()
     save_dict2jl(json_data=payload, save_path=str(save_json_path))
-    create_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_ADD_URL}"
+    create_task_url = urljoin(DG_SERVER_BASE_URL, DG_TASK_ADD_URL)
 
     with httpx.Client() as client:
         response = client.post(
@@ -349,7 +349,7 @@ def query_dg_task_status(state: DataGenState) -> DataGenState:
     """
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     logger.info(f"查询DataGenius进度, 任务名称: {pydantic_data_genius_plan.rule_name}")
-    query_task_url = f"{DG_SERVER_BASE_URL}/{DG_TASK_HISTORY}"
+    query_task_url = urljoin(DG_SERVER_BASE_URL, DG_TASK_HISTORY)
     payload = {"limit": 10}
     data_genius_headers = state["data_genius_headers"]
     with httpx.Client() as client:
@@ -372,7 +372,8 @@ def query_dg_task_status(state: DataGenState) -> DataGenState:
                         logger.trace(f"matched result: {result}")
                         task_id = result.get("task_id", "not_found_task_id")
                         duration = result.get("duration_", "not_found_duration")
-                        output_url = f"{DG_SERVER_BASE_URL}/{result.get('output', 'not_found_output_url')}"
+                        # 拼接URL
+                        output_url = urljoin(DG_SERVER_BASE_URL, result.get('output', 'not_found_output_url'))
                         output_filesize = result.get(
                             "output_filesize", "not_found_output_filesize"
                         )
