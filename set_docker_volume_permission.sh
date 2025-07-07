@@ -1,6 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-sudo chown -R 999:999 ./data
-sudo chown -R 999:999 ./conf
-sudo chown -R 999:999 ./database
-sudo chown -R 999:999 ./logs
+# 定义要处理的目录列表
+directories=("data" "conf" "database" "logs")
+
+# 遍历目录列表
+for dir in "${directories[@]}"; do
+  if [ -d "$dir" ]; then
+    sudo chown -R 999:999 "$dir"
+  fi
+done
