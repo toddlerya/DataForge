@@ -29,3 +29,4 @@ database/data_forge.db
 /data/*
 *.log
 .files
+.chainlit
