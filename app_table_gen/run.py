@@ -10,6 +10,7 @@ from uvicorn import Server, Config
 from fastapi import FastAPI
 from chainlit.utils import mount_chainlit
 
+
 app = FastAPI()
 
 
@@ -19,7 +20,6 @@ def read_main():
 
 
 mount_chainlit(app=app, target="app_table_gen/app.py", path="/")
-
 
 if __name__ == "__main__":
     Server(Config(app=app, host="0.0.0.0", port=9802, workers=2)).run()

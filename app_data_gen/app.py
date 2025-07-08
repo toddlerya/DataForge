@@ -5,7 +5,6 @@
 # @Project:  DataForge
 
 import asyncio
-import pathlib
 
 import chainlit as cl
 import pandas as pd
@@ -14,8 +13,19 @@ from loguru import logger
 
 from agent.data_graph import data_gen_graph
 from agent.state import DataGenUserIntentSchema, PydanticDataGeniusPlan
+from common.initialization import init_env, setup_logging
 from config import PROJECT_PATH
 
+from utils.log import LogManager
+
+log_config = LogManager(
+    base_path=str(PROJECT_PATH.absolute()),
+    log_path="logs",
+    log_name="DataForgeDataGenApp.log",
+    file_log_level="INFO",
+)
+setup_logging(log_config.get_config().get("handlers"))
+init_env()
 # 加载 .env 文件
 load_dotenv(PROJECT_PATH.absolute())
 
@@ -90,6 +100,8 @@ async def process_step(event, graph):
 
         elif node == "query_table_raw_field_info":
             logger.info("[process] query_table_raw_field_info")
+            end_time = asyncio.get_event_loop().time()
+            cl.user_session.set("end_time", end_time)
             await cl.Message(content="已获取表元数据信息...").send()
             table_metadata_array = state.get("table_metadata_array")
             table_metadata_error = state.get("table_metadata_error")
@@ -154,8 +166,9 @@ async def process_step(event, graph):
             pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
                 "pydantic_data_genius_plan"
             )
-            dg_plan_json_path = PROJECT_PATH.joinpath("data", "dg_plan",
-                                                      f"{pydantic_data_genius_plan.rule_name}").absolute()
+            dg_plan_json_path = PROJECT_PATH.joinpath(
+                "data", "dg_plan", f"{pydantic_data_genius_plan.rule_name}"
+            ).absolute()
             logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
             download_dg_plan_json_elements = [
                 cl.File(
@@ -182,8 +195,7 @@ async def process_step(event, graph):
 
         elif node == "query_dg_task_status":
             logger.info("[process] query_dg_task_status")
-            end_time = asyncio.get_event_loop().time()
-            cl.user_session.set("end_time", end_time)
+
             pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
                 "pydantic_data_genius_plan"
             )
@@ -219,7 +231,9 @@ async def process_step(event, graph):
 
 @cl.on_message
 async def main(message: cl.Message):
-    logger.info(f"{cl.context.session.id}: {message.content}")
+    logger.info(
+        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} message: {message.content}"
+    )
     config = {
         "configurable": {"thread_id": cl.context.session.id},
         "recursion_limit": 50,
@@ -228,7 +242,9 @@ async def main(message: cl.Message):
 
     current_state = data_gen_graph.get_state(config)
 
-    logger.debug(f"current_state: {current_state}")
+    logger.debug(
+        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} current_state: {current_state}"
+    )
     if not current_state.values.get("user_input"):
         init_state = {
             "user_input": message.content.strip(),

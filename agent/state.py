@@ -13,6 +13,7 @@ from typing import (
     Set,
     TypedDict,
 )
+from pathlib import Path
 
 from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
@@ -226,12 +227,17 @@ class DimensionTableFillFieldResult(BaseModel):
 class TableGenState(TypedDict):
     messages: Annotated[List[AnyMessage], add_messages]
     user_input: str
+    session_id: str
+    client_ip: str
     user_intent: TableGenUserIntentSchema
     human_intent_feedback: str
     material_table_groups: List[List[Dict]]
     mapping_dimension_table_info_slice: List[StructuredDimensionMappingSchema]
     dimension_table_config_slice: List[DimensionTableFillFieldResult]
     max_retries: int
+    session_temp_data_path: Path
+    session_archive_data_path: Path
+    archive_message: str
 
 
 if __name__ == "__main__":

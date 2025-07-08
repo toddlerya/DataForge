@@ -35,12 +35,12 @@ urllib3.disable_warnings(InsecureRequestWarning)
 
 class DataScopeCrawler:
     def __init__(
-            self,
-            inner_db: Database,
-            resource_url: str,
-            detail_url: str,
-            cookie: str,
-            resource_count: int = 2000,
+        self,
+        inner_db: Database,
+        resource_url: str,
+        detail_url: str,
+        cookie: str,
+        resource_count: int = 2000,
     ):
         self.data_scope_resource_url = resource_url
         self.data_scope_resource_detail_url = detail_url

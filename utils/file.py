@@ -476,9 +476,9 @@ def targz_archive(dir_to_archive, archive_filename_path):
         with tarfile.open(
             archive_filename_path, mode="w:gz", format=tarfile.GNU_FORMAT
         ) as tar:
-            # 并目录作为 arcname
-            arcname = pathlib.Path(dir_to_archive).name
-            tar.add(dir_to_archive, arcname)
+            # 并目录作为 archive_name
+            archive_name = pathlib.Path(dir_to_archive).name
+            tar.add(dir_to_archive, archive_name)
     except Exception as err:
         return False, err
     else:

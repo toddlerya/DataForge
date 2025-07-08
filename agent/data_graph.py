@@ -222,7 +222,7 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
                 ename=field_info.en_name,
                 cname=field_info.cn_name,
                 preview=f"score: {llm_dg_field_category_recommendation.score}, "
-                        f"reason: {llm_dg_field_category_recommendation.reason}",
+                f"reason: {llm_dg_field_category_recommendation.reason}",
                 value=field_info.example,
             )
             logger.trace(
@@ -260,7 +260,9 @@ def save_dg_plan2json(state: DataGenState):
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
-        save_json_path = DG_PLAN_PATH.joinpath(f"{pydantic_data_genius_plan.rule_name}").absolute()
+        save_json_path = DG_PLAN_PATH.joinpath(
+            f"{pydantic_data_genius_plan.rule_name}"
+        ).absolute()
         save_dict2jl(json_data=data, save_path=str(save_json_path))
     return state
 
@@ -319,7 +321,9 @@ def create_dg_task(state: DataGenState) -> DataGenState:
         "alam": json.dumps({"isRule": "1", "rule": "", "name": ""}),
     }
 
-    save_json_path = DG_PAYLOAD_PATH.joinpath(f"payload_{pydantic_data_genius_plan.rule_name}").absolute()
+    save_json_path = DG_PAYLOAD_PATH.joinpath(
+        f"payload_{pydantic_data_genius_plan.rule_name}"
+    ).absolute()
     save_dict2jl(json_data=payload, save_path=str(save_json_path))
     create_task_url = urljoin(DG_SERVER_BASE_URL, DG_TASK_ADD_URL)
 
@@ -373,7 +377,10 @@ def query_dg_task_status(state: DataGenState) -> DataGenState:
                         task_id = result.get("task_id", "not_found_task_id")
                         duration = result.get("duration_", "not_found_duration")
                         # 拼接URL
-                        output_url = urljoin(DG_SERVER_BASE_URL, result.get('output', 'not_found_output_url'))
+                        output_url = urljoin(
+                            DG_SERVER_BASE_URL,
+                            result.get("output", "not_found_output_url"),
+                        )
                         output_filesize = result.get(
                             "output_filesize", "not_found_output_filesize"
                         )
@@ -434,6 +441,20 @@ data_gen_graph = data_gen_builder.compile(
 )
 
 if __name__ == "__main__":
+    from common.initialization import init_env, setup_logging
+    from config import PROJECT_PATH
+
+    from utils.log import LogManager
+
+    log_config = LogManager(
+        base_path=str(PROJECT_PATH.absolute()),
+        log_path="logs",
+        log_name="DataForgeDataGenApp.log",
+        file_log_level="TRACE",
+    )
+    setup_logging(log_config.get_config().get("handlers"))
+    init_env()
+
     print(data_gen_graph.get_graph(xray=True).draw_mermaid())
 #     user_input = """数据库表名称:
 # massdata.ADM_REL_MOBILE

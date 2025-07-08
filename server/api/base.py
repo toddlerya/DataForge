@@ -22,20 +22,16 @@ from fastapi.openapi.docs import (
 )
 
 from config import (
-    CONF_DATA_PATH,
-    SAVE_DATA_PATH,
     SQLALCHEMY_AUTO_COMMIT,
     SQLALCHEMY_AUTO_FLUSH,
     SQLALCHEMY_ECHO,
     SQLALCHEMY_URL,
-    DG_PLAN_PATH,
-    DG_PAYLOAD_PATH,
-    TABLE_MODELS_PATH
 )
 from utils.log import logger
 from utils.db import Database
 from utils.file import create_dir
 from server.api.routers import agent_data_gen
+from common.initialization import init_env
 
 # 实例化动态任务调度器
 scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
@@ -53,21 +49,6 @@ def get_db():
         yield db
     finally:
         db.session.close()
-
-
-def init_env():
-    """
-    初始化运行环境
-    Returns:
-
-    """
-    # 创建数据目录
-    for path in [SAVE_DATA_PATH, DG_PLAN_PATH, DG_PAYLOAD_PATH, TABLE_MODELS_PATH, CONF_DATA_PATH]:
-        logger.info(f"创建所需目录: {path}")
-        status, message = create_dir(str(path))
-        if status is False:
-            logger.error(message)
-            sys.exit(1)
 
 
 init_env()

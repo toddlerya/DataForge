@@ -14,6 +14,7 @@ from loguru import logger
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
+from config import GEN_TABLE_MODELS_DATA_PATH
 from agent.llm import chat_llm
 from agent.prompt import (
     table_intent_prompt,
@@ -34,7 +35,7 @@ from database_models.schema import GenTableFieldSchema
 from cruds.advanced_query import sliding_window_query
 from database_models.models import TableMetaDataInfo
 from utils.db import Database
-from utils.file import save_dict2jl
+from utils.file import save_dict2jl, targz_archive
 
 
 def analyze_table_intent(state: TableGenState) -> TableGenState:
@@ -322,7 +323,7 @@ def save_mapping_dimension_table_info(state: TableGenState):
             # 移除此字段信息，因为此输出过程不需要体现这个信息
             data.pop("reference_material_table_metadata_slice")
             save_json_path = (
-                pathlib.Path(r"F:\GITLAB\DataForge\data\gen_models\materials")
+                state.get("session_temp_data_path")
                 .joinpath(
                     f"{mapping_dimension_table_info.dimension_table_en_name}.json"
                 )
@@ -480,13 +481,37 @@ def save_dimension_table_config(state: TableGenState):
         for dimension_table_fill_fields_result in dimension_table_config_slice:
             data = dimension_table_fill_fields_result.model_dump()
             save_json_path = (
-                pathlib.Path(r"F:\GITLAB\DataForge\data\gen_models\configs")
+                state.get("session_temp_data_path")
                 .joinpath(
                     f"{dimension_table_fill_fields_result.dimension_table_en_name}.json"
                 )
                 .absolute()
             )
             save_dict2jl(json_data=data, save_path=str(save_json_path))
+    return state
+
+
+def archive_table_data(state: TableGenState):
+    """
+    打包任务生成的表配置数据
+    :param state:
+    :return:
+    """
+    logger.info(
+        f"[+] 打包session_id={state.get('session_id')} client_ip={state.get('client_ip')}结果数据"
+    )
+    result_archive_file_name = f"""{state.get("client_ip")}_{state.get("session_id")}_llm_gen_table_config.tar.gz"""
+    session_archive_data_path = GEN_TABLE_MODELS_DATA_PATH.joinpath(
+        state.get("session_id"), result_archive_file_name
+    )
+    status, message = targz_archive(
+        dir_to_archive=GEN_TABLE_MODELS_DATA_PATH.joinpath(state.get("session_id")),
+        archive_filename_path=session_archive_data_path,
+    )
+    if status is False:
+        state["archive_message"] = message
+    else:
+        state["session_archive_data_path"] = session_archive_data_path
     return state
 
 
@@ -505,6 +530,7 @@ table_gen_builder.add_node(
 )
 table_gen_builder.add_node("gen_dimension_table_config", gen_dimension_table_config)
 table_gen_builder.add_node("save_dimension_table_config", save_dimension_table_config)
+table_gen_builder.add_node("archive_table_data", archive_table_data)
 
 table_gen_builder.add_edge(START, "analyze_table_intent")
 table_gen_builder.add_edge("analyze_table_intent", "table_intent_human_feedback")
@@ -524,7 +550,8 @@ table_gen_builder.add_edge(
     "save_mapping_dimension_table_info", "gen_dimension_table_config"
 )
 table_gen_builder.add_edge("gen_dimension_table_config", "save_dimension_table_config")
-table_gen_builder.add_edge("save_dimension_table_config", END)
+table_gen_builder.add_edge("save_dimension_table_config", "archive_table_data")
+table_gen_builder.add_edge("archive_table_data", END)
 
 memory = MemorySaver()
 table_gen_graph = table_gen_builder.compile(
@@ -532,14 +559,20 @@ table_gen_graph = table_gen_builder.compile(
 )
 
 if __name__ == "__main__":
+    from common.initialization import init_env, setup_logging
+    from config import PROJECT_PATH
+
     from utils.log import LogManager
 
-    LogManager(
-        base_path=r"F:\GITLAB\DataForge\logs",
-        log_path="agent",
-        log_name="agent.log",
+    log_config = LogManager(
+        base_path=str(PROJECT_PATH.absolute()),
+        log_path="logs",
+        log_name="DataForgeTableGenApp.log",
         file_log_level="TRACE",
     )
+    setup_logging(log_config.get_config().get("handlers"))
+    init_env()
+
     print(table_gen_graph.get_graph(xray=True).draw_mermaid())
     user_input = """帮我生成一些人员属性、上网行为、位置轨迹类别的表，每个表的字段数量最少10个，最多100个，至少生成2张表"""
     thread = {"configurable": {"thread_id": "123"}}
