@@ -236,7 +236,8 @@ class TableGenState(TypedDict):
     dimension_table_config_slice: List[DimensionTableFillFieldResult]
     max_retries: int
     session_temp_data_path: Path
-    session_archive_data_path: Path
+    create_session_temp_data_path_message: str
+    session_archive_file_path: Path
     archive_message: str
 
 

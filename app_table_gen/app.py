@@ -127,10 +127,17 @@ async def process_step(event, graph):
 
         elif node == "save_mapping_dimension_table_info":
             logger.info("[process] save_mapping_dimension_table_info")
-            await cl.Message(
-                author="Assistant",
-                content=f"已存储特征表计划，准备生成特征表",
-            ).send()
+            create_session_temp_data_path_message = state.get("create_session_temp_data_path_message")
+            if create_session_temp_data_path_message:
+                await cl.Message(
+                    author="Assistant",
+                    content=f"创建存储特征表计划目录异常: {create_session_temp_data_path_message}",
+                ).send()
+            else:
+                await cl.Message(
+                    author="Assistant",
+                    content=f"已存储特征表计划，准备生成特征表",
+                ).send()
 
         elif node == "gen_dimension_table_config":
             logger.info("[process] gen_dimension_table_config")
@@ -149,8 +156,8 @@ async def process_step(event, graph):
 
         elif node == "archive_table_data":
             logger.info("[process] archive_table_data")
-            session_archive_data_path: Path = state.get("session_archive_data_path")
-            if session_archive_data_path is None:
+            session_archive_file_path: Path = state.get("session_archive_file_path")
+            if session_archive_file_path is None:
                 archive_message = state.get("archive_message")
                 await cl.Message(
                     author="Assistant", content=f"打包结果异常: {archive_message}"
@@ -158,8 +165,8 @@ async def process_step(event, graph):
             else:
                 download_archive_elements = [
                     cl.File(
-                        name=session_archive_data_path.name.strip(),
-                        path=str(session_archive_data_path.absolute()),
+                        name=session_archive_file_path.name.strip(),
+                        path=str(session_archive_file_path.absolute()),
                         display="inline",
                     ),
                 ]

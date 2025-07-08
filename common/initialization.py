@@ -10,10 +10,6 @@ import sys
 from config import (
     CONF_DATA_PATH,
     SAVE_DATA_PATH,
-    SQLALCHEMY_AUTO_COMMIT,
-    SQLALCHEMY_AUTO_FLUSH,
-    SQLALCHEMY_ECHO,
-    SQLALCHEMY_URL,
     DG_PLAN_PATH,
     DG_PAYLOAD_PATH,
     GEN_TABLE_MODELS_DATA_PATH,
@@ -21,17 +17,13 @@ from config import (
 )
 
 from utils.file import create_dir
-from utils.log import logger
 
 import logging
-import os.path
 import sys
 
-from uvicorn import Config, Server
 
-from server.api.base import app
-from utils.log import LogManager, logger
-from config import ENV_LOG_LEVEL, ENV_PORT, PROJECT_PATH
+from utils.log import logger
+from config import ENV_LOG_LEVEL
 
 
 class InterceptHandler(logging.Handler):
