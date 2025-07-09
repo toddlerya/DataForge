@@ -15,7 +15,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import FunctionMessage
 from langgraph.graph import END, START, StateGraph
 
-from config import GEN_TABLE_MODELS_DATA_PATH
+from config import GEN_TABLE_MODELS_DATA_PATH, GEN_TABLE_MODELS_TEMP_PATH
 from agent.llm import chat_llm
 from agent.prompt import (
     table_intent_prompt,
@@ -331,7 +331,7 @@ def save_mapping_dimension_table_info(state: TableGenState):
             save_json_path = (
                 state.get("session_temp_data_path")
                 .joinpath(
-                    f"{mapping_dimension_table_info.dimension_table_en_name}.json"
+                    f"{mapping_dimension_table_info.dimension_table_en_name}-mapping_dimension_table_info.json"
                 )
                 .absolute()
             )
@@ -489,7 +489,7 @@ def save_dimension_table_config(state: TableGenState):
             save_json_path = (
                 state.get("session_temp_data_path")
                 .joinpath(
-                    f"{dimension_table_fill_fields_result.dimension_table_en_name}.json"
+                    f"{dimension_table_fill_fields_result.dimension_table_en_name}-dimension_table_config.json"
                 )
                 .absolute()
             )
@@ -507,16 +507,9 @@ def archive_table_data(state: TableGenState):
         f"[+] 打包session_id={state.get('session_id')} client_ip={state.get('client_ip')}结果数据"
     )
     result_archive_file_name = f"""{state.get("client_ip")}_{state.get("session_id")}_llm_gen_table_config.tar.gz"""
-    session_archive_data_path = GEN_TABLE_MODELS_DATA_PATH.joinpath(state.get("session_id"))
-    logger.info(f"creating session_archive_data_path: {session_archive_data_path}")
-    status, message = create_dir(session_archive_data_path)
-    if status is False:
-        logger.error(f"failed create session_archive_data_path: {session_archive_data_path} ERROR: {message}")
-        state["archive_message"] = message
-        return state
-    session_archive_file_path = session_archive_data_path.joinpath(result_archive_file_name)
+    session_archive_file_path = GEN_TABLE_MODELS_DATA_PATH.joinpath(result_archive_file_name)
     status, message = targz_archive(
-        dir_to_archive=GEN_TABLE_MODELS_DATA_PATH.joinpath(state.get("session_id")),
+        dir_to_archive=GEN_TABLE_MODELS_TEMP_PATH.joinpath(state.get("session_id")),
         archive_filename_path=session_archive_file_path,
 
     )

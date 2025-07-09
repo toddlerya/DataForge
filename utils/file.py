@@ -618,4 +618,7 @@ if __name__ == "__main__":
     res = split_path(
         r"HETU_TAOSHA-1.2.26-install-20241129\\HETU_TAOSHA-Onekey-install-1.2.26-allsystem-20241129\\HETU_TAOSHA-Onekey-install-1.2.26\\HETU_IAO_TAOSHA_MODELS-install-runtime-2.1.4-allsystem-20241129\\HETU_IAO_TAOSHA_MODELS-install-2.1.4\\package\\HETU_IAO_TAOSHA_LABEL_MODELS-install-runtime-2.1.4-allsystem-20241129\\HETU_IAO_TAOSHA_LABEL_MODELS-install-2.1.4\\models\\model_template_30001\\model_13352\\model_13352.xml"
     )
-    print(res)
+    # print(res)
+
+    print(targz_archive(dir_to_archive=pathlib.Path(r"F:\GITLAB\DataForge\data\gen_table_models\temp\06b2ba65-726c-4226-a573-40c9e7204c13"),
+                        archive_filename_path=pathlib.Path(r"F:\GITLAB\DataForge\data\gen_table_models\data\06b2ba65-726c-4226-a573-40c9e7204c13\127.0.0.1_06b2ba65-726c-4226-a573-40c9e7204c13_llm_gen_config.tar.gz")))
