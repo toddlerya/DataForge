@@ -153,6 +153,48 @@ class DataGenState(TypedDict):
     max_retries: int
 
 
+class DataGenSQLModeUserIntentSchema(BaseModel):
+    sql: str = Field(..., min_length=15, description="SQL内容")
+    data_count: int = Field(..., ge=1, description="期望数据条数")
+
+
+class SQLModeFieldSchema(BaseModel):
+    en_name: str = Field(..., min_length=1, description="字段英文名称")
+    alias_name: str = Field("", description="字段别名")
+    cn_name: str = Field("", description="字段注释中文名")
+
+
+class SQLModeTableInfoSchema(BaseModel):
+    table_en_name: str = Field(
+        description="表英文名称", alias="table_en_name", default=""
+    )
+    fields_info: List[SQLModeFieldSchema] = Field(
+        description="字段信息", alias="fields_info", default=[]
+    )
+
+
+class SQLModeDataGenState(TypedDict):
+    messages: Annotated[List[AnyMessage], add_messages]
+    user_input: str
+    session_id: str
+    client_ip: str
+    user_intent: DataGenSQLModeUserIntentSchema
+    human_intent_feedback: str
+    table_info_error: str
+    table_info_data: SQLModeTableInfoSchema
+    pydantic_data_genius_plan: PydanticDataGeniusPlan
+    data_genius_headers: dict
+    create_data_genius_task_error: str
+    query_data_genius_task_error: str
+    data_genius_plan_task_id: str
+    data_genius_plan_run_duration: str
+    data_genius_plan_output_url: str
+    data_genius_plan_output_filesize: str
+    data_genius_plan_edit_url: str
+    error_message: Annotated[List[AnyMessage], add_messages]
+    max_retries: int
+
+
 class TableGenUserIntentSchema(BaseModel):
     categories: List[str] = Field(
         ..., description="期望生成的表类别, 例如: 人员属性,上网行为,位置轨迹等"

@@ -28,6 +28,24 @@ data_intent_prompt = ChatPromptTemplate.from_messages(
     [data_intent_system_prompt, data_intent_human_prompt]
 )
 
+
+sql_mode_data_intent_system_prompt = SystemMessagePromptTemplate.from_template(
+    "你是SQL专家，你的任务如下\n"
+    "1. 识别出数据库表名称用户提供的SQL内容, 对应sql\n"
+    "2. 期望生成数据条数, 对应data_count\n"
+    "按照要求输出结构化数据。"
+)
+
+sql_mode_data_intent_human_prompt = HumanMessagePromptTemplate.from_template(
+    "分析如下信息并结构化输出: {user_input}\n"
+    "这是用户之前的反馈信息: {human_intent_feedback}"
+)
+
+sql_mode_data_intent_prompt = ChatPromptTemplate.from_messages(
+    [sql_mode_data_intent_system_prompt, sql_mode_data_intent_human_prompt]
+)
+
+
 dg_category_system_prompt = SystemMessagePromptTemplate.from_template(
     """
 您是一位专业的数据分类助手。

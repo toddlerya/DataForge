@@ -222,7 +222,7 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
                 ename=field_info.en_name,
                 cname=field_info.cn_name,
                 preview=f"score: {llm_dg_field_category_recommendation.score}, "
-                f"reason: {llm_dg_field_category_recommendation.reason}",
+                        f"reason: {llm_dg_field_category_recommendation.reason}",
                 value=field_info.example,
             )
             logger.trace(
