@@ -66,6 +66,7 @@ services:
       - ./utils:/app/utils
       - ./config.py:/app/config.py
       - ./.env:/app/.env
+      - ./.chainlit:/app/.chainlit
     environment:
       # 日志级别
       - LOG_LEVEL=INFO
@@ -98,6 +99,7 @@ services:
       - ./utils:/app/utils
       - ./config.py:/app/config.py
       - ./.env:/app/.env
+      - ./.chainlit:/app/.chainlit
     environment:
       # 日志级别
       - LOG_LEVEL=INFO
