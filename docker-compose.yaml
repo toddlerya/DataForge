@@ -23,6 +23,7 @@ services:
       - ./app_data_gen:/app/app_data_gen
       - ./app_table_gen:/app/app_table_gen
       - ./cruds:/app/cruds
+      - ./common:/app/common
       - ./server:/app/server
       - ./utils:/app/utils
       - ./config.py:/app/config.py
@@ -61,6 +62,7 @@ services:
       - ./agent:/app/agent
       - ./app_data_gen:/app/app_data_gen
       - ./cruds:/app/cruds
+      - ./common:/app/common
       - ./utils:/app/utils
       - ./config.py:/app/config.py
       - ./.env:/app/.env
@@ -92,6 +94,7 @@ services:
       - ./agent:/app/agent
       - ./app_table_gen:/app/app_table_gen
       - ./cruds:/app/cruds
+      - ./common:/app/common
       - ./utils:/app/utils
       - ./config.py:/app/config.py
       - ./.env:/app/.env
