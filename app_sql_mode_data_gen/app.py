@@ -112,13 +112,13 @@ async def process_step(event, graph):
                     [
                         "en_name",
                         "alias_name",
-                        "cn_name",
+                        "comment",
                     ]
                 ].rename(
                     columns={
                         "en_name": "字段英文名称",
                         "alias_name": "字段别名",
-                        "cn_name": "字段注释",
+                        "comment": "字段注释",
                     }
                 )
                 table_metadata_elements = [

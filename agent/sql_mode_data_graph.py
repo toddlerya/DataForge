@@ -18,7 +18,7 @@ from loguru import logger
 
 from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
 from agent.llm import chat_llm
-from agent.prompt import dg_category_prompt, sql_mode_data_intent_prompt
+from agent.prompt import sql_mode_dg_category_prompt, sql_mode_data_intent_prompt
 from agent.state import (
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
@@ -168,7 +168,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
                 category=llm_dg_field_category_recommendation.category,
                 name="",
                 ename=field_info.en_name,
-                cname=field_info.cn_name,
+                cname=field_info.comment,
                 preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
                 value="",
             )
@@ -177,13 +177,10 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
             # 清空字段重试次数，开始下一个字段的推荐
             retry_count = 0
             continue
-        chat_prompt = dg_category_prompt.format_messages(
-            cn_name=field_info.cn_name,
+        chat_prompt = sql_mode_dg_category_prompt.format_messages(
             en_name=field_info.en_name,
-            field_type="string",
-            desc="",
-            sample_value="",
-            dict_name="",
+            alias_name=field_info.alias_name,
+            comment=field_info.comment,
             dg_category_config_data=DG_FIELD_CATEGORY_CONFIG,
             last_error_message=last_error_message,
         )
@@ -206,7 +203,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
                 category=llm_dg_field_category_recommendation.category,
                 name="",
                 ename=field_info.en_name,
-                cname=field_info.cn_name,
+                cname=field_info.comment,
                 preview=f"score: {llm_dg_field_category_recommendation.score}, "
                         f"reason: {llm_dg_field_category_recommendation.reason}",
                 value="",

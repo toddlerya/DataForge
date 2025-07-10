@@ -102,7 +102,7 @@ def advanced_column_lineage_parser(sql: str) -> tuple[dict, Exception | None]:
             final_map[table_name].append({
                 "en_name": original_column_name,
                 "alias_name": projection.alias_or_name,
-                "cn_name": "".join(c.strip() for c in projection.comments) if projection.comments else ""
+                "comment": "".join(c.strip() for c in projection.comments) if projection.comments else ""
             })
 
     return final_map, None
