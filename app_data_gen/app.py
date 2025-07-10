@@ -49,8 +49,6 @@ async def start_chat():
 massdata.ADM_REL_MOBILE
 期望生成数据条数 (必填):
 massdata.ADM_REL_MOBILE: 5
-期望表约束条件 (可选):
-massdata.ADM_REL_MOBILE: MD_ID IS NOT NULL AND FIRST_TIME <= LAST_TIME AND LAST_TIME <= '2025-06-13'
 """
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(
