@@ -7,7 +7,6 @@
 
 import json
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Request
 
@@ -18,19 +17,19 @@ from server.api.schemas.agent_data_gen import (
     InitDataGenSchema,
     HumanIntentFeedBackSchema,
 )
-from agent.data_graph import data_gen_graph
+from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import DataGenUserIntentSchema
 from utils.err_code import error_code
 
 router = APIRouter(
-    prefix="/data_gen_agent",
-    tags=["数据生成"],
+    prefix="/sql_mode_data_gen_agent",
+    tags=["只提供SQL模式数据生成"],
     responses={404: {"description": "Not Found"}},
 )
 
 
 @router.post("/set_intent", response_model=ResponseBaseSchema)
-async def init_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request):
+async def init_sql_mode_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request):
     """
     设置用户意图，初始化图
     :param init_data_gen:
@@ -52,7 +51,7 @@ async def init_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request
     }
 
     thread = {"configurable": {"thread_id": session_id}}
-    event = await data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
+    event = await sql_mode_data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
     user_intent: DataGenUserIntentSchema = event.get("user_intent")
 
     if user_intent:
@@ -78,7 +77,7 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
     )
     resp_data.session_id = feedback_data.session_id
     thread = {"configurable": {"thread_id": feedback_data.session_id}}
-    state_snapshot = data_gen_graph.get_state(thread)
+    state_snapshot = sql_mode_data_gen_graph.get_state(thread)
     if not state_snapshot.next:
         logger.debug(f"[数据生成Graph] state_snapshot: {state_snapshot}")
         message = f"[数据生成Graph] 用户提供的session_id={feedback_data.session_id}错误，没有初始化的Graph应用."
@@ -96,14 +95,14 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
         resp_data.code = error_code.FEEDBACK_STOP_GRAPH.get("code")
         return resp_data.dict()
 
-    data_gen_graph.update_state(
+    sql_mode_data_gen_graph.update_state(
         thread,
         {"human_intent_feedback": feedback_data.human_intent_feedback.strip()},
         as_node="intent_human_feedback_node",
     )
-    event = await data_gen_graph.ainvoke(None, thread, stream_mode="values")
+    event = await sql_mode_data_gen_graph.ainvoke(None, thread, stream_mode="values")
     for error in [
-        "table_metadata_error",
+        "table_info_error",
         "create_data_genius_task_error",
         "query_data_genius_task_error",
     ]:
@@ -117,7 +116,7 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
             return resp_data.dict()
     if event.get("data_genius_plan_output_url"):
         result = {
-            "table_metadata_array": event["table_metadata_array"],
+            "table_info_data": event["table_info_data"].model_dump(),
             "data_genius_plan_task_id": event["data_genius_plan_task_id"],
             "data_genius_plan_run_duration": event["data_genius_plan_run_duration"],
             "data_genius_plan_output_url": event["data_genius_plan_output_url"],

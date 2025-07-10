@@ -176,5 +176,6 @@ pangu_field_type_map = {
 }
 
 DG_PLAN_CONFIG_PREFIX = "dg_task_plan_"
+SQL_MODE_DG_PLAN_CONFIG_PREFIX = "sql_dg_task_plan_"
 
 DG_HEADERS = {"USER_PROVIDE_IP": "10.0.23.57"}

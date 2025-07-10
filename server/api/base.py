@@ -29,8 +29,8 @@ from config import (
 )
 from utils.log import logger
 from utils.db import Database
-from utils.file import create_dir
 from server.api.routers import agent_data_gen
+from server.api.routers import agent_sql_mode_data_gen
 from common.initialization import init_env
 
 # 实例化动态任务调度器
@@ -86,6 +86,7 @@ async def test():
 
 
 app.include_router(agent_data_gen.router)
+app.include_router(agent_sql_mode_data_gen.router)
 
 # @app.get('/docs', include_in_schema=False)
 # async def custom_swagger_ui_html():

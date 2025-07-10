@@ -102,7 +102,7 @@ def advanced_column_lineage_parser(sql: str) -> tuple[dict, Exception | None]:
             final_map[table_name].append({
                 "en_name": original_column_name,
                 "alias_name": projection.alias_or_name,
-                "cn_name": "".join(c.strip() for c in projection.comments) if projection.comments else None
+                "cn_name": "".join(c.strip() for c in projection.comments) if projection.comments else ""
             })
 
     return final_map, None
@@ -152,10 +152,11 @@ if __name__ == '__main__':
              from  massdata.NB_MASS_RESOURCE_ARTICLE a where a.CAPTURE_TIME>=UNIX_TIMESTAMP()-1*24*3600 AND
              a.APP_TYPE='100000595'       and a.AUTH_ACCOUNT<>''"""
 
-    demo_sql_2 = """select	F859 as F2079, F860 as F2085, F861 as F2091, F862 as F2097, STR_SRC_IP as F2103, F863 as F2109, STR_DST_IP as F2115, F864 as F2121, F865 as F2127, F866 as F2133, F867 as F2139, F868 as F2145, F869 as F2151, F870 as F2157, F871 as F2163, F872 as F2169, F873 as F2175, F874 as F2181, F875 as F2187, F876 as F2193, F877 as F2199, PASSWORD as F2205, TITLE as F2211, ARTICLE_ID as F2217, CONTENT_S as F2223, F878 as F2229, F879 as F2235 from	massdata.NB_MASS_RESOURCE_REGISTER"""
+    demo_sql_2 = """select F859 as F2079, F860 as F2085, F861 as F2091, F862 as F2097, STR_SRC_IP as F2103, F863 as F2109, STR_DST_IP as F2115, F864 as F2121, F865 as F2127, F866 as F2133, F867 as F2139, F868 as F2145, F869 as F2151, F870 as F2157, F871 as F2163, F872 as F2169, F873 as F2175, F874 as F2181, F875 as F2187, F876 as F2193, F877 as F2199, PASSWORD as F2205, TITLE as 
+F2211, ARTICLE_ID as F2217, CONTENT_S as F2223, F878 as F2229, F879 as F2235 from massdata.NB_MASS_RESOURCE_REGISTER"""
 
     import json
-    result, err = advanced_column_lineage_parser(demo_sql_1)
+    result, err = advanced_column_lineage_parser(demo_sql_2)
     print(err)
     print(result)
     print(json.dumps(result, ensure_ascii=False))
