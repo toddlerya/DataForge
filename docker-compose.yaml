@@ -107,6 +107,39 @@ services:
       # 数据默认保留时间
       - DATA_EXPIRED_DAY=30
 
+  sql_mode_data_gen_chat:
+    image: llm_server_py313_env:1.0.0
+    container_name: SQLModeDFDataGenApp
+    hostname: DFDataGenApp
+    restart: unless-stopped
+    privileged: true
+    working_dir: /app
+    command: bash -c "python -m app_sql_mode_data_gen.run"
+    networks:
+      harbor_net:
+    ports:
+      - "9803:9803"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data:/app/data
+      - ./database:/app/database
+      - ./logs:/app/logs
+      - ./database_models:/app/database_models
+      - ./agent:/app/agent
+      - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
+      - ./cruds:/app/cruds
+      - ./common:/app/common
+      - ./utils:/app/utils
+      - ./config.py:/app/config.py
+      - ./.env:/app/.env
+      - ./.chainlit:/app/.chainlit
+    environment:
+      # 日志级别
+      - LOG_LEVEL=INFO
+      - SQLALCHEMY_ECHO=false
+      # 数据默认保留时间
+      - DATA_EXPIRED_DAY=30
+
 networks:
   harbor_net:
     external: true

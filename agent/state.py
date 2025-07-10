@@ -161,7 +161,7 @@ class DataGenSQLModeUserIntentSchema(BaseModel):
 class SQLModeFieldSchema(BaseModel):
     en_name: str = Field(..., min_length=1, description="字段英文名称")
     alias_name: str = Field("", description="字段别名")
-    cn_name: str = Field("", description="字段注释中文名")
+    cn_name: str = Field("", description="字段注释")
 
 
 class SQLModeTableInfoSchema(BaseModel):
