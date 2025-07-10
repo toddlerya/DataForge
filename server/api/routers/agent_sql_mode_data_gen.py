@@ -18,7 +18,7 @@ from server.api.schemas.agent_data_gen import (
     HumanIntentFeedBackSchema,
 )
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
-from agent.state import DataGenUserIntentSchema
+from agent.state import DataGenSQLModeUserIntentSchema
 from utils.err_code import error_code
 
 router = APIRouter(
@@ -52,7 +52,7 @@ async def init_sql_mode_data_gen_graph(init_data_gen: InitDataGenSchema, request
 
     thread = {"configurable": {"thread_id": session_id}}
     event = await sql_mode_data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
-    user_intent: DataGenUserIntentSchema = event.get("user_intent")
+    user_intent: DataGenSQLModeUserIntentSchema = event.get("user_intent")
 
     if user_intent:
         resp_data.data = user_intent.model_dump()
@@ -101,6 +101,61 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
         as_node="intent_human_feedback_node",
     )
     event = await sql_mode_data_gen_graph.ainvoke(None, thread, stream_mode="values")
+    for error in [
+        "table_info_error",
+        "create_data_genius_task_error",
+        "query_data_genius_task_error",
+    ]:
+        if event.get(error):
+            logger.error(f"[数据生成Graph] {error}: {event.get(error)}")
+            resp_data.data = event
+            resp_data.message = (
+                f"{error_code.GRAPH_NODE_ERROR.get('description')} {event.get(error)}"
+            )
+            resp_data.code = error_code.GRAPH_NODE_ERROR.get("code")
+            return resp_data.dict()
+    if event.get("data_genius_plan_output_url"):
+        result = {
+            "table_info_data": event["table_info_data"].model_dump(),
+            "data_genius_plan_task_id": event["data_genius_plan_task_id"],
+            "data_genius_plan_run_duration": event["data_genius_plan_run_duration"],
+            "data_genius_plan_output_url": event["data_genius_plan_output_url"],
+            "data_genius_plan_output_filesize": event[
+                "data_genius_plan_output_filesize"
+            ],
+            "data_genius_plan_edit_url": event["data_genius_plan_edit_url"],
+        }
+        logger.info(f"[数据生成Graph] 结果: {json.dumps(result)}")
+        resp_data.data = event
+    return resp_data.dict()
+
+
+@router.post("/run", response_model=ResponseBaseSchema)
+async def run_graph(user_intent: DataGenSQLModeUserIntentSchema, request: Request):
+    """
+    用户反馈确认
+    :param user_intent:
+    :param request
+    :return:
+    """
+    logger.info(f"[数据生成Graph] 初始化图并运行: {user_intent.model_dump_json()}")
+    resp_data = ResponseBaseSchema(
+        description="[数据生成Graph] 初始化图并运行"
+    )
+    client_ip = extract_client_ip(request)
+    session_id = uuid.uuid4().hex
+    resp_data.session_id = session_id
+    init_state = {
+        "user_input": user_intent.model_dump_json(),
+        "user_intent": user_intent,
+        "human_intent_feedback": "正确",
+        "max_retries": 3,
+        "session_id": session_id,
+        "client_ip": client_ip,
+    }
+
+    thread = {"configurable": {"thread_id": session_id}}
+    event = await sql_mode_data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
     for error in [
         "table_info_error",
         "create_data_genius_task_error",
