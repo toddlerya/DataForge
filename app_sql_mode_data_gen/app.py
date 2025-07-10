@@ -42,15 +42,12 @@ async def start_chat():
     else:
         cl.user_session.set("client_ip", "127.0.0.1")
 
-    text_content = f"""{cl.user_session.get("client_ip")}，您好！我是您的测试数据生成助手\n\n目前支持的表为盘古或数据域管理的表。\n
-请输入需要构造的表名称，期望的表字段约束条件，期望生成的数据条数。\n
+    text_content = f"""{cl.user_session.get("client_ip")}，您好！我是您的测试数据生成助手\n\n
+请输入你的SELECT SQL语句，期望生成的数据条数。\n
 ====输入内容示例====\n
-数据库表名称 (必填):
-massdata.ADM_REL_MOBILE
-期望生成数据条数 (必填):
-massdata.ADM_REL_MOBILE: 5
-期望表约束条件 (可选):
-massdata.ADM_REL_MOBILE: MD_ID IS NOT NULL AND FIRST_TIME <= LAST_TIME AND LAST_TIME <= '2025-06-13'
+SQL内容(必填): 
+SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134, SERVER_IP AS F1135, SERVER_PORT AS F1136, FIRST_TIME AS F1137, LAST_TIME AS F1138, CCOUNT AS F1139, DCOUNT AS F1140, DETAIL AS F1141, DATA_COLOR_ID AS F1142, adsl AS F1144 FROM massdata.DWS_BEH_ANA_VPN
+期望生成数据条数(必填): 100
 """
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(
