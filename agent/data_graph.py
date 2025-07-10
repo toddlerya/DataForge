@@ -234,7 +234,7 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
             retry_count = 0
     rule_uuid = str(uuid.uuid4())
     pydantic_data_genius_plan = PydanticDataGeniusPlan(
-        rule_name=f"{DG_PLAN_CONFIG_PREFIX}{rule_uuid}.json",
+        rule_name=f"{DG_PLAN_CONFIG_PREFIX}{rule_uuid}",
         type_="规则",
         rows=row_count,
         separator="\t",
@@ -258,12 +258,20 @@ def save_dg_plan2json(state: DataGenState):
     """
     logger.info("存储DataGenius任务规则")
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+    table_metadata_array = state.get("table_metadata_array")
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
         save_json_path = DG_PLAN_PATH.joinpath(
-            f"{pydantic_data_genius_plan.rule_name}"
+            f"{pydantic_data_genius_plan.rule_name}.json"
         ).absolute()
         save_dict2jl(json_data=data, save_path=str(save_json_path))
+    if table_metadata_array:
+        table_metadata_array_data = [ele.model_dump() for ele in table_metadata_array]
+        table_metadata_json_path = DG_PLAN_PATH.joinpath(
+            f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
+        )
+
+        save_dict2jl(json_data=table_metadata_array_data, save_path=table_metadata_json_path)
     return state
 
 
