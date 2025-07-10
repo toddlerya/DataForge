@@ -14,7 +14,7 @@ from loguru import logger
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import DataGenSQLModeUserIntentSchema, PydanticDataGeniusPlan
 from common.initialization import init_env, setup_logging
-from config import PROJECT_PATH
+from config import PROJECT_PATH, DG_PLAN_PATH
 
 from utils.log import LogManager
 
@@ -155,9 +155,7 @@ async def process_step(event, graph):
             pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
                 "pydantic_data_genius_plan"
             )
-            dg_plan_json_path = PROJECT_PATH.joinpath(
-                "data", "dg_plan", f"{pydantic_data_genius_plan.rule_name}"
-            ).absolute()
+            dg_plan_json_path = DG_PLAN_PATH.joinpath(f"{pydantic_data_genius_plan.rule_name}").absolute()
             logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
             download_dg_plan_json_elements = [
                 cl.File(
@@ -170,6 +168,23 @@ async def process_step(event, graph):
                 author="Assistant",
                 content="可下载DataGenius计划配置备用，比如上传到DataGenius二次修改",
                 elements=download_dg_plan_json_elements,
+            ).send()
+
+            # 表元数据文件信息
+            dg_plan_table_metadata_json_path = DG_PLAN_PATH.joinpath(
+                f"{pydantic_data_genius_plan.rule_name}_table_metadata.json").absolute()
+            logger.info(f"dg_plan_table_metadata_json_path: {dg_plan_table_metadata_json_path}")
+            download_dg_plan_table_metadata_json_elements = [
+                cl.File(
+                    name=f"{pydantic_data_genius_plan.rule_name}_table_metadata.json",
+                    path=str(dg_plan_table_metadata_json_path),
+                    display="inline",
+                ),
+            ]
+            await cl.Message(
+                author="Assistant",
+                content="可下载表的字段配置信息，入库测试数据时可能会用到",
+                elements=download_dg_plan_table_metadata_json_elements,
             ).send()
 
         elif node == "create_dg_task":

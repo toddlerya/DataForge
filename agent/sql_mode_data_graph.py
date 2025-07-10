@@ -241,12 +241,18 @@ def save_dg_plan2json(state: SQLModeDataGenState):
     """
     logger.info("存储DataGenius任务规则")
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+    table_info_data: SQLModeTableInfoSchema = state.get("table_info_data")
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
         save_json_path = DG_PLAN_PATH.joinpath(
             f"{pydantic_data_genius_plan.rule_name}"
         ).absolute()
         save_dict2jl(json_data=data, save_path=str(save_json_path))
+    if table_info_data:
+        table_metadata_json_path = DG_PLAN_PATH.joinpath(
+            f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
+        )
+        save_dict2jl(json_data=table_info_data.model_dump(), save_path=table_metadata_json_path)
     return state
 
 
