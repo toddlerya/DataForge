@@ -42,6 +42,19 @@ from utils.db import Database
 from utils.file import save_dict2jl
 
 
+def detect_input_type(state: SQLModeDataGenState):
+    """
+    判断用户输入的是结构化任务参数还是自然语言任务需求
+    :param state:
+    :return:
+    """
+    user_intent: DataGenSQLModeUserIntentSchema = state.get("user_intent")
+    if user_intent:
+        return "sql_parse_to_table_info"
+    else:
+        return "analyze_intent"
+
+
 def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     解析用户意图，SQL模式
@@ -406,7 +419,7 @@ sql_mode_data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 sql_mode_data_gen_builder.add_node("create_dg_task", create_dg_task)
 sql_mode_data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
 
-sql_mode_data_gen_builder.add_edge(START, "analyze_intent")
+sql_mode_data_gen_builder.add_conditional_edges(START, detect_input_type, ["sql_parse_to_table_info", "analyze_intent"])
 sql_mode_data_gen_builder.add_edge("analyze_intent", "intent_human_feedback_node")
 sql_mode_data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
@@ -440,12 +453,17 @@ if __name__ == '__main__':
     init_env()
 
     print(sql_mode_data_gen_graph.get_graph(xray=True).draw_mermaid())
-    user_input = """SQL内容(必填): select	node_22.MD_ID as F1131,node_22.AUTH_TYPE as F1132,node_22.AUTH_ACCOUNT as F1133,node_22.VPN_TYPE as F1134,node_22.SERVER_IP as F1135,node_22.SERVER_PORT as F1136,node_22.FIRST_TIME as F1137,node_22.LAST_TIME as F1138,node_22.CCOUNT as F1139,node_22.DCOUNT as F1140,node_22.DETAIL as F1141,node_22.DATA_COLOR_ID as F1142,node_2.adsl as F1144 from massdata.DWS_BEH_ANA_VPN as node_22
+    user_input = """SQL内容(必填): select node_22.MD_ID as F1131,node_22.AUTH_TYPE as F1132,node_22.AUTH_ACCOUNT as F1133,node_22.VPN_TYPE as F1134,node_22.SERVER_IP as F1135,node_22.SERVER_PORT as F1136,node_22.FIRST_TIME as F1137,node_22.LAST_TIME as F1138,node_22.CCOUNT as F1139,node_22.DCOUNT as F1140,node_22.DETAIL as F1141,node_22.DATA_COLOR_ID as F1142,node_2.adsl as F1144 from massdata.DWS_BEH_ANA_VPN as node_22
     期望生成数据条数(必填): 100"""
-    session_id = "12345"
+    session_id = uuid.uuid4().hex
     thread = {"configurable": {"thread_id": session_id}}
     init_state = {
         "user_input": user_input,
+        "user_intent": DataGenSQLModeUserIntentSchema(**{
+            "sql": "SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134, SERVER_IP AS F1135, SERVER_PORT AS F1136, FIRST_TIME AS F1137, LAST_TIME AS F1138, CCOUNT AS F1139, DCOUNT AS F1140, DETAIL AS F1141, DATA_COLOR_ID AS F1142, adsl AS F1144 FROM massdata.DWS_BEH_ANA_VPN",
+            "data_count": 100
+        }),
+        "human_intent_feedback": "正确",
         "max_retries": 5,
         "client_ip": "10.0.23.57",
         "session_id": session_id
@@ -455,9 +473,9 @@ if __name__ == '__main__':
         if user_intent:
             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
     # 模拟用户意图识别的研判反馈
-    sql_mode_data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"},
-                                         as_node="intent_human_feedback_node")
-    for event in sql_mode_data_gen_graph.stream(None, thread, stream_mode="values"):
+    # sql_mode_data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"},
+    #                                      as_node="intent_human_feedback_node")
+    # for event in sql_mode_data_gen_graph.stream(None, thread, stream_mode="values"):
         # Review
         human_intent_feedback = event.get("human_intent_feedback")
         if human_intent_feedback:

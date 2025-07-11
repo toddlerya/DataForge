@@ -42,6 +42,19 @@ from utils.db import Database
 from utils.file import save_dict2jl
 
 
+def detect_input_type(state: DataGenState):
+    """
+    判断用户输入的是结构化任务参数还是自然语言任务需求
+    :param state:
+    :return:
+    """
+    user_intent: DataGenUserIntentSchema = state.get("user_intent")
+    if user_intent:
+        return "query_table_raw_field_info"
+    else:
+        return "analyze_intent"
+
+
 def analyze_data_intent(state: DataGenState) -> DataGenState:
     user_input = state.get("user_input").strip()
     human_intent_feedback = state.get("human_intent_feedback", "")
@@ -425,7 +438,7 @@ data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 data_gen_builder.add_node("create_dg_task", create_dg_task)
 data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
 
-data_gen_builder.add_edge(START, "analyze_intent")
+data_gen_builder.add_conditional_edges(START, detect_input_type, ["query_table_raw_field_info", "analyze_intent"])
 data_gen_builder.add_edge("analyze_intent", "intent_human_feedback_node")
 data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
@@ -437,7 +450,6 @@ data_gen_builder.add_conditional_edges(
     should_table_raw_field_info_continue,
     ["dg_category_recommend", END],
 )
-# data_forge_builder.add_edge("query_table_raw_field_info", "dg_category_recommend")
 data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
 data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
@@ -462,46 +474,56 @@ if __name__ == "__main__":
     )
     setup_logging(log_config.get_config().get("handlers"))
     init_env()
-
     print(data_gen_graph.get_graph(xray=True).draw_mermaid())
-#     user_input = """数据库表名称:
-# massdata.ADM_REL_MOBILE
-# 期望生成数据条数:
-# massdata.ADM_REL_MOBILE: 5"""
-#     thread = {"configurable": {"thread_id": "123"}}
-#
-#     init_state = {
-#         "user_input": user_input,
-#         "max_retries": 5,
-#         "client_ip": "10.0.23.57"
-#     }
-#
-#     for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):
-#         # Review
-#         user_intent: DataGenUserIntentSchema = event.get("user_intent")
-#         if user_intent:
-#             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
-#
-#     # 模拟用户意图识别的研判反馈
-#     data_forge_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback_node")
-#
-#     for event in data_gen_graph.stream(None, thread, stream_mode="values"):
-#         # Review
-#         human_intent_feedback = event.get("human_intent_feedback")
-#         if human_intent_feedback:
-#             logger.info(f"human_intent_feedback: {human_intent_feedback}")
-#
-#         if event.get("create_data_genius_task_error"):
-#             logger.info("create_data_genius_task_error", event["create_data_genius_task_error"])
-#
-#         if event.get("query_data_genius_task_error"):
-#             logger.info("query_data_genius_task_error", event["query_data_genius_task_error"])
-#
-#         if event.get("data_genius_plan_run_duration"):
-#             logger.info("data_genius_plan_run_duration", event["data_genius_plan_run_duration"])
-#
-#         if event.get("data_genius_plan_output_url"):
-#             logger.info("data_genius_plan_output_url", event["data_genius_plan_output_url"])
-#
-#         if event.get("data_genius_plan_output_filesize"):
-#             logger.info("data_genius_plan_output_filesize", event["data_genius_plan_output_filesize"])
+
+    session_id = uuid.uuid4().hex
+    user_input = """数据库表名称:
+massdata.ADM_REL_MOBILE
+期望生成数据条数:
+massdata.ADM_REL_MOBILE: 5"""
+    thread = {"configurable": {"thread_id": session_id}}
+
+    init_state = {
+        "user_input": user_input,
+        "user_intent": DataGenUserIntentSchema(
+            **{"table_en_names": ["massdata.ADM_REL_MOBILE"], "table_data_count": {"massdata.ADM_REL_MOBILE": 5}}),
+        "human_intent_feedback": "正确",
+        "max_retries": 5,
+        "session_id": session_id,
+        "client_ip": "10.0.23.57"
+    }
+
+    for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):
+        # Review
+        # user_intent: DataGenUserIntentSchema = event.get("user_intent")
+        # if user_intent:
+        #     logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
+
+    # 模拟用户意图识别的研判反馈
+    # data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback_node")
+
+    # for event in data_gen_graph.stream(None, thread, stream_mode="values"):
+        # Review
+        # human_intent_feedback = event.get("human_intent_feedback")
+        # if human_intent_feedback:
+        #     logger.info(f"human_intent_feedback: {human_intent_feedback}")
+
+        create_data_genius_task_error = event.get("create_data_genius_task_error")
+        if create_data_genius_task_error:
+            logger.info("create_data_genius_task_error", create_data_genius_task_error)
+
+        query_data_genius_task_error = event.get("query_data_genius_task_error")
+        if query_data_genius_task_error:
+            logger.info("query_data_genius_task_error", query_data_genius_task_error)
+
+        data_genius_plan_run_duration = event.get("data_genius_plan_run_duration")
+        if data_genius_plan_run_duration:
+            logger.info(f"data_genius_plan_run_duration: {data_genius_plan_run_duration}")
+
+        data_genius_plan_output_url = event.get("data_genius_plan_output_url")
+        if data_genius_plan_output_url:
+            logger.info(f"data_genius_plan_output_url: {data_genius_plan_output_url}")
+
+        data_genius_plan_output_filesize = event.get("data_genius_plan_output_filesize")
+        if data_genius_plan_output_filesize:
+            logger.info(f"data_genius_plan_output_filesize: {data_genius_plan_output_filesize}")
