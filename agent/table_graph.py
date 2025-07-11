@@ -117,8 +117,8 @@ def material_tables_mapping_dimension_table(state: TableGenState):
     """
 
     def extract_reference_table_metadata_info(
-            each_material_table_group: list[dict],
-            recommend_reference_material_table_en_name_slice: list[str],
+        each_material_table_group: list[dict],
+        recommend_reference_material_table_en_name_slice: list[str],
     ) -> Tuple[list[GenSourceTableMetadataSchema], list[str]]:
         """
         提取补全参照表字段信息备用
@@ -137,10 +137,10 @@ def material_tables_mapping_dimension_table(state: TableGenState):
         for each_material_table in each_material_table_group:
             table_en_name = each_material_table.get("table_en_name", "")
             if (
-                    table_en_name.upper()
-                    in recommend_reference_material_table_en_name_slice
-                    or table_en_name.lower()
-                    in recommend_reference_material_table_en_name_slice
+                table_en_name.upper()
+                in recommend_reference_material_table_en_name_slice
+                or table_en_name.lower()
+                in recommend_reference_material_table_en_name_slice
             ):
                 raw_fields_info = each_material_table.get("table_fields", [])
                 table_cn_name = each_material_table.get("table_cn_name", "")
@@ -211,8 +211,8 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                     f"输出 dimension_mapping_result: {dimension_mapping_result}"
                 )
                 if (
-                        dimension_mapping_result.recommend_category
-                        in user_intent.categories
+                    dimension_mapping_result.recommend_category
+                    in user_intent.categories
                 ):
                     # 如果推荐的类别在用户意图范围内采纳
                     logger.debug(
@@ -220,8 +220,8 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                     )
                     # 如果生成的特征表名称没保存则保存下，否则跳过
                     if (
-                            dimension_mapping_result.recommend_dimension_table_en_name
-                            not in recommend_dimension_table_en_name_slice
+                        dimension_mapping_result.recommend_dimension_table_en_name
+                        not in recommend_dimension_table_en_name_slice
                     ):
                         recommend_dimension_table_en_name_slice.append(
                             dimension_mapping_result.recommend_dimension_table_en_name
@@ -263,16 +263,16 @@ def translate_table_name(state: TableGenState):
     mapping_dimension_table_info_slice = state.get("mapping_dimension_table_info_slice")
     if mapping_dimension_table_info_slice:
         for index, mapping_dimension_table_info in enumerate(
-                mapping_dimension_table_info_slice
+            mapping_dimension_table_info_slice
         ):
             stop_flag = True
             if (
-                    mapping_dimension_table_info.recommend_dimension_table_en_name
-                    in mapping_dimension_table_info.recommend_reference_material_table_en_name_slice
-                    or not re.match(
-                pattern=r"^[A-Z][A-Z_]+[A-Z]$",
-                string=mapping_dimension_table_info.dimension_table_en_name,
-            )
+                mapping_dimension_table_info.recommend_dimension_table_en_name
+                in mapping_dimension_table_info.recommend_reference_material_table_en_name_slice
+                or not re.match(
+                    pattern=r"^[A-Z][A-Z_]+[A-Z]$",
+                    string=mapping_dimension_table_info.dimension_table_en_name,
+                )
             ):
                 # 表的英文名在参照表清单中，或表的英文名称称为中文，需要根据表的中文名称翻译处理
 
@@ -307,7 +307,7 @@ def translate_table_name(state: TableGenState):
                         stop_flag = False
             # 给表名称加后缀
             mapping_dimension_table_info.dimension_table_en_name = (
-                    mapping_dimension_table_info.dimension_table_en_name + "_BYTS"
+                mapping_dimension_table_info.dimension_table_en_name + "_BYTS"
             )
             # 更新
             mapping_dimension_table_info_slice[index] = mapping_dimension_table_info
@@ -320,7 +320,9 @@ def save_mapping_dimension_table_info(state: TableGenState):
     mapping_dimension_table_info_slice = state.get("mapping_dimension_table_info_slice")
     if mapping_dimension_table_info_slice:
         # 创建state.get("session_temp_data_path")目录
-        status, message = create_dir(dir_path=str(state.get("session_temp_data_path").absolute()))
+        status, message = create_dir(
+            dir_path=str(state.get("session_temp_data_path").absolute())
+        )
         if status is False:
             state["create_session_temp_data_path_message"] = message
             return state
@@ -350,7 +352,7 @@ def gen_dimension_table_config(state: TableGenState):
     """
 
     def reformat_reference_material_table_fields(
-            source_fields_info: List[GenTableFieldSchema],
+        source_fields_info: List[GenTableFieldSchema],
     ):
         """
         提取精简表字段信息用作提示词
@@ -376,7 +378,7 @@ def gen_dimension_table_config(state: TableGenState):
         dimension_table_fields_recommendations = list()
         dimension_table_fields = list()
         for (
-                each_reference_material_table
+            each_reference_material_table
         ) in mapping_dimension_table_info.reference_material_table_metadata_slice:
             # 依次处理每个参照表，提取填充特征表字段
             reference_material_table_en_name_count = len(
@@ -384,11 +386,11 @@ def gen_dimension_table_config(state: TableGenState):
             )
             try:
                 recommend_top_num = (
-                        int(
-                            user_intent.table_field_col_max
-                            / reference_material_table_en_name_count
-                        )
-                        + 1
+                    int(
+                        user_intent.table_field_col_max
+                        / reference_material_table_en_name_count
+                    )
+                    + 1
                 )
             except Exception as err:
                 logger.warning(f"计算推荐字段TopN参数错误: {err}, 给默认值50")
@@ -454,7 +456,7 @@ def gen_dimension_table_config(state: TableGenState):
                         ele
                         for ele in each_reference_material_table.source_fields_info
                         if ele.en_name
-                           in dimension_table_fields_recommendation.field_en_name_slice
+                        in dimension_table_fields_recommendation.field_en_name_slice
                     ]
                     dimension_table_fields.extend(dimension_table_field)
                     # 去重特征表推荐的字段元数据信息
@@ -507,11 +509,12 @@ def archive_table_data(state: TableGenState):
         f"[+] 打包session_id={state.get('session_id')} client_ip={state.get('client_ip')}结果数据"
     )
     result_archive_file_name = f"""{state.get("client_ip")}_{state.get("session_id")}_llm_gen_table_config.tar.gz"""
-    session_archive_file_path = GEN_TABLE_MODELS_DATA_PATH.joinpath(result_archive_file_name)
+    session_archive_file_path = GEN_TABLE_MODELS_DATA_PATH.joinpath(
+        result_archive_file_name
+    )
     status, message = targz_archive(
         dir_to_archive=GEN_TABLE_MODELS_TEMP_PATH.joinpath(state.get("session_id")),
         archive_filename_path=session_archive_file_path,
-
     )
     if status is False:
         state["archive_message"] = message

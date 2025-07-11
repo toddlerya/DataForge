@@ -116,7 +116,9 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
             return resp_data.dict()
     if event.get("data_genius_plan_output_url"):
         result = {
-            "table_metadata_array": [ele.model_dump() for ele in event["table_metadata_array"]],
+            "table_metadata_array": [
+                ele.model_dump() for ele in event["table_metadata_array"]
+            ],
             "data_genius_plan_task_id": event["data_genius_plan_task_id"],
             "data_genius_plan_run_duration": event["data_genius_plan_run_duration"],
             "data_genius_plan_output_url": event["data_genius_plan_output_url"],
@@ -139,9 +141,7 @@ async def run_graph(user_intent: DataGenUserIntentSchema, request: Request):
     :return:
     """
     logger.info(f"[数据生成Graph] 初始化图并运行: {user_intent.model_dump_json()}")
-    resp_data = ResponseBaseSchema(
-        description="[数据生成Graph] 初始化图并运行"
-    )
+    resp_data = ResponseBaseSchema(description="[数据生成Graph] 初始化图并运行")
     client_ip = extract_client_ip(request)
     session_id = uuid.uuid4().hex
     resp_data.session_id = session_id
@@ -171,7 +171,9 @@ async def run_graph(user_intent: DataGenUserIntentSchema, request: Request):
             return resp_data.dict()
     if event.get("data_genius_plan_output_url"):
         result = {
-            "table_metadata_array": [ele.model_dump() for ele in event["table_metadata_array"]],
+            "table_metadata_array": [
+                ele.model_dump() for ele in event["table_metadata_array"]
+            ],
             "data_genius_plan_task_id": event["data_genius_plan_task_id"],
             "data_genius_plan_run_duration": event["data_genius_plan_run_duration"],
             "data_genius_plan_output_url": event["data_genius_plan_output_url"],

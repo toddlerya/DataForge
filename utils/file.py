@@ -620,5 +620,13 @@ if __name__ == "__main__":
     )
     # print(res)
 
-    print(targz_archive(dir_to_archive=pathlib.Path(r"F:\GITLAB\DataForge\data\gen_table_models\temp\06b2ba65-726c-4226-a573-40c9e7204c13"),
-                        archive_filename_path=pathlib.Path(r"F:\GITLAB\DataForge\data\gen_table_models\data\06b2ba65-726c-4226-a573-40c9e7204c13\127.0.0.1_06b2ba65-726c-4226-a573-40c9e7204c13_llm_gen_config.tar.gz")))
+    print(
+        targz_archive(
+            dir_to_archive=pathlib.Path(
+                r"F:\GITLAB\DataForge\data\gen_table_models\temp\06b2ba65-726c-4226-a573-40c9e7204c13"
+            ),
+            archive_filename_path=pathlib.Path(
+                r"F:\GITLAB\DataForge\data\gen_table_models\data\06b2ba65-726c-4226-a573-40c9e7204c13\127.0.0.1_06b2ba65-726c-4226-a573-40c9e7204c13_llm_gen_config.tar.gz"
+            ),
+        )
+    )

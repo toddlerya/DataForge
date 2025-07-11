@@ -235,7 +235,7 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
                 ename=field_info.en_name,
                 cname=field_info.cn_name,
                 preview=f"score: {llm_dg_field_category_recommendation.score}, "
-                        f"reason: {llm_dg_field_category_recommendation.reason}",
+                f"reason: {llm_dg_field_category_recommendation.reason}",
                 value=field_info.example,
             )
             logger.trace(
@@ -284,7 +284,9 @@ def save_dg_plan2json(state: DataGenState):
             f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
         )
 
-        save_dict2jl(json_data=table_metadata_array_data, save_path=table_metadata_json_path)
+        save_dict2jl(
+            json_data=table_metadata_array_data, save_path=table_metadata_json_path
+        )
     return state
 
 
@@ -438,7 +440,9 @@ data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 data_gen_builder.add_node("create_dg_task", create_dg_task)
 data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
 
-data_gen_builder.add_conditional_edges(START, detect_input_type, ["query_table_raw_field_info", "analyze_intent"])
+data_gen_builder.add_conditional_edges(
+    START, detect_input_type, ["query_table_raw_field_info", "analyze_intent"]
+)
 data_gen_builder.add_edge("analyze_intent", "intent_human_feedback_node")
 data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
@@ -486,11 +490,15 @@ massdata.ADM_REL_MOBILE: 5"""
     init_state = {
         "user_input": user_input,
         "user_intent": DataGenUserIntentSchema(
-            **{"table_en_names": ["massdata.ADM_REL_MOBILE"], "table_data_count": {"massdata.ADM_REL_MOBILE": 5}}),
+            **{
+                "table_en_names": ["massdata.ADM_REL_MOBILE"],
+                "table_data_count": {"massdata.ADM_REL_MOBILE": 5},
+            }
+        ),
         "human_intent_feedback": "正确",
         "max_retries": 5,
         "session_id": session_id,
-        "client_ip": "10.0.23.57"
+        "client_ip": "10.0.23.57",
     }
 
     for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):
@@ -499,10 +507,10 @@ massdata.ADM_REL_MOBILE: 5"""
         # if user_intent:
         #     logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
 
-    # 模拟用户意图识别的研判反馈
-    # data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback_node")
+        # 模拟用户意图识别的研判反馈
+        # data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback_node")
 
-    # for event in data_gen_graph.stream(None, thread, stream_mode="values"):
+        # for event in data_gen_graph.stream(None, thread, stream_mode="values"):
         # Review
         # human_intent_feedback = event.get("human_intent_feedback")
         # if human_intent_feedback:
@@ -518,7 +526,9 @@ massdata.ADM_REL_MOBILE: 5"""
 
         data_genius_plan_run_duration = event.get("data_genius_plan_run_duration")
         if data_genius_plan_run_duration:
-            logger.info(f"data_genius_plan_run_duration: {data_genius_plan_run_duration}")
+            logger.info(
+                f"data_genius_plan_run_duration: {data_genius_plan_run_duration}"
+            )
 
         data_genius_plan_output_url = event.get("data_genius_plan_output_url")
         if data_genius_plan_output_url:
@@ -526,4 +536,6 @@ massdata.ADM_REL_MOBILE: 5"""
 
         data_genius_plan_output_filesize = event.get("data_genius_plan_output_filesize")
         if data_genius_plan_output_filesize:
-            logger.info(f"data_genius_plan_output_filesize: {data_genius_plan_output_filesize}")
+            logger.info(
+                f"data_genius_plan_output_filesize: {data_genius_plan_output_filesize}"
+            )

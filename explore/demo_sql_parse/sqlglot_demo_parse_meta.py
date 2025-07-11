@@ -110,10 +110,6 @@ def extract_table_info(select_node):
     return table_info
 
 
-
-
-
-
 # 遍历子查询
 for subquery in parsed_sql.find_all(sqlglot.expressions.Select):
     tables_info.append(extract_table_info(subquery))

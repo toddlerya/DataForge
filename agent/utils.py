@@ -19,7 +19,7 @@ async def save_json_data_async(save_json_path, fake_data):
 
 
 def create_model_from_dict(
-        data: dict, model_name: str = "row_field_model"
+    data: dict, model_name: str = "row_field_model"
 ) -> type[BaseModel]:
     # 构建字段注解
     annotations = {key: (Any, None) for key in data}
@@ -95,7 +95,11 @@ def sqlglot_parse_sql(sql: str) -> tuple[Dict[str, List[str]], Exception | None]
 
         # 情况1：数据源是普通表
         if isinstance(expression, sqlglot.exp.Table):
-            full_table_name = f"{expression.db}.{expression.name}" if expression.db else expression.name
+            full_table_name = (
+                f"{expression.db}.{expression.name}"
+                if expression.db
+                else expression.name
+            )
             table_aliases[expression.alias_or_name] = full_table_name
 
         # 情况2：数据源是子查询（Derived Table）
@@ -118,7 +122,9 @@ def sqlglot_parse_sql(sql: str) -> tuple[Dict[str, List[str]], Exception | None]
                 continue
 
             column_expr = expression.this
-            column_alias = expression.alias if isinstance(expression, sqlglot.exp.Alias) else None
+            column_alias = (
+                expression.alias if isinstance(expression, sqlglot.exp.Alias) else None
+            )
 
             # 只处理字段表达式
             if isinstance(column_expr, sqlglot.exp.Column):
@@ -126,11 +132,16 @@ def sqlglot_parse_sql(sql: str) -> tuple[Dict[str, List[str]], Exception | None]
                 table_alias = column_expr.table
 
                 # 提取注释
-                comments = [comment.strip() for comment in expression.comments] if expression.comments else []
+                comments = (
+                    [comment.strip() for comment in expression.comments]
+                    if expression.comments
+                    else []
+                )
                 comment = comments[0] if comments else None
 
                 print(
-                    f"table_alias: {table_alias} column_name: {column_name} table_alias: {table_alias} comment: {comment} ")
+                    f"table_alias: {table_alias} column_name: {column_name} table_alias: {table_alias} comment: {comment} "
+                )
 
                 # 确定字段所属的表
                 if table_alias in table_aliases:
@@ -142,7 +153,7 @@ def sqlglot_parse_sql(sql: str) -> tuple[Dict[str, List[str]], Exception | None]
                         {
                             "column": column_name,
                             "alias": column_alias,
-                            "comment": comment
+                            "comment": comment,
                         }
                     )
     return table_column_map, None

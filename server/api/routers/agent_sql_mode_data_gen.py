@@ -29,7 +29,9 @@ router = APIRouter(
 
 
 @router.post("/set_intent", response_model=ResponseBaseSchema)
-async def init_sql_mode_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request):
+async def init_sql_mode_data_gen_graph(
+    init_data_gen: InitDataGenSchema, request: Request
+):
     """
     设置用户意图，初始化图
     :param init_data_gen:
@@ -51,7 +53,9 @@ async def init_sql_mode_data_gen_graph(init_data_gen: InitDataGenSchema, request
     }
 
     thread = {"configurable": {"thread_id": session_id}}
-    event = await sql_mode_data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
+    event = await sql_mode_data_gen_graph.ainvoke(
+        init_state, thread, stream_mode="values"
+    )
     user_intent: DataGenSQLModeUserIntentSchema = event.get("user_intent")
 
     if user_intent:
@@ -139,9 +143,7 @@ async def run_graph(user_intent: DataGenSQLModeUserIntentSchema, request: Reques
     :return:
     """
     logger.info(f"[数据生成Graph] 初始化图并运行: {user_intent.model_dump_json()}")
-    resp_data = ResponseBaseSchema(
-        description="[数据生成Graph] 初始化图并运行"
-    )
+    resp_data = ResponseBaseSchema(description="[数据生成Graph] 初始化图并运行")
     client_ip = extract_client_ip(request)
     session_id = uuid.uuid4().hex
     resp_data.session_id = session_id
@@ -155,7 +157,9 @@ async def run_graph(user_intent: DataGenSQLModeUserIntentSchema, request: Reques
     }
 
     thread = {"configurable": {"thread_id": session_id}}
-    event = await sql_mode_data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
+    event = await sql_mode_data_gen_graph.ainvoke(
+        init_state, thread, stream_mode="values"
+    )
     for error in [
         "table_info_error",
         "create_data_genius_task_error",

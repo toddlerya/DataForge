@@ -18,5 +18,3 @@ class InitDataGenSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
 class HumanIntentFeedBackSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     human_intent_feedback: str = Field(..., min_length=2, description="用户反馈")
     session_id: str = Field(..., description="会话ID")
-
-

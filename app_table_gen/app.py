@@ -127,7 +127,9 @@ async def process_step(event, graph):
 
         elif node == "save_mapping_dimension_table_info":
             logger.info("[process] save_mapping_dimension_table_info")
-            create_session_temp_data_path_message = state.get("create_session_temp_data_path_message")
+            create_session_temp_data_path_message = state.get(
+                "create_session_temp_data_path_message"
+            )
             if create_session_temp_data_path_message:
                 await cl.Message(
                     author="Assistant",

@@ -171,7 +171,9 @@ async def process_step(event, graph):
             pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
                 "pydantic_data_genius_plan"
             )
-            dg_plan_json_path = DG_PLAN_PATH.joinpath(f"{pydantic_data_genius_plan.rule_name}.json").absolute()
+            dg_plan_json_path = DG_PLAN_PATH.joinpath(
+                f"{pydantic_data_genius_plan.rule_name}.json"
+            ).absolute()
             logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
             download_dg_plan_json_elements = [
                 cl.File(
@@ -188,8 +190,11 @@ async def process_step(event, graph):
 
             # 表元数据文件信息
             dg_plan_table_metadata_json_path = DG_PLAN_PATH.joinpath(
-                f"{pydantic_data_genius_plan.rule_name}_table_metadata.json").absolute()
-            logger.info(f"dg_plan_table_metadata_json_path: {dg_plan_table_metadata_json_path}")
+                f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
+            ).absolute()
+            logger.info(
+                f"dg_plan_table_metadata_json_path: {dg_plan_table_metadata_json_path}"
+            )
             download_dg_plan_table_metadata_json_elements = [
                 cl.File(
                     name=f"{pydantic_data_genius_plan.rule_name}_table_metadata.json",

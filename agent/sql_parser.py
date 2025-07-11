@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/7/9 15:45 
+# @Time     : 2025/7/9 15:45
 # @Author   : guoqun X2590
 # @FileName : sql_parser.py
 # @Project  : DataForge
@@ -24,7 +24,9 @@ def build_alias_context(query_expr: exp.Query | exp.Expression) -> dict:
     return context
 
 
-def trace_column_origin(column_expr: exp.Column, alias_content: dict) -> tuple[str, str] or None:
+def trace_column_origin(
+    column_expr: exp.Column, alias_content: dict
+) -> tuple[str, str] or None:
     """
     递归追踪一个字段表达式，直到找到最终的物理表
     :param column_expr: 要追踪的字段表达式(e.g., a.col1)
@@ -53,7 +55,11 @@ def trace_column_origin(column_expr: exp.Column, alias_content: dict) -> tuple[s
 
     # 情况1：来源是物理表，追踪结束
     if isinstance(source_expr, exp.Table):
-        full_table_name = f"{source_expr.db}.{source_expr.name}" if source_expr.db else source_expr.name
+        full_table_name = (
+            f"{source_expr.db}.{source_expr.name}"
+            if source_expr.db
+            else source_expr.name
+        )
         return full_table_name, column_name
 
     # 情况2：来源是子查询，需要递归深入
@@ -93,22 +99,28 @@ def advanced_column_lineage_parser(sql: str) -> tuple[dict, Exception | None]:
 
         column_expr = projection.this
         # 3. 对每个字段进行递归追踪
-        origin = trace_column_origin(column_expr=column_expr, alias_content=root_context)
+        origin = trace_column_origin(
+            column_expr=column_expr, alias_content=root_context
+        )
         if origin:
             table_name, original_column_name = origin
             if table_name not in final_map:
                 final_map[table_name] = []
 
-            final_map[table_name].append({
-                "en_name": original_column_name,
-                "alias_name": projection.alias_or_name,
-                "comment": "".join(c.strip() for c in projection.comments) if projection.comments else ""
-            })
+            final_map[table_name].append(
+                {
+                    "en_name": original_column_name,
+                    "alias_name": projection.alias_or_name,
+                    "comment": "".join(c.strip() for c in projection.comments)
+                    if projection.comments
+                    else "",
+                }
+            )
 
     return final_map, None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     demo_sql_1 = """select 
                 a.ID as ID, -- ID
                 a.UPLOAD_AREA_CODE as UPLOAD_AREA_CODE, -- 上报地市行政区划代码
@@ -156,6 +168,7 @@ if __name__ == '__main__':
 F2211, ARTICLE_ID as F2217, CONTENT_S as F2223, F878 as F2229, F879 as F2235 from massdata.NB_MASS_RESOURCE_REGISTER"""
 
     import json
+
     result, err = advanced_column_lineage_parser(demo_sql_2)
     print(err)
     print(result)

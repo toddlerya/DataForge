@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/7/9 16:54 
+# @Time     : 2025/7/9 16:54
 # @Author   : guoqun X2590
 # @FileName : sql_mode_data_graph.py
 # @Project  : DataForge
@@ -26,7 +26,7 @@ from agent.state import (
     DataGenSQLModeUserIntentSchema,
     SQLModeDataGenState,
     SQLModeFieldSchema,
-    SQLModeTableInfoSchema
+    SQLModeTableInfoSchema,
 )
 from agent.sql_parser import advanced_column_lineage_parser
 from config import SQL_MODE_DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
@@ -114,7 +114,7 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
         logger.debug(f"sql parse result: {result}")
         table_info = SQLModeTableInfoSchema(
             table_en_name=list(result.keys())[0],
-            fields_info=result[(list(result.keys())[0])]
+            fields_info=result[(list(result.keys())[0])],
         )
         logger.debug(f"table_info: {table_info.model_dump_json()}")
         state["table_info_data"] = table_info
@@ -218,7 +218,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
                 ename=field_info.en_name,
                 cname=field_info.comment,
                 preview=f"score: {llm_dg_field_category_recommendation.score}, "
-                        f"reason: {llm_dg_field_category_recommendation.reason}",
+                f"reason: {llm_dg_field_category_recommendation.reason}",
                 value="",
             )
             logger.trace(
@@ -265,7 +265,9 @@ def save_dg_plan2json(state: SQLModeDataGenState):
         table_metadata_json_path = DG_PLAN_PATH.joinpath(
             f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
         )
-        save_dict2jl(json_data=table_info_data.model_dump(), save_path=table_metadata_json_path)
+        save_dict2jl(
+            json_data=table_info_data.model_dump(), save_path=table_metadata_json_path
+        )
     return state
 
 
@@ -412,14 +414,18 @@ def query_dg_task_status(state: SQLModeDataGenState) -> SQLModeDataGenState:
 
 sql_mode_data_gen_builder = StateGraph(SQLModeDataGenState)
 sql_mode_data_gen_builder.add_node("analyze_intent", analyze_data_intent)
-sql_mode_data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
+sql_mode_data_gen_builder.add_node(
+    "intent_human_feedback_node", data_intent_human_feedback_node
+)
 sql_mode_data_gen_builder.add_node("sql_parse_to_table_info", sql_parse_to_table_info)
 sql_mode_data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
 sql_mode_data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 sql_mode_data_gen_builder.add_node("create_dg_task", create_dg_task)
 sql_mode_data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
 
-sql_mode_data_gen_builder.add_conditional_edges(START, detect_input_type, ["sql_parse_to_table_info", "analyze_intent"])
+sql_mode_data_gen_builder.add_conditional_edges(
+    START, detect_input_type, ["sql_parse_to_table_info", "analyze_intent"]
+)
 sql_mode_data_gen_builder.add_edge("analyze_intent", "intent_human_feedback_node")
 sql_mode_data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
@@ -437,7 +443,7 @@ sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(
     interrupt_before=["intent_human_feedback_node"], checkpointer=memory
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
 
@@ -459,23 +465,27 @@ if __name__ == '__main__':
     thread = {"configurable": {"thread_id": session_id}}
     init_state = {
         "user_input": user_input,
-        "user_intent": DataGenSQLModeUserIntentSchema(**{
-            "sql": "SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134, SERVER_IP AS F1135, SERVER_PORT AS F1136, FIRST_TIME AS F1137, LAST_TIME AS F1138, CCOUNT AS F1139, DCOUNT AS F1140, DETAIL AS F1141, DATA_COLOR_ID AS F1142, adsl AS F1144 FROM massdata.DWS_BEH_ANA_VPN",
-            "data_count": 100
-        }),
+        "user_intent": DataGenSQLModeUserIntentSchema(
+            **{
+                "sql": "SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134, SERVER_IP AS F1135, SERVER_PORT AS F1136, FIRST_TIME AS F1137, LAST_TIME AS F1138, CCOUNT AS F1139, DCOUNT AS F1140, DETAIL AS F1141, DATA_COLOR_ID AS F1142, adsl AS F1144 FROM massdata.DWS_BEH_ANA_VPN",
+                "data_count": 100,
+            }
+        ),
         "human_intent_feedback": "正确",
         "max_retries": 5,
         "client_ip": "10.0.23.57",
-        "session_id": session_id
+        "session_id": session_id,
     }
-    for event in sql_mode_data_gen_graph.stream(init_state, thread, stream_mode="values"):
+    for event in sql_mode_data_gen_graph.stream(
+        init_state, thread, stream_mode="values"
+    ):
         user_intent: DataGenSQLModeUserIntentSchema = event.get("user_intent")
         if user_intent:
             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
-    # 模拟用户意图识别的研判反馈
-    # sql_mode_data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"},
-    #                                      as_node="intent_human_feedback_node")
-    # for event in sql_mode_data_gen_graph.stream(None, thread, stream_mode="values"):
+        # 模拟用户意图识别的研判反馈
+        # sql_mode_data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"},
+        #                                      as_node="intent_human_feedback_node")
+        # for event in sql_mode_data_gen_graph.stream(None, thread, stream_mode="values"):
         # Review
         human_intent_feedback = event.get("human_intent_feedback")
         if human_intent_feedback:
@@ -491,7 +501,9 @@ if __name__ == '__main__':
 
         create_data_genius_task_error = event.get("create_data_genius_task_error")
         if create_data_genius_task_error:
-            logger.info(f"create_data_genius_task_error: {create_data_genius_task_error}")
+            logger.info(
+                f"create_data_genius_task_error: {create_data_genius_task_error}"
+            )
 
         query_data_genius_task_error = event.get("query_data_genius_task_error")
         if query_data_genius_task_error:
@@ -499,7 +511,9 @@ if __name__ == '__main__':
 
         data_genius_plan_run_duration = event.get("data_genius_plan_run_duration")
         if data_genius_plan_run_duration:
-            logger.info(f"data_genius_plan_run_duration: {data_genius_plan_run_duration}")
+            logger.info(
+                f"data_genius_plan_run_duration: {data_genius_plan_run_duration}"
+            )
 
         data_genius_plan_output_url = event.get("data_genius_plan_output_url")
         if data_genius_plan_output_url:
@@ -507,4 +521,6 @@ if __name__ == '__main__':
 
         data_genius_plan_output_filesize = event.get("data_genius_plan_output_filesize")
         if data_genius_plan_output_filesize:
-            logger.info(f"data_genius_plan_output_filesize: {data_genius_plan_output_filesize}")
+            logger.info(
+                f"data_genius_plan_output_filesize: {data_genius_plan_output_filesize}"
+            )
