@@ -195,7 +195,6 @@ FROM (SELECT name, COUNT(*) AS name_count
                      GROUP BY dictkey
                      ORDER BY dictkey_count DESC
                      LIMIT 1) AS dictkey_sub
-
          CROSS JOIN (SELECT field_length, COUNT(*) AS field_length_count
                      FROM public.base_field_info
                      WHERE ename = 'ISP_TYPE'
@@ -246,3 +245,18 @@ FROM (SELECT name, COUNT(*) AS name_count
          CROSS JOIN (SELECT COUNT(*) AS total_count
                      FROM public.base_field_info
                      WHERE ename = 'ISP_TYPE') AS total_sub;
+
+
+-- 根据字典信息查询字典详情
+WITH first_dict AS (SELECT dictkey
+                    FROM public.base_field_info
+                    WHERE ename = 'DATA_SOURCE'
+                      AND dictkey IS NOT NULL
+                      AND dictkey != ''
+                    GROUP BY dictkey
+                    ORDER BY COUNT(*) DESC
+                    LIMIT 1)
+SELECT id, name, parentname
+FROM public.base_dd_tab
+WHERE parentid = split_part((SELECT dictkey FROM first_dict), ':', 1)
+  AND nlevel = CAST(split_part((SELECT dictkey FROM first_dict), ':', 2) AS INTEGER);
