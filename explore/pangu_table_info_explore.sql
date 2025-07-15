@@ -148,10 +148,10 @@ SELECT name_sub.name                                                            
        determiner_code_sub.determiner_code_count                                 AS determiner_code_count,
        ROUND(determiner_code_sub.determiner_code_count * 100.0 / total_sub.total_count,
              2)                                                                  AS determiner_code_percentage,
-       is_query_sub.is_query                                                     AS is_query,
-       is_query_sub.is_query_count                                               AS is_query_count,
-       ROUND(is_query_sub.is_query_count * 100.0 / total_sub.total_count,
-             2)                                                                  AS is_query_percentage,
+       structure_type_sub.structure_type                                         AS structure_type,
+       structure_type_sub.structure_type_count                                   AS structure_type_count,
+       ROUND(structure_type_sub.structure_type_count * 100.0 / total_sub.total_count,
+             2)                                                                  AS structure_type_percentage,
        is_multi_value_sub.is_multi_value                                         AS is_multi_value,
        is_multi_value_sub.is_multi_value_count                                   AS is_multi_value_count,
        ROUND(is_multi_value_sub.is_multi_value_count * 100.0 / total_sub.total_count,
@@ -222,13 +222,13 @@ FROM (SELECT name, COUNT(*) AS name_count
                      GROUP BY determiner_code_name
                      ORDER BY determiner_code_count DESC
                      LIMIT 10) AS determiner_code_sub
-         CROSS JOIN (SELECT is_query, COUNT(*) AS is_query_count
+         CROSS JOIN (SELECT structure_type, COUNT(*) AS structure_type_count
                      FROM public.base_field_info
                      WHERE ename = 'ISP_TYPE'
-                       AND is_query IS NOT NULL
-                     GROUP BY is_query
-                     ORDER BY is_query_count DESC
-                     LIMIT 1) AS is_query_sub
+                       AND structure_type IS NOT NULL
+                     GROUP BY structure_type
+                     ORDER BY structure_type_count DESC
+                     LIMIT 1) AS structure_type_sub
          CROSS JOIN (SELECT is_multi_value, COUNT(*) AS is_multi_value_count
                      FROM public.base_field_info
                      WHERE ename = 'ISP_TYPE'
