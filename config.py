@@ -153,7 +153,7 @@ pangu_data_sample_query_url = (
     f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
 )
 
-pangu_cookie = "contextPath=/catalog; JSESSIONID=B326E3E91486A49D4C1B147FD289ECB5; userToken=5e9f47a866c243d3ac2cf72c75538244; appToken=62a230916b514c0c9a4833f5b4d81209; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; userToken=f003cfa2a89f4403875293c93cd5420c; appToken=fbb5e82777534a199dc2ecf902722b80; JSESSIONID=5FA36098596031DDF7A9E0AE0DB74D4C"
+pangu_cookie = "contextPath=/catalog; JSESSIONID=2EEAFC5C9B307EF950363E325DAEA039; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; JSESSIONID=B625A5D9B34DFF5DFBF83B39CDFB9B2B; userToken=93adfb2d6ba748cda5b1370b470bd537; appToken=617997d63a1d4c14b356b7ecd1ae5d49; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D"
 
 pangu_field_type_map = {
     -1: "string",
