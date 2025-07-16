@@ -38,9 +38,9 @@ class PanGuFieldCrawler:
 
     def fetch_pangu_field_recommend_info(self) -> bool:
         logger.info("正在执行盘古字段推荐")
-        for each_field_data in self.all_field_stat_data:
+        for index, each_field_data in enumerate(self.all_field_stat_data):
             field_en_name = each_field_data.get("ename", "")
-            logger.info(f"正在进行盘古字段推荐: field_en_name={field_en_name}")
+            logger.info(f"[{index}]正在进行盘古字段推荐: field_en_name={field_en_name}")
             status, message, data = pangu_recommend_field_info(db_handler=self.metadata_db,
                                                                field_en_name=field_en_name)
             if status is False:
@@ -61,7 +61,8 @@ class PanGuFieldCrawler:
 
     def fetch_pangu_dict_info(self) -> bool:
         logger.info("正在执行盘古字典采集")
-        for dictkey_with_nlevel in set(self.all_dictkey_with_nlevel_data):
+        for index, dictkey_with_nlevel in enumerate(set(self.all_dictkey_with_nlevel_data)):
+            logger.info(f"[{index}]正在采集盘古字典: dictkey_with_nlevel={dictkey_with_nlevel}")
             status, message, data = pangu_dict_key_values(db_handler=self.metadata_db,
                                                           dictkey_with_nlevel=dictkey_with_nlevel)
             if status is False:
