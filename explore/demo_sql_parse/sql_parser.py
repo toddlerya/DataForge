@@ -13,7 +13,7 @@ def parse_sql(sql: str) -> Dict[str, List[str]]:
     返回:
         包含解析结果的字典，键为'tables', 'columns', 'conditions'
     """
-    result = {"tables": [], "columns": [], "conditions": []}
+    result = {"tables": [], "columns": [], "conditions": [], "comments_map": {}}
 
     try:
         parsed = sqlglot.parse_one(sql)
@@ -26,6 +26,10 @@ def parse_sql(sql: str) -> Dict[str, List[str]]:
         # 提取列名
         result["columns"] = [
             col.name for col in parsed.find_all(sqlglot.expressions.Column)
+        ]
+
+        result["comments_map"] = [
+            col for col in parsed.find_all(sqlglot.expressions.CommentColumnConstraint)
         ]
 
         # 提取WHERE条件
@@ -96,10 +100,49 @@ if __name__ == "__main__":
 
     # Translates the query into Spark SQL, formats it, and delimits all of its identifiers
     # print(sqlglot.transpile(demo_sql_1, write="spark", identify=True, pretty=True)[0])
+    demo_sql_2 = """INSERT INTO
+  TABLE massdata.PHY_ADM_VMODEL_MID10361_TId40592_NId18_170UNJdja
+SELECT
+  a.dict_id AS dict_id, -- 字典id
+  a.dict_pid AS dict_pid, -- 父字典id
+  a.dict_type AS dict_type, -- 字典类型
+  a.dict_name AS dict_name, -- 字典内容
+  a.dict_name_simplify AS dict_name_simplify, -- 字典内容简称
+  a.level AS level, -- 字典层级
+  a.sort AS sort, -- 排序
+  a.create_userid AS create_userid, -- 创建用户id
+  a.create_time AS create_time, -- 创建时间
+  a.modify_time AS modify_time, -- 修改时间
+  a.remark AS remark, -- 备注
+  a.status AS status, -- 状态
+  a.create_userorg AS create_userorg -- 创建用户组织
+FROM
+  (
+    SELECT
+      dict_id,
+      dict_pid,
+      dict_type,
+      dict_name,
+      dict_name_simplify,
+      level,
+      sort,
+      create_userid,
+      create_time,
+      modify_time,
+      remark,
+      status,
+      create_userorg
+    FROM
+      massdata.zdr_dict_tab
+  ) a
+WHERE
+  dict_type = 'YWCODE_029'
+  AND a.status = 0"""
 
     print("=== 使用sqlglot解析 ===")
-    parsed = parse_sql(demo_sql_1)
+    parsed = parse_sql(demo_sql_2)
     print("表名:", parsed["tables"])
     print("列数量:", len(set(parsed["columns"])))
     print("列名", set(parsed["columns"]))
+    # print("列名注释", parsed["comments_map"])
     print("条件:", parsed["conditions"])

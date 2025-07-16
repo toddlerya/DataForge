@@ -10,6 +10,10 @@ from typing import List, Union
 from pydantic import BaseModel, Field
 
 
+class RecommendPanGuFieldInfo(BaseModel, extra="forbid", str_strip_whitespace=True):
+    name: str = Field()
+
+
 class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     en_name: str = Field(default="", description="字段英文名称")
     cn_name: str = Field(default="", description="字段中文名称")

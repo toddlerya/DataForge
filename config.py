@@ -78,17 +78,18 @@ POLARIS_LABEL = "Polaris"
 PANGU_TASK_API_PORT = 11019
 
 # 阿波罗配置 Polaris.Polaris.public
-# 盘古元数据库配置
+# 盘古元数据库配置 jdbc:postgresql://172.21.4.32:5432/metadata20250421
 # Metadata_Dbn_ip
-METADATA_DB_IP = "172.16.113.102"
+METADATA_DB_IP = "172.21.4.32"
 # Metadata_Dbn_dbPort
 METADATA_DB_PORT = 5432
 # Metadata_Dbn_dbUser
-METADATA_DB_USER = "metadata"
+METADATA_DB_USER = "metadata20250116"
 # Metadata_Dbn_dbPassword
-METADATA_DB_PASSWORD = "1qaz@2WSX3"
+METADATA_DB_PASSWORD = "metadata_20250116"
 # Metadata_Dbn_dbName
-METADATA_DB_NAME = "metadata"
+METADATA_DB_NAME = "metadata20250421"
+
 # 盘古界面配置 pangu_web_ip
 PANGU_WEB_IP = "172.16.113.100"
 # 淘沙界面配置 Vmodel_ip
