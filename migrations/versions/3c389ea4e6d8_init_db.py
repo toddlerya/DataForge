@@ -1,8 +1,8 @@
 """init db
 
-Revision ID: 49cdf67658bb
+Revision ID: 3c389ea4e6d8
 Revises: 
-Create Date: 2025-07-16 16:51:09.957036
+Create Date: 2025-07-16 17:27:59.132506
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '49cdf67658bb'
+revision = '3c389ea4e6d8'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -54,29 +54,29 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_pangu_dict_info_dictkey_with_nlevel'), 'pangu_dict_info', ['dictkey_with_nlevel'], unique=False)
     op.create_table('recommend_pangu_field_info',
-    sa.Column('ename', sa.String(length=128), nullable=True, comment='字段英文名称'),
-    sa.Column('cname', sa.String(length=256), nullable=True, comment='字段出现次数最多的中文名称'),
+    sa.Column('ename', sa.String(length=512), nullable=True, comment='字段英文名称'),
+    sa.Column('cname', sa.String(length=512), nullable=True, comment='字段出现次数最多的中文名称'),
     sa.Column('cname_count', sa.Integer(), nullable=True, comment='该字段在所有表中的总数'),
     sa.Column('cname_percentage', sa.Float(), nullable=True, comment='字段出现次数最多的中文名称占字段总数的百分比'),
-    sa.Column('identifier', sa.String(length=128), nullable=True, comment='出现次数最多的数据项标识符'),
+    sa.Column('identifier', sa.String(length=512), nullable=True, comment='出现次数最多的数据项标识符'),
     sa.Column('identifier_count', sa.Integer(), nullable=True, comment='最多的数据项标识符最多出现次数'),
     sa.Column('identifier_percentage', sa.Float(), nullable=True, comment='出现次数最多的数据项标识符占比'),
-    sa.Column('description', sa.String(length=256), nullable=True, comment='出现次数最多的字段描述，对应COMMENT'),
+    sa.Column('description', sa.Text(), nullable=True, comment='出现次数最多的字段描述，对应COMMENT'),
     sa.Column('description_count', sa.Integer(), nullable=True, comment='字段描述出现最多次数'),
     sa.Column('description_percentage', sa.Float(), nullable=True, comment='出现最多次数字段描述占比'),
     sa.Column('field_type_name', sa.String(length=128), nullable=True, comment='出现次数最多的字段类型'),
     sa.Column('field_type_count', sa.Integer(), nullable=True, comment='字段类型出现次数'),
     sa.Column('field_type_percentage', sa.Float(), nullable=True, comment='字段类型出现次数占比'),
-    sa.Column('dictkey', sa.String(length=128), nullable=True, comment='出现次数最多的字典关联ID及层级 关联字典表BASE_DD_TAB的PARENTID和NLEVEL 格式PARENTID:NLEVEL'),
+    sa.Column('dictkey', sa.String(length=255), nullable=True, comment='出现次数最多的字典关联ID及层级 关联字典表BASE_DD_TAB的PARENTID和NLEVEL 格式PARENTID:NLEVEL'),
     sa.Column('dictkey_count', sa.Integer(), nullable=True, comment='字典关联ID及层级出现次数'),
     sa.Column('dictkey_percentage', sa.Float(), nullable=True, comment='字典关联ID及层级出现次数占比'),
-    sa.Column('field_length', sa.String(length=32), nullable=True, comment='出现次数最多的字段长度'),
+    sa.Column('field_length', sa.String(length=128), nullable=True, comment='出现次数最多的字段长度'),
     sa.Column('field_length_count', sa.Integer(), nullable=True, comment='字段长度出现次数'),
     sa.Column('field_length_percentage', sa.Float(), nullable=True, comment='字段长度出现次数占比'),
-    sa.Column('element_code_name', sa.String(length=128), nullable=True, comment='出现次数最多的数据元标示符名称'),
+    sa.Column('element_code_name', sa.String(length=512), nullable=True, comment='出现次数最多的数据元标示符名称'),
     sa.Column('element_code_count', sa.Integer(), nullable=True, comment='数据元标示符名称出现次数'),
     sa.Column('element_code_name_percentage', sa.Float(), nullable=True, comment='数据元标示符名称出现次数占比'),
-    sa.Column('determiner_code_name', sa.String(length=128), nullable=True, comment='出现次数最多的限定词标示符'),
+    sa.Column('determiner_code_name', sa.String(length=512), nullable=True, comment='出现次数最多的限定词标示符'),
     sa.Column('determiner_code_count', sa.Integer(), nullable=True, comment='限定词标示符出现次数'),
     sa.Column('determiner_code_percentage', sa.Float(), nullable=True, comment='限定词标示符出现次数占比'),
     sa.Column('structure_type', sa.Integer(), nullable=True, comment='出现次数最多的字段结构化类型，0(默认)：结构化；1：非结构化'),
@@ -91,7 +91,7 @@ def upgrade() -> None:
     sa.Column('core_flag', sa.String(length=128), nullable=True, comment='出现次数最多的是否核心字段  1-核心  0-普通'),
     sa.Column('core_flag_count', sa.Integer(), nullable=True, comment='是否核心字段出现次数'),
     sa.Column('core_flag_percentage', sa.Float(), nullable=True, comment='是否核心字段出现次数占比'),
-    sa.Column('example_data', sa.String(), nullable=True, comment='样例数据'),
+    sa.Column('example_data', sa.Text(), nullable=True, comment='样例数据'),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False, comment='主键'),
     sa.Column('remark', sa.Text(), nullable=True, comment='备注'),
     sa.Column('create_time', sa.DateTime(), nullable=False, comment='创建时间'),

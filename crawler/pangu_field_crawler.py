@@ -25,6 +25,7 @@ class PanGuFieldCrawler:
         self.metadata_db = Database(url=self.metadata_sqlalchemy_url)
         self.all_field_stat_data: list[dict[str, int]] = list()
         self.all_dictkey_with_nlevel_data: list[str] = list()
+        self.batch_size = 1000
 
     def fetch_pangu_all_field_stat(self) -> bool:
         logger.info("正在执行采集盘古所有字段统计信息")
@@ -55,7 +56,8 @@ class PanGuFieldCrawler:
                 logger.error(f"存储盘古字段推荐异常: field_en_name={field_en_name} ERROR: {save_field_message}")
                 self.inner_db.session.rollback()
                 return False
-            self.inner_db.session.flush()
+            if index % self.batch_size == 0:
+                self.inner_db.session.commit()
         self.inner_db.session.commit()
         return True
 
@@ -73,6 +75,8 @@ class PanGuFieldCrawler:
                 logger.error(f"存储盘古字典异常: dictkey_with_nlevel={dictkey_with_nlevel} ERROR: {message}")
                 self.inner_db.session.rollback()
                 return False
+            if index % self.batch_size == 0:
+                self.inner_db.session.commit()
         self.inner_db.session.commit()
         return True
 

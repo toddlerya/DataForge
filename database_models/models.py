@@ -138,30 +138,30 @@ class RecommendPanGuFieldInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     __table_args_map__ = {
         "comment": "盘古字段元数据推荐",
     }
-    ename = Column(String(length=128), default="", index=True, unique=True, comment="字段英文名称")
-    cname = Column(String(length=256), default="", comment="字段出现次数最多的中文名称")
+    ename = Column(String(length=512), default="", index=True, unique=True, comment="字段英文名称")
+    cname = Column(String(length=512), default="", comment="字段出现次数最多的中文名称")
     cname_count = Column(Integer, default=0, comment="该字段在所有表中的总数")
     cname_percentage = Column(Float, default=0.0, comment="字段出现次数最多的中文名称占字段总数的百分比")
-    identifier = Column(String(length=128), default="", comment="出现次数最多的数据项标识符")
+    identifier = Column(String(length=512), default="", comment="出现次数最多的数据项标识符")
     identifier_count = Column(Integer, default=0, comment="最多的数据项标识符最多出现次数")
     identifier_percentage = Column(Float, default=0.0, comment="出现次数最多的数据项标识符占比")
-    description = Column(String(length=256), default="", comment="出现次数最多的字段描述，对应COMMENT")
+    description = Column(Text, default="", comment="出现次数最多的字段描述，对应COMMENT")
     description_count = Column(Integer, default=0, comment="字段描述出现最多次数")
     description_percentage = Column(Float, default=0.0, comment="出现最多次数字段描述占比")
     field_type_name = Column(String(length=128), default="", comment="出现次数最多的字段类型")
     field_type_count = Column(Integer, default=0, comment="字段类型出现次数")
     field_type_percentage = Column(Float, default=0.0, comment="字段类型出现次数占比")
-    dictkey = Column(String(length=128), default="", comment="出现次数最多的字典关联ID及层级 "
+    dictkey = Column(String(length=255), default="", comment="出现次数最多的字典关联ID及层级 "
                                                              "关联字典表BASE_DD_TAB的PARENTID和NLEVEL 格式PARENTID:NLEVEL")
     dictkey_count = Column(Integer, default=0, comment="字典关联ID及层级出现次数")
     dictkey_percentage = Column(Float, default=0.0, comment="字典关联ID及层级出现次数占比")
-    field_length = Column(String(length=32), default="", comment="出现次数最多的字段长度")
+    field_length = Column(String(length=128), default="", comment="出现次数最多的字段长度")
     field_length_count = Column(Integer, default=0, comment="字段长度出现次数")
     field_length_percentage = Column(Float, default=0.0, comment="字段长度出现次数占比")
-    element_code_name = Column(String(length=128), default="", comment="出现次数最多的数据元标示符名称")
+    element_code_name = Column(String(length=512), default="", comment="出现次数最多的数据元标示符名称")
     element_code_count = Column(Integer, default=0, comment="数据元标示符名称出现次数")
     element_code_name_percentage = Column(Float, default=0.0, comment="数据元标示符名称出现次数占比")
-    determiner_code_name = Column(String(length=128), default="", comment="出现次数最多的限定词标示符")
+    determiner_code_name = Column(String(length=512), default="", comment="出现次数最多的限定词标示符")
     determiner_code_count = Column(Integer, default=0, comment="限定词标示符出现次数")
     determiner_code_percentage = Column(Float, default=0.0, comment="限定词标示符出现次数占比")
     structure_type = Column(Integer, default=0, comment="出现次数最多的字段结构化类型，0(默认)：结构化；1：非结构化")
@@ -176,7 +176,7 @@ class RecommendPanGuFieldInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     core_flag = Column(String(length=128), default="", comment="出现次数最多的是否核心字段  1-核心  0-普通")
     core_flag_count = Column(Integer, default=0, comment="是否核心字段出现次数")
     core_flag_percentage = Column(Float, default=0.0, comment="是否核心字段出现次数占比")
-    example_data = Column(String, nullable=True, comment="样例数据")
+    example_data = Column(Text, nullable=True, comment="样例数据")
 
 
 class PanGuDictInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
