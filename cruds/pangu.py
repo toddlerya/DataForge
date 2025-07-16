@@ -11,6 +11,8 @@ from sqlalchemy import text
 from cruds.dynamic_query import query_sql
 
 from utils.db import Database
+from database_models.schema import RecommendPanGuFieldSchema
+from database_models.models import RecommendPanGuFieldInfo, PanGuDictInfo
 
 
 def get_all_pangu_field_stat(db_handler: Database) -> tuple[bool, str, list[dict]]:
@@ -19,25 +21,27 @@ def get_all_pangu_field_stat(db_handler: Database) -> tuple[bool, str, list[dict
     :param db_handler:
     :return:
     """
-    sql = """SELECT ename, count(*) ename_count FROM public.base_field_info GROUP BY ename ORDER BY ename_count DESC;"""
+    sql = """SELECT ename, count(*) ename_count 
+                FROM public.base_field_info 
+                GROUP BY ename 
+                ORDER BY ename_count DESC;"""
     status, message, result = query_sql(db=db_handler, sql_text=sql)
-    print(status)
-    print(message)
-    print(result)
     return status, message, result
 
 
-def recommend_field_info_by_pangu(db_handler: Database, field_en_name: str) -> tuple[bool, str, dict]:
+def pangu_recommend_field_info(db_handler: Database, field_en_name: str) -> tuple[
+    bool, str, RecommendPanGuFieldSchema]:
     """
     查询盘古表元数据信息获取字段的推荐属性
     :param db_handler:
     :param field_en_name:
     :return:
     """
-    sql = f"""SELECT name_sub.name                                        AS name,
-       name_sub.name_count                                  AS name_count,
-       ROUND(COALESCE(name_sub.name_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
-             2)                                             AS name_percentage,
+    sql = f"""SELECT 
+       cname_sub.cname                                        AS cname,
+       cname_sub.cname_count                                  AS cname_count,
+       ROUND(COALESCE(cname_sub.cname_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
+             2)                                             AS cname_percentage,
        identifier_sub.identifier                            AS identifier,
        identifier_sub.identifier_count                      AS identifier_count,
        ROUND(COALESCE(identifier_sub.identifier_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
@@ -70,10 +74,6 @@ def recommend_field_info_by_pangu(db_handler: Database, field_en_name: str) -> t
        determiner_code_sub.determiner_code_count            AS determiner_code_count,
        ROUND(COALESCE(determiner_code_sub.determiner_code_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
              2)                                             AS determiner_code_percentage,
-       is_query_sub.is_query                                AS is_query,
-       is_query_sub.is_query_count                          AS is_query_count,
-       ROUND(COALESCE(is_query_sub.is_query_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
-             2)                                             AS is_query_percentage,
        is_multi_value_sub.is_multi_value                    AS is_multi_value,
        is_multi_value_sub.is_multi_value_count              AS is_multi_value_count,
        ROUND(COALESCE(is_multi_value_sub.is_multi_value_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
@@ -86,21 +86,21 @@ def recommend_field_info_by_pangu(db_handler: Database, field_en_name: str) -> t
        core_flag_sub.core_flag_count                        AS core_flag_count,
        ROUND(COALESCE(core_flag_sub.core_flag_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
              2)                                             AS core_flag_percentage
-FROM ((SELECT name, COUNT(*) AS name_count
+FROM ((SELECT name AS cname, COUNT(*) AS cname_count
        FROM public.base_field_info
        WHERE ename = UPPER('{field_en_name}')
          AND name ~ '[\u4e00-\u9fa5]'
        GROUP BY name
-       ORDER BY name_count DESC
+       ORDER BY cname_count DESC
        LIMIT 1)
       UNION ALL
-      (SELECT name, COUNT(*) AS name_count
+      (SELECT name AS cname, COUNT(*) AS cname_count
        FROM public.base_field_info
        WHERE ename = UPPER('{field_en_name}')
        GROUP BY name
-       ORDER BY name_count DESC
+       ORDER BY cname_count DESC
        LIMIT 1)
-      LIMIT 1) AS name_sub
+      LIMIT 1) AS cname_sub
          CROSS JOIN (SELECT identifier, COUNT(*) AS identifier_count
                      FROM public.base_field_info
                      WHERE ename = UPPER('{field_en_name}')
@@ -115,8 +115,12 @@ FROM ((SELECT name, COUNT(*) AS name_count
                       ORDER BY description_count DESC
                       LIMIT 1)
                      UNION ALL
-                     (SELECT NULL AS description, 0 AS description_count FROM (SELECT 1) AS dummy)
-                     LIMIT 1) AS description_sub
+                     (SELECT description, COUNT(*) AS description_count
+                      FROM public.base_field_info
+                      WHERE ename = UPPER('{field_en_name}')
+                      GROUP BY description
+                      ORDER BY description_count DESC
+                      LIMIT 1) LIMIT 1) AS description_sub
          CROSS JOIN (SELECT bft.field_type AS field_type_name, COUNT(*) AS field_type_count
                      FROM public.base_field_info AS bfi
                               JOIN public.base_field_type AS bft ON bfi.field_type = bft.code
@@ -180,13 +184,6 @@ FROM ((SELECT name, COUNT(*) AS name_count
                      UNION ALL
                      (SELECT NULL AS structure_type, 0 AS structure_type_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS structure_type_sub
-         CROSS JOIN (SELECT is_query, COUNT(*) AS is_query_count
-                     FROM public.base_field_info
-                     WHERE ename = UPPER('{field_en_name}')
-                       AND is_query IS NOT NULL
-                     GROUP BY is_query
-                     ORDER BY is_query_count DESC
-                     LIMIT 1) AS is_query_sub
          CROSS JOIN (SELECT is_multi_value, COUNT(*) AS is_multi_value_count
                      FROM public.base_field_info
                      WHERE ename = UPPER('{field_en_name}')
@@ -216,11 +213,54 @@ FROM ((SELECT name, COUNT(*) AS name_count
         temp_field_info = [dict(zip(result.keys(), row)) for row in result.fetchall()]
         if len(temp_field_info) == 1:
             field_info = temp_field_info[0]
+            field_info.update({"ename": field_en_name})
     except Exception as err:
         message = f"数据库读操作异常: {err}"
-        return False, message, field_info
+        return False, message, RecommendPanGuFieldSchema(ename=field_en_name)
     else:
-        return True, "ok", field_info
+        return True, "ok", RecommendPanGuFieldSchema(**field_info)
+
+
+def pangu_dict_key_values(db_handler: Database, dictkey_with_nlevel: str) -> tuple[bool, str, dict]:
+    """
+    根据字典关联ID及层级获取字典详情
+    :param db_handler:
+    :param dictkey_with_nlevel:
+    :return:
+    """
+    sql = f"""SELECT code AS uuid,
+                    '{dictkey_with_nlevel}' AS dictkey_with_nlevel,
+                    parentid AS dict_category_code, 
+                    parentname AS dict_category, 
+                    nlevel AS dict_level, 
+                    id AS dict_id, 
+                    name AS dict_name FROM public.base_dd_tab 
+                WHERE parentid = split_part('{dictkey_with_nlevel}', ':', 1)
+                AND nlevel = CAST(split_part('{dictkey_with_nlevel}', ':', 2) AS INTEGER);"""
+    status, message, result = query_sql(db=db_handler, sql_text=sql)
+    return status, message, result
+
+
+def save_recommend_pangu_field_info(db_handler: Database, recommend_pangu_field_data: dict) -> tuple[bool, str]:
+    try:
+        db_handler.insert_or_update(RecommendPanGuFieldInfo, **recommend_pangu_field_data)
+    except Exception as err:
+        db_handler.session.rollback()
+        message = f"数据库写操作错误: {err}"
+        return False, message
+    return True, "ok"
+
+
+def save_pangu_dict_info(db_handler: Database, pangu_dict_key_data: dict) -> tuple[bool, str]:
+    try:
+        db_handler.insert_or_update(PanGuDictInfo, **pangu_dict_key_data)
+    except Exception as err:
+        db_handler.session.rollback()
+        message = f"数据库写操作错误: {err}"
+        return False, message
+    return True, "ok"
+
+
 
 
 if __name__ == '__main__':
@@ -233,14 +273,21 @@ if __name__ == '__main__':
                      f"?client_encoding=UTF8"
     metadata_db = Database(url=SQLALCHEMY_URL)
 
-    s, m, d = get_all_pangu_field_stat(metadata_db)
+    s, m, all_pangu_field_stat_data = get_all_pangu_field_stat(metadata_db)
     if s:
-        for f in d:
-            print(f"field: {f}")
-            s, m, d = recommend_field_info_by_pangu(db_handler=metadata_db, field_en_name=f.get("ename"))
-            if s:
-                print(d)
+        for each_field_info in all_pangu_field_stat_data:
+            print("=" * 20)
+            print(f"field: {each_field_info}")
+            status, msg, data = pangu_recommend_field_info(db_handler=metadata_db,
+                                                           field_en_name=each_field_info.get("ename"))
+            if status:
+                print(f"data: {data}")
+                if data.dictkey:
+                    print("dict_key_values: ",
+                          data.dictkey,
+                          pangu_dict_key_values(dictkey_with_nlevel=data.dictkey, db_handler=metadata_db))
             else:
-                print(m)
+                print(msg)
+                break
     else:
         print(m)
