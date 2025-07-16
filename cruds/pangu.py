@@ -88,7 +88,7 @@ def pangu_recommend_field_info(db_handler: Database, field_en_name: str) -> tupl
              2)                                             AS core_flag_percentage
 FROM ((SELECT name AS cname, COUNT(*) AS cname_count
        FROM public.base_field_info
-       WHERE ename = UPPER('{field_en_name}')
+       WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
          AND name ~ '[\u4e00-\u9fa5]'
        GROUP BY name
        ORDER BY cname_count DESC
@@ -96,20 +96,20 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
       UNION ALL
       (SELECT name AS cname, COUNT(*) AS cname_count
        FROM public.base_field_info
-       WHERE ename = UPPER('{field_en_name}')
+       WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
        GROUP BY name
        ORDER BY cname_count DESC
        LIMIT 1)
       LIMIT 1) AS cname_sub
          CROSS JOIN (SELECT identifier, COUNT(*) AS identifier_count
                      FROM public.base_field_info
-                     WHERE ename = UPPER('{field_en_name}')
+                     WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                      GROUP BY identifier
                      ORDER BY identifier_count DESC
                      LIMIT 1) AS identifier_sub
          CROSS JOIN ((SELECT description, COUNT(*) AS description_count
                       FROM public.base_field_info
-                      WHERE ename = UPPER('{field_en_name}')
+                      WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                         AND description ~ '[\u4e00-\u9fa5]'
                       GROUP BY description
                       ORDER BY description_count DESC
@@ -117,20 +117,20 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
                      UNION ALL
                      (SELECT description, COUNT(*) AS description_count
                       FROM public.base_field_info
-                      WHERE ename = UPPER('{field_en_name}')
+                      WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                       GROUP BY description
                       ORDER BY description_count DESC
                       LIMIT 1) LIMIT 1) AS description_sub
          CROSS JOIN (SELECT bft.field_type AS field_type_name, COUNT(*) AS field_type_count
                      FROM public.base_field_info AS bfi
                               JOIN public.base_field_type AS bft ON bfi.field_type = bft.code
-                     WHERE bfi.ename = UPPER('{field_en_name}')
+                     WHERE (bfi.ename = UPPER('{field_en_name}') OR bfi.ename = '{field_en_name}') 
                      GROUP BY bft.field_type
                      ORDER BY field_type_count DESC
                      LIMIT 1) AS field_type_sub
          CROSS JOIN ((SELECT dictkey, COUNT(*) AS dictkey_count
                       FROM public.base_field_info
-                      WHERE ename = UPPER('{field_en_name}')
+                      WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                         AND dictkey IS NOT NULL
                         AND dictkey != ''
                       GROUP BY dictkey
@@ -141,7 +141,7 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
                      LIMIT 1) AS dictkey_sub
          CROSS JOIN ((SELECT field_length, COUNT(*) AS field_length_count
                       FROM public.base_field_info
-                      WHERE ename = UPPER('{field_en_name}')
+                      WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                         AND field_length IS NOT NULL
                         AND field_length != ''
                       GROUP BY field_length
@@ -153,7 +153,7 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
          CROSS JOIN ((SELECT bde.name AS element_code_name, COUNT(*) AS element_code_count
                       FROM public.base_field_info AS bfi
                                JOIN public.base_data_element AS bde ON bfi.element_code = bde.code
-                      WHERE bfi.ename = UPPER('{field_en_name}')
+                      WHERE (bfi.ename = UPPER('{field_en_name}') OR bfi.ename = '{field_en_name}')
                         AND bfi.element_code IS NOT NULL
                         AND bfi.element_code != ''
                       GROUP BY element_code_name
@@ -165,7 +165,7 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
          CROSS JOIN ((SELECT bdd.name AS determiner_code_name, COUNT(*) AS determiner_code_count
                       FROM public.base_field_info AS bfi
                                JOIN public.base_data_determiner AS bdd ON bfi.determiner_code = bdd.code
-                      WHERE bfi.ename = UPPER('{field_en_name}')
+                      WHERE (bfi.ename = UPPER('{field_en_name}') OR bfi.ename = '{field_en_name}')
                         AND bfi.determiner_code IS NOT NULL
                         AND bfi.determiner_code != ''
                       GROUP BY determiner_code_name
@@ -176,7 +176,7 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
                      LIMIT 1) AS determiner_code_sub
          CROSS JOIN ((SELECT structure_type, COUNT(*) AS structure_type_count
                       FROM public.base_field_info
-                      WHERE ename = UPPER('{field_en_name}')
+                      WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                         AND structure_type IS NOT NULL
                       GROUP BY structure_type
                       ORDER BY structure_type_count DESC
@@ -184,29 +184,35 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
                      UNION ALL
                      (SELECT NULL AS structure_type, 0 AS structure_type_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS structure_type_sub
-         CROSS JOIN (SELECT is_multi_value, COUNT(*) AS is_multi_value_count
+         CROSS JOIN ((SELECT is_multi_value, COUNT(*) AS is_multi_value_count
                      FROM public.base_field_info
-                     WHERE ename = UPPER('{field_en_name}')
+                     WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                        AND is_multi_value IS NOT NULL
                      GROUP BY is_multi_value
                      ORDER BY is_multi_value_count DESC
+                     LIMIT 1) 
+                     UNION ALL
+                     (SELECT NULL AS is_multi_value, 0 AS is_multi_value_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS is_multi_value_sub
-         CROSS JOIN (SELECT is_required, COUNT(*) AS is_required_count
+         CROSS JOIN ((SELECT is_required, COUNT(*) AS is_required_count
                      FROM public.base_field_info
-                     WHERE ename = UPPER('{field_en_name}')
+                     WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                        AND is_required IS NOT NULL
                      GROUP BY is_required
                      ORDER BY is_required_count DESC
+                     LIMIT 1) 
+                     UNION ALL
+                     (SELECT NULL AS is_required, 0 AS is_required_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS is_required_sub
          CROSS JOIN (SELECT core_flag, COUNT(*) AS core_flag_count
                      FROM public.base_field_info
-                     WHERE ename = UPPER('{field_en_name}')
+                     WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') 
                      GROUP BY core_flag
                      ORDER BY core_flag_count DESC
                      LIMIT 1) AS core_flag_sub
          CROSS JOIN (SELECT COUNT(*) AS total_count
                      FROM public.base_field_info
-                     WHERE ename = UPPER('{field_en_name}')) AS total_sub;"""
+                     WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') ) AS total_sub;"""
     field_info = {}
     try:
         result = db_handler.session.execute(statement=text(sql))
@@ -218,6 +224,7 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
         message = f"数据库读操作异常: {err}"
         return False, message, RecommendPanGuFieldSchema(ename=field_en_name)
     else:
+
         return True, "ok", RecommendPanGuFieldSchema(**field_info)
 
 
@@ -259,8 +266,6 @@ def save_pangu_dict_info(db_handler: Database, pangu_dict_key_data: dict) -> tup
         message = f"数据库写操作错误: {err}"
         return False, message
     return True, "ok"
-
-
 
 
 if __name__ == '__main__':

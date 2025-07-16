@@ -247,11 +247,10 @@ FROM (SELECT name, COUNT(*) AS name_count
                      WHERE ename = 'ISP_TYPE') AS total_sub;
 
 -- 处理空值情况
-
-SELECT name_sub.name                                        AS name,
-       name_sub.name_count                                  AS name_count,
-       ROUND(COALESCE(name_sub.name_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
-             2)                                             AS name_percentage,
+SELECT cname_sub.cname                                      AS cname,
+       cname_sub.cname_count                                AS cname_count,
+       ROUND(COALESCE(cname_sub.cname_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
+             2)                                             AS cname_percentage,
        identifier_sub.identifier                            AS identifier,
        identifier_sub.identifier_count                      AS identifier_count,
        ROUND(COALESCE(identifier_sub.identifier_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
@@ -284,10 +283,6 @@ SELECT name_sub.name                                        AS name,
        determiner_code_sub.determiner_code_count            AS determiner_code_count,
        ROUND(COALESCE(determiner_code_sub.determiner_code_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
              2)                                             AS determiner_code_percentage,
-       is_query_sub.is_query                                AS is_query,
-       is_query_sub.is_query_count                          AS is_query_count,
-       ROUND(COALESCE(is_query_sub.is_query_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
-             2)                                             AS is_query_percentage,
        is_multi_value_sub.is_multi_value                    AS is_multi_value,
        is_multi_value_sub.is_multi_value_count              AS is_multi_value_count,
        ROUND(COALESCE(is_multi_value_sub.is_multi_value_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
@@ -300,47 +295,52 @@ SELECT name_sub.name                                        AS name,
        core_flag_sub.core_flag_count                        AS core_flag_count,
        ROUND(COALESCE(core_flag_sub.core_flag_count * 100.0 / NULLIF(total_sub.total_count, 0), 0),
              2)                                             AS core_flag_percentage
-FROM ((SELECT name, COUNT(*) AS name_count
+FROM ((SELECT name AS cname, COUNT(*) AS cname_count
        FROM public.base_field_info
-       WHERE ename = 'I010009'
+       WHERE (ename = UPPER('field1') OR ename = 'field1')
          AND name ~ '[\u4e00-\u9fa5]'
        GROUP BY name
-       ORDER BY name_count DESC
+       ORDER BY cname_count DESC
        LIMIT 1)
       UNION ALL
-      (SELECT name, COUNT(*) AS name_count
+      (SELECT name AS cname, COUNT(*) AS cname_count
        FROM public.base_field_info
-       WHERE ename = 'I010009'
+       WHERE (ename = UPPER('field1') OR ename = 'field1')
        GROUP BY name
-       ORDER BY name_count DESC
+       ORDER BY cname_count DESC
        LIMIT 1)
-      LIMIT 1) AS name_sub
+      LIMIT 1) AS cname_sub
          CROSS JOIN (SELECT identifier, COUNT(*) AS identifier_count
                      FROM public.base_field_info
-                     WHERE ename = 'I010009'
+                     WHERE (ename = UPPER('field1') OR ename = 'field1')
                      GROUP BY identifier
                      ORDER BY identifier_count DESC
                      LIMIT 1) AS identifier_sub
          CROSS JOIN ((SELECT description, COUNT(*) AS description_count
                       FROM public.base_field_info
-                      WHERE ename = 'I010009'
+                      WHERE (ename = UPPER('field1') OR ename = 'field1')
                         AND description ~ '[\u4e00-\u9fa5]'
                       GROUP BY description
                       ORDER BY description_count DESC
                       LIMIT 1)
                      UNION ALL
-                     (SELECT NULL AS description, 0 AS description_count FROM (SELECT 1) AS dummy)
+                     (SELECT description, COUNT(*) AS description_count
+                      FROM public.base_field_info
+                      WHERE (ename = UPPER('field1') OR ename = 'field1')
+                      GROUP BY description
+                      ORDER BY description_count DESC
+                      LIMIT 1)
                      LIMIT 1) AS description_sub
          CROSS JOIN (SELECT bft.field_type AS field_type_name, COUNT(*) AS field_type_count
                      FROM public.base_field_info AS bfi
                               JOIN public.base_field_type AS bft ON bfi.field_type = bft.code
-                     WHERE bfi.ename = 'I010009'
+                     WHERE (bfi.ename = UPPER('field1') OR bfi.ename = 'field1')
                      GROUP BY bft.field_type
                      ORDER BY field_type_count DESC
                      LIMIT 1) AS field_type_sub
          CROSS JOIN ((SELECT dictkey, COUNT(*) AS dictkey_count
                       FROM public.base_field_info
-                      WHERE ename = 'I010009'
+                      WHERE (ename = UPPER('field1') OR ename = 'field1')
                         AND dictkey IS NOT NULL
                         AND dictkey != ''
                       GROUP BY dictkey
@@ -351,7 +351,7 @@ FROM ((SELECT name, COUNT(*) AS name_count
                      LIMIT 1) AS dictkey_sub
          CROSS JOIN ((SELECT field_length, COUNT(*) AS field_length_count
                       FROM public.base_field_info
-                      WHERE ename = 'I010009'
+                      WHERE (ename = UPPER('field1') OR ename = 'field1')
                         AND field_length IS NOT NULL
                         AND field_length != ''
                       GROUP BY field_length
@@ -363,7 +363,7 @@ FROM ((SELECT name, COUNT(*) AS name_count
          CROSS JOIN ((SELECT bde.name AS element_code_name, COUNT(*) AS element_code_count
                       FROM public.base_field_info AS bfi
                                JOIN public.base_data_element AS bde ON bfi.element_code = bde.code
-                      WHERE bfi.ename = 'I010009'
+                      WHERE (bfi.ename = UPPER('field1') OR bfi.ename = 'field1')
                         AND bfi.element_code IS NOT NULL
                         AND bfi.element_code != ''
                       GROUP BY element_code_name
@@ -375,7 +375,7 @@ FROM ((SELECT name, COUNT(*) AS name_count
          CROSS JOIN ((SELECT bdd.name AS determiner_code_name, COUNT(*) AS determiner_code_count
                       FROM public.base_field_info AS bfi
                                JOIN public.base_data_determiner AS bdd ON bfi.determiner_code = bdd.code
-                      WHERE bfi.ename = 'I010009'
+                      WHERE (bfi.ename = UPPER('field1') OR bfi.ename = 'field1')
                         AND bfi.determiner_code IS NOT NULL
                         AND bfi.determiner_code != ''
                       GROUP BY determiner_code_name
@@ -386,7 +386,7 @@ FROM ((SELECT name, COUNT(*) AS name_count
                      LIMIT 1) AS determiner_code_sub
          CROSS JOIN ((SELECT structure_type, COUNT(*) AS structure_type_count
                       FROM public.base_field_info
-                      WHERE ename = 'I010009'
+                      WHERE (ename = UPPER('field1') OR ename = 'field1')
                         AND structure_type IS NOT NULL
                       GROUP BY structure_type
                       ORDER BY structure_type_count DESC
@@ -394,36 +394,34 @@ FROM ((SELECT name, COUNT(*) AS name_count
                      UNION ALL
                      (SELECT NULL AS structure_type, 0 AS structure_type_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS structure_type_sub
-         CROSS JOIN (SELECT is_query, COUNT(*) AS is_query_count
-                     FROM public.base_field_info
-                     WHERE ename = 'I010009'
-                       AND is_query IS NOT NULL
-                     GROUP BY is_query
-                     ORDER BY is_query_count DESC
-                     LIMIT 1) AS is_query_sub
-         CROSS JOIN (SELECT is_multi_value, COUNT(*) AS is_multi_value_count
-                     FROM public.base_field_info
-                     WHERE ename = 'I010009'
-                       AND is_multi_value IS NOT NULL
-                     GROUP BY is_multi_value
-                     ORDER BY is_multi_value_count DESC
+         CROSS JOIN ((SELECT is_multi_value, COUNT(*) AS is_multi_value_count
+                      FROM public.base_field_info
+                      WHERE (ename = UPPER('field1') OR ename = 'field1')
+                        AND is_multi_value IS NOT NULL
+                      GROUP BY is_multi_value
+                      ORDER BY is_multi_value_count DESC
+                      LIMIT 1)
+                     UNION ALL
+                     (SELECT NULL AS is_multi_value, 0 AS is_multi_value_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS is_multi_value_sub
-         CROSS JOIN (SELECT is_required, COUNT(*) AS is_required_count
+         CROSS JOIN ((SELECT is_required, COUNT(*) AS is_required_count
                      FROM public.base_field_info
-                     WHERE ename = 'I010009'
+                     WHERE (ename = UPPER('field1') OR ename = 'field1')
                        AND is_required IS NOT NULL
                      GROUP BY is_required
                      ORDER BY is_required_count DESC
+                     LIMIT 1) UNION ALL
+                     (SELECT NULL AS is_required, 0 AS is_required_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS is_required_sub
          CROSS JOIN (SELECT core_flag, COUNT(*) AS core_flag_count
                      FROM public.base_field_info
-                     WHERE ename = 'I010009'
+                     WHERE (ename = UPPER('field1') OR ename = 'field1')
                      GROUP BY core_flag
                      ORDER BY core_flag_count DESC
                      LIMIT 1) AS core_flag_sub
          CROSS JOIN (SELECT COUNT(*) AS total_count
                      FROM public.base_field_info
-                     WHERE ename = 'I010009') AS total_sub;
+                     WHERE (ename = UPPER('field1') OR ename = 'field1')) AS total_sub;
 
 
 -- 根据字典信息查询字典详情
@@ -442,4 +440,7 @@ WHERE parentid = split_part((SELECT dictkey FROM first_dict), ':', 1)
 
 
 -- 所有字段
-SELECT ename, count(*) ename_count FROM public.base_field_info GROUP BY ename ORDER BY ename_count DESC;
+SELECT ename, count(*) ename_count
+FROM public.base_field_info
+GROUP BY ename
+ORDER BY ename_count DESC;
