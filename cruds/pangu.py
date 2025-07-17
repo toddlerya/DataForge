@@ -238,7 +238,7 @@ def pangu_dict_key_values(db_handler: Database, dictkey_with_nlevel: str) -> tup
     sql = f"""SELECT code AS uuid,
                     '{dictkey_with_nlevel}' AS dictkey_with_nlevel,
                     parentid AS dict_category_code, 
-                    parentname AS dict_category, 
+                    COALESCE(parentname, '无字典类别名称') AS dict_category, 
                     nlevel AS dict_level, 
                     id AS dict_id, 
                     name AS dict_name FROM public.base_dd_tab 

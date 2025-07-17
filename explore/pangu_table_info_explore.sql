@@ -405,12 +405,13 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
                      (SELECT NULL AS is_multi_value, 0 AS is_multi_value_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS is_multi_value_sub
          CROSS JOIN ((SELECT is_required, COUNT(*) AS is_required_count
-                     FROM public.base_field_info
-                     WHERE (ename = UPPER('field1') OR ename = 'field1')
-                       AND is_required IS NOT NULL
-                     GROUP BY is_required
-                     ORDER BY is_required_count DESC
-                     LIMIT 1) UNION ALL
+                      FROM public.base_field_info
+                      WHERE (ename = UPPER('field1') OR ename = 'field1')
+                        AND is_required IS NOT NULL
+                      GROUP BY is_required
+                      ORDER BY is_required_count DESC
+                      LIMIT 1)
+                     UNION ALL
                      (SELECT NULL AS is_required, 0 AS is_required_count FROM (SELECT 1) AS dummy)
                      LIMIT 1) AS is_required_sub
          CROSS JOIN (SELECT core_flag, COUNT(*) AS core_flag_count
@@ -438,6 +439,26 @@ FROM public.base_dd_tab
 WHERE parentid = split_part((SELECT dictkey FROM first_dict), ':', 1)
   AND nlevel = CAST(split_part((SELECT dictkey FROM first_dict), ':', 2) AS INTEGER);
 
+
+--
+WITH first_dict AS (SELECT dictkey
+                    FROM public.base_field_info
+                    WHERE ename = 'DATA_SOURCE'
+                      AND dictkey IS NOT NULL
+                      AND dictkey != ''
+                    GROUP BY dictkey
+                    ORDER BY COUNT(*) DESC
+                    LIMIT 1)
+SELECT code                                         AS uuid,
+       (SELECT dictkey FROM first_dict)             AS dictkey_with_nlevel,
+       parentid                                     AS dict_category_code,
+       COALESCE(parentname, '无字典类别名称') AS dict_category,
+       nlevel                                       AS dict_level,
+       id                                           AS dict_id,
+       name                                         AS dict_name
+FROM public.base_dd_tab
+WHERE parentid = split_part((SELECT dictkey FROM first_dict), ':', 1)
+  AND nlevel = CAST(split_part((SELECT dictkey FROM first_dict), ':', 2) AS INTEGER);
 
 -- 所有字段
 SELECT ename, count(*) ename_count

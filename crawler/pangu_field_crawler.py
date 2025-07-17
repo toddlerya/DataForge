@@ -70,11 +70,15 @@ class PanGuFieldCrawler:
             if status is False:
                 logger.error(f"获取盘古字典异常: dictkey_with_nlevel={dictkey_with_nlevel} ERROR: {message}")
                 return False
-            save_status, save_message = save_pangu_dict_info(db_handler=self.inner_db, pangu_dict_key_data=data)
-            if save_status is False:
-                logger.error(f"存储盘古字典异常: dictkey_with_nlevel={dictkey_with_nlevel} ERROR: {message}")
-                self.inner_db.session.rollback()
-                return False
+            for each_data in data:
+                save_status, save_message = save_pangu_dict_info(db_handler=self.inner_db,
+                                                                 pangu_dict_key_data=each_data)
+                if save_status is False:
+                    logger.error(f"存储盘古字典异常: dictkey_with_nlevel={dictkey_with_nlevel} "
+                                 f"each_data={each_data} "
+                                 f"ERROR: {message}")
+                    self.inner_db.session.rollback()
+                    return False
             if index % self.batch_size == 0:
                 self.inner_db.session.commit()
         self.inner_db.session.commit()
