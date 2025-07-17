@@ -138,7 +138,7 @@ data_scope_resource_url = (
 data_scope_resource_detail_url = (
     f"https://{data_scope_ip_port}/offsite/v1/resource/detail"
 )
-data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=47e66807028647659bd6015bfa56a498; appToken=30dca21667064ad98c1385280db3fb0f"
+data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=4f391c4296404db1b469361651db792b; appToken=ba763aa032564efdb10f7b69ae9632fe"
 
 # 盘古配置
 pangu_ip_port = "172.21.4.42:11018"
@@ -154,7 +154,7 @@ pangu_data_sample_query_url = (
     f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
 )
 
-pangu_cookie = "contextPath=/catalog; JSESSIONID=2EEAFC5C9B307EF950363E325DAEA039; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; JSESSIONID=B625A5D9B34DFF5DFBF83B39CDFB9B2B; userToken=93adfb2d6ba748cda5b1370b470bd537; appToken=617997d63a1d4c14b356b7ecd1ae5d49; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D"
+pangu_cookie = "contextPath=/catalog; JSESSIONID=0E7B1D95AEED232D337D760292ECCFCD; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; JSESSIONID=27567A59395B583C049687C843A06585; userToken=afb82688c9e9464ea2a8abf0c2a54167; appToken=c527727b764744e5b39d005df2b3d7ee"
 
 pangu_field_type_map = {
     -1: "string",

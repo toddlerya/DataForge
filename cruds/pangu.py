@@ -7,11 +7,11 @@
 
 from urllib.parse import quote_plus
 
-from sqlalchemy import text
+from sqlalchemy import text, or_
 from cruds.dynamic_query import query_sql
 
 from utils.db import Database
-from database_models.schema import RecommendPanGuFieldSchema
+from database_models.schema import RecommendPanGuFieldSchema, RecommendPanGuDictSchema
 from database_models.models import RecommendPanGuFieldInfo, PanGuDictInfo
 
 
@@ -228,7 +228,8 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
         return True, "ok", RecommendPanGuFieldSchema(**field_info)
 
 
-def pangu_dict_key_values(db_handler: Database, dictkey_with_nlevel: str) -> tuple[bool, str, dict]:
+def pangu_dict_key_values(db_handler: Database, dictkey_with_nlevel: str) -> tuple[
+    bool, str, dict]:
     """
     根据字典关联ID及层级获取字典详情
     :param db_handler:
@@ -268,31 +269,107 @@ def save_pangu_dict_info(db_handler: Database, pangu_dict_key_data: dict) -> tup
     return True, "ok"
 
 
+def query_field_recommend_info_by_ename(db_handler: Database, field_en_name: str) -> tuple[
+    bool, str, RecommendPanGuFieldSchema | None]:
+    """
+    根据字段英文名查询存储的盘古字段推荐信息
+    :param db_handler:
+    :param field_en_name:
+    :return:
+    """
+
+    recommend_field_data = None
+    try:
+        result = db_handler.session.query(RecommendPanGuFieldInfo).filter(
+            or_(RecommendPanGuFieldInfo.ename == field_en_name,
+                RecommendPanGuFieldInfo.identifier == field_en_name)
+        ).all()
+        max_cname_percentage = 0.0
+        max_identifier_percentage = 0.0
+        for row in result:
+            row_data = row.to_dict()
+            row_data.pop("id")
+            row_data.pop("create_time")
+            row_data.pop("update_time")
+            row_data.pop("remark")
+            row_recommend_field_data = RecommendPanGuFieldSchema(**row_data)
+            # 取占比最高的作为唯一结果
+            if recommend_field_data is None:
+                # 初始化
+                recommend_field_data = row_recommend_field_data
+                max_cname_percentage = row_recommend_field_data.cname_percentage
+                max_identifier_percentage = row_recommend_field_data.identifier_percentage
+            elif row_recommend_field_data.cname_percentage >= max_cname_percentage and \
+                    row_recommend_field_data.identifier_percentage >= max_identifier_percentage:
+                # 更新
+                recommend_field_data = row_recommend_field_data
+                max_cname_percentage = row_recommend_field_data.cname_percentage
+                max_identifier_percentage = row_recommend_field_data.identifier_percentage
+    except Exception as err:
+        message = f"数据库查询异常: {err}"
+        return False, message, recommend_field_data
+    return True, "ok", recommend_field_data
+
+
+def query_dict_items_info_by_dictkey(db_handler: Database, dictkey_with_nlevel: str) -> tuple[
+    bool, str, list[RecommendPanGuDictSchema]]:
+    """
+    查询字典类别的所有字典值
+    """
+    data: list[RecommendPanGuDictSchema] = list()
+    try:
+        result = db_handler.session.query(PanGuDictInfo).filter(
+            PanGuDictInfo.dictkey_with_nlevel == dictkey_with_nlevel.strip()
+        ).all()
+        for row in result:
+            row_data = row.to_dict()
+            row_data.pop("id")
+            row_data.pop("create_time")
+            row_data.pop("update_time")
+            row_data.pop("remark")
+            row_dict_data = RecommendPanGuDictSchema(**row_data)
+            data.append(row_dict_data)
+    except Exception as err:
+        message = f"数据库查询异常: {err}"
+        return False, message, data
+    return True, "ok", data
+
+
 if __name__ == '__main__':
-    from config import METADATA_DB_IP, METADATA_DB_NAME, METADATA_DB_USER, METADATA_DB_PORT, METADATA_DB_PASSWORD
+    # from config import METADATA_DB_IP, METADATA_DB_NAME, METADATA_DB_USER, METADATA_DB_PORT, METADATA_DB_PASSWORD
+    #
+    # SQLALCHEMY_URL = f"postgresql+psycopg2://" \
+    #                  f"{METADATA_DB_USER}:{quote_plus(METADATA_DB_PASSWORD)}" \
+    #                  f"@{METADATA_DB_IP}:{METADATA_DB_PORT}" \
+    #                  f"/{METADATA_DB_NAME}" \
+    #                  f"?client_encoding=UTF8"
+    # metadata_db = Database(url=SQLALCHEMY_URL)
+    #
+    # s, m, all_pangu_field_stat_data = get_all_pangu_field_stat(metadata_db)
+    # if s:
+    #     for each_field_info in all_pangu_field_stat_data:
+    #         print("=" * 20)
+    #         print(f"field: {each_field_info}")
+    #         status, msg, data = pangu_recommend_field_info(db_handler=metadata_db,
+    #                                                        field_en_name=each_field_info.get("ename"))
+    #         if status:
+    #             print(f"data: {data}")
+    #             if data.dictkey:
+    #                 print("dict_key_values: ",
+    #                       data.dictkey,
+    #                       pangu_dict_key_values(dictkey_with_nlevel=data.dictkey, db_handler=metadata_db))
+    #         else:
+    #             print(msg)
+    #             break
+    # else:
+    #     print(m)
 
-    SQLALCHEMY_URL = f"postgresql+psycopg2://" \
-                     f"{METADATA_DB_USER}:{quote_plus(METADATA_DB_PASSWORD)}" \
-                     f"@{METADATA_DB_IP}:{METADATA_DB_PORT}" \
-                     f"/{METADATA_DB_NAME}" \
-                     f"?client_encoding=UTF8"
-    metadata_db = Database(url=SQLALCHEMY_URL)
-
-    s, m, all_pangu_field_stat_data = get_all_pangu_field_stat(metadata_db)
-    if s:
-        for each_field_info in all_pangu_field_stat_data:
-            print("=" * 20)
-            print(f"field: {each_field_info}")
-            status, msg, data = pangu_recommend_field_info(db_handler=metadata_db,
-                                                           field_en_name=each_field_info.get("ename"))
-            if status:
-                print(f"data: {data}")
-                if data.dictkey:
-                    print("dict_key_values: ",
-                          data.dictkey,
-                          pangu_dict_key_values(dictkey_with_nlevel=data.dictkey, db_handler=metadata_db))
-            else:
-                print(msg)
-                break
-    else:
-        print(m)
+    # print(query_field_recommend_info_by_ename(db_handler=Database(), field_en_name="RELE_DIRECTION_TYPE"))
+    s,m,d=(query_dict_items_info_by_dictkey(db_handler=Database(), dictkey_with_nlevel="FHWACODE_0098:2"))
+    print(s)
+    print(m)
+    print(d)
+    one_dict = d[0]
+    category = one_dict.dict_category
+    print(f"category: {category}")
+    value = [ele.model_dump_json() for ele in d]

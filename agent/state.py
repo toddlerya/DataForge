@@ -19,7 +19,7 @@ from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
 
-from database_models.schema import TableRawFieldSchema, GenTableFieldSchema
+from database_models.schema import TableRawFieldSchema, GenTableFieldSchema, RecommendPanGuDictSchema
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 
 
@@ -182,6 +182,11 @@ class SQLModeDataGenState(TypedDict):
     human_intent_feedback: str
     table_info_error: str
     table_info_data: SQLModeTableInfoSchema
+    table_metadata_info: TableMetadataSchema
+    table_metadata_error: list[str]
+    DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
+    table_dictkey_with_nlevel_slice: list[str]
+    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
     pydantic_data_genius_plan: PydanticDataGeniusPlan
     data_genius_headers: dict
     create_data_genius_task_error: str

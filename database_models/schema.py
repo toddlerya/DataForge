@@ -48,6 +48,17 @@ class RecommendPanGuFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=
     core_flag: str = Field("", description="出现次数最多的是否核心字段  1-核心  0-普通")
     core_flag_count: int = Field(0, description_count="是否核心字段出现次数")
     core_flag_percentage: float = Field(0.0, description_count="是否核心字段出现次数占比")
+    example_data: str | None = Field("", description_count="样例数据")
+
+
+class RecommendPanGuDictSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+    uuid: int = Field(..., description="字典的唯一编码")
+    dictkey_with_nlevel: str = Field(..., description="字段存储的字典key")
+    dict_category_code: str = Field(..., description="字典类别key")
+    dict_category: str = Field(..., description="字典类别名称")
+    dict_level: int = Field(..., description="字典层级")
+    dict_id: str = Field(..., description="字典项编码")
+    dict_name: str = Field(..., description="字典项名称")
 
 
 class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):

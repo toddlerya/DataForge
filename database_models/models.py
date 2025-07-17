@@ -178,6 +178,18 @@ class RecommendPanGuFieldInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     core_flag_percentage = Column(Float, default=0.0, comment="是否核心字段出现次数占比")
     example_data = Column(Text, nullable=True, comment="样例数据")
 
+    def to_dict(self):
+        """
+        将 EnvironmentInfo 对象转换为字典
+
+        Returns:
+            dict: 字典表示的 EnvironmentInfo 对象
+        """
+        info_dict = instance_dict(self)
+        if info_dict.get("_sa_instance_state", None):
+            info_dict.pop("_sa_instance_state")
+        return info_dict
+
 
 class PanGuDictInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     __tablename__ = "pangu_dict_info"
@@ -191,6 +203,18 @@ class PanGuDictInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     dict_level = Column(Integer, nullable=False, comment="字典层级")
     dict_id = Column(String(length=128), nullable=False, comment="字典项编码")
     dict_name = Column(Text, nullable=False, comment="字典项名称")
+
+    def to_dict(self):
+        """
+        将 EnvironmentInfo 对象转换为字典
+
+        Returns:
+            dict: 字典表示的 EnvironmentInfo 对象
+        """
+        info_dict = instance_dict(self)
+        if info_dict.get("_sa_instance_state", None):
+            info_dict.pop("_sa_instance_state")
+        return info_dict
 
 
 class EnvironmentInfo(CommonTableArgsMixin, CommonColumnMixin, Base):

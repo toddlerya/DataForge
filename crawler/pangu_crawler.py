@@ -5,7 +5,6 @@
 # @FileName : pangu_crawler.py.py
 # @Project  : DataForge
 
-from typing import List, Dict
 import json
 
 import requests
@@ -22,12 +21,10 @@ from config import (
     pangu_cookie,
 )
 from database_models.schema import (
-    TableRawFieldSchema,
     TableMetaDataSchema,
     TableExampleSchema,
 )
 from database_models.sys_enum import MetaDataSource
-from database_models.models import TableMetaDataInfo
 from utils.db import Database
 from utils.file import get_md5
 from cruds.table_metadata import table_metadata_save, table_metadata_query_by_entity_id

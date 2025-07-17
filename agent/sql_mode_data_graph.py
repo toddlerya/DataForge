@@ -17,27 +17,29 @@ from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
 from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
+from database_models.schema import RecommendPanGuDictSchema
 from agent.llm import chat_llm
-from agent.prompt import sql_mode_dg_category_prompt, sql_mode_data_intent_prompt
+from agent.prompt import dg_category_prompt, sql_mode_data_intent_prompt
 from agent.state import (
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
     PydanticDataGeniusRule,
     DataGenSQLModeUserIntentSchema,
     SQLModeDataGenState,
-    SQLModeFieldSchema,
     SQLModeTableInfoSchema,
+    TableMetadataSchema,
+    TableRawFieldSchema
 )
 from agent.sql_parser import advanced_column_lineage_parser
-from config import SQL_MODE_DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
 from agent.dg_configs import (
-    DG_FIELD_CATEGORY_CONFIG,
     DG_STORAGE_PATH,
     DG_SERVER_BASE_URL,
     DG_TASK_ADD_URL,
     DG_TASK_HISTORY,
     DG_NEW_TASK,
 )
+from config import SQL_MODE_DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
+from cruds.pangu import query_field_recommend_info_by_ename, query_dict_items_info_by_dictkey
 from utils.db import Database
 from utils.file import save_dict2jl
 
@@ -126,6 +128,80 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     return state
 
 
+def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
+    """
+    根据字段知识库增强字段信息
+    :param state:
+    :return:
+    """
+    logger.info("RAG增强字段属性信息")
+    table_info_data: SQLModeTableInfoSchema = state["table_info_data"]
+    table_metadata_info = TableMetadataSchema(table_en_name=table_info_data.table_en_name)
+    table_metadata_error: list[str] = list()
+    table_dictkey_slice: list[str] = list()
+
+    for each_field in table_info_data.fields_info:
+        status, message, recommend_data = query_field_recommend_info_by_ename(db_handler=Database(),
+                                                                              field_en_name=each_field.en_name)
+        if status is False:
+            err_message = f"RAG增强字段属性异常: table_en_name={table_info_data.table_en_name} " \
+                          f"field_en_name={each_field.en_name} ERROR: {message}"
+            logger.error(err_message)
+            table_metadata_error.append(err_message)
+        if recommend_data is None:
+            raw_field_data = TableRawFieldSchema(en_name=each_field.en_name)
+            table_metadata_info.raw_fields_info.append(raw_field_data)
+        else:
+            raw_field_data = TableRawFieldSchema(
+                en_name=each_field.en_name,
+                cn_name=recommend_data.cname,
+                desc=[recommend_data.description if recommend_data.description else ""][0],
+                field_type=recommend_data.field_type_name,
+                is_require=recommend_data.is_required,
+                dict_key=[recommend_data.dictkey if recommend_data.dictkey else ""][0],
+            )
+            table_metadata_info.raw_fields_info.append(raw_field_data)
+            if recommend_data.dictkey:
+                table_dictkey_slice.append(recommend_data.dictkey)
+    state["table_metadata_info"] = table_metadata_info
+    state["table_metadata_error"] = table_metadata_error
+    state["table_dictkey_slice"] = list(set(table_dictkey_slice))
+    return state
+
+
+def add_pg_dict2dg_category(state: SQLModeDataGenState) -> SQLModeDataGenState:
+    """
+    将盘古字典加入到dg规则类别中
+    :param state:
+    :return:
+    """
+    logger.info("[+] 将盘古字典加入到dg规则类别中")
+    table_dictkey_with_nlevel_slice: list[str] = state.get("table_dictkey_with_nlevel_slice", [])
+    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
+    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
+    for each_dictkey_with_nlevel in table_dictkey_with_nlevel_slice:
+        status, message, result = query_dict_items_info_by_dictkey(db_handler=Database(),
+                                                                   dictkey_with_nlevel=each_dictkey_with_nlevel)
+        if status is False:
+            logger.error(f"获取盘古字典异常: {message}")
+            continue
+        else:
+            if result:
+                one_dict = result[0]
+                category = one_dict.dict_category
+                value = one_dict.model_dump()
+                value.pop("uuid")
+                value.pop("dictkey_with_nlevel")
+                value.pop("dict_category_code")
+                value.pop("dict_category_code")
+                config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
+                DG_FIELD_CATEGORY_CONFIG.append(config_value)
+                table_dictkey_map[category] = result
+    state["table_dictkey_map"] = table_dictkey_map
+    state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
+    return state
+
+
 def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     DataGenius字段分类推荐节点
@@ -136,9 +212,11 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
 
     """
     logger.info("DataGenius字段分类推荐")
-    table_info_data = state["table_info_data"]
+    table_metadata_info = state["table_metadata_info"]
     user_intent = state["user_intent"]
     client_ip = state["client_ip"]
+    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
+    table_dictkey_map = state.get("table_dictkey_map")
     state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
     table_en_name = table_info_data.table_en_name
     row_count = user_intent.data_count
@@ -155,12 +233,12 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
     stop_flag = False
     rules: list[PydanticDataGeniusRule] = []
     while True:
-        if field_index >= len(table_info_data.fields_info):
+        if field_index >= len(table_metadata_info.raw_fields_info):
             stop_flag = True
         if stop_flag:
             logger.info("所有字段已处理完毕，结束DataGenius分类推荐")
             break
-        field_info = table_info_data.fields_info[field_index]
+        field_info = table_metadata_info.raw_fields_info[field_index]
         if retry_count >= max_retries:
             llm_dg_field_category_recommendation = (
                 PydanticDataGeniusCategoryRecommendation(
@@ -181,7 +259,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
                 category=llm_dg_field_category_recommendation.category,
                 name="",
                 ename=field_info.en_name,
-                cname=field_info.comment,
+                cname=field_info.cn_name,
                 preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
                 value="",
             )
@@ -190,10 +268,13 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
             # 清空字段重试次数，开始下一个字段的推荐
             retry_count = 0
             continue
-        chat_prompt = sql_mode_dg_category_prompt.format_messages(
+        chat_prompt = dg_category_prompt.format_messages(
+            cn_name=field_info.cn_name,
             en_name=field_info.en_name,
-            alias_name=field_info.alias_name,
-            comment=field_info.comment,
+            field_type=field_info.field_type,
+            desc=field_info.desc,
+            sample_value=field_info.example,
+            dict_name=field_info.dict_name,
             dg_category_config_data=DG_FIELD_CATEGORY_CONFIG,
             last_error_message=last_error_message,
         )
@@ -211,15 +292,26 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
         else:
             last_error_message = ""
             # 构建该字段的DataGenius规则参数
+            # 处理字典规则
+            args = {}
+            name = ""
+            category = llm_dg_field_category_recommendation.category
+            if category in table_dictkey_map:
+                dict_items: list[RecommendPanGuDictSchema] = table_dictkey_map.get(category)
+                choices = [item.dict_id for item in dict_items]
+                args = {"choices": choices}
+                name = f"{category}_字典规则"
+                category = "自定义-枚举"
+                logger.debug(f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}")
             pydantic_data_genius_rule = PydanticDataGeniusRule(
                 col=field_index + 1,
-                category=llm_dg_field_category_recommendation.category,
-                name="",
+                category=category,
+                name=name,
                 ename=field_info.en_name,
-                cname=field_info.comment,
-                preview=f"score: {llm_dg_field_category_recommendation.score}, "
-                f"reason: {llm_dg_field_category_recommendation.reason}",
-                value="",
+                cname=field_info.cn_name,
+                preview=f"score: {llm_dg_field_category_recommendation.score}, reason: {llm_dg_field_category_recommendation.reason}",
+                value=field_info.example,
+                args=args
             )
             logger.trace(
                 f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
@@ -254,19 +346,19 @@ def save_dg_plan2json(state: SQLModeDataGenState):
     """
     logger.info("存储DataGenius任务规则")
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
-    table_info_data: SQLModeTableInfoSchema = state.get("table_info_data")
+    table_metadata_info: TableMetadataSchema = state.get("table_metadata_info")
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
         save_json_path = DG_PLAN_PATH.joinpath(
             f"{pydantic_data_genius_plan.rule_name}"
         ).absolute()
         save_dict2jl(json_data=data, save_path=str(save_json_path))
-    if table_info_data:
+    if table_metadata_info:
         table_metadata_json_path = DG_PLAN_PATH.joinpath(
             f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
         )
         save_dict2jl(
-            json_data=table_info_data.model_dump(), save_path=table_metadata_json_path
+            json_data=table_metadata_info.model_dump(), save_path=table_metadata_json_path
         )
     return state
 
@@ -418,6 +510,8 @@ sql_mode_data_gen_builder.add_node(
     "intent_human_feedback_node", data_intent_human_feedback_node
 )
 sql_mode_data_gen_builder.add_node("sql_parse_to_table_info", sql_parse_to_table_info)
+sql_mode_data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
+sql_mode_data_gen_builder.add_node("add_pg_dict2dg_category", add_pg_dict2dg_category)
 sql_mode_data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
 sql_mode_data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 sql_mode_data_gen_builder.add_node("create_dg_task", create_dg_task)
@@ -432,7 +526,9 @@ sql_mode_data_gen_builder.add_conditional_edges(
     should_data_intent_continue,
     ["analyze_intent", "sql_parse_to_table_info"],
 )
-sql_mode_data_gen_builder.add_edge("sql_parse_to_table_info", "dg_category_recommend")
+sql_mode_data_gen_builder.add_edge("sql_parse_to_table_info", "rag_sql_table_filed_info")
+sql_mode_data_gen_builder.add_edge("rag_sql_table_filed_info", "add_pg_dict2dg_category")
+sql_mode_data_gen_builder.add_edge("add_pg_dict2dg_category", "dg_category_recommend")
 sql_mode_data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
 sql_mode_data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 sql_mode_data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
@@ -446,6 +542,7 @@ sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
+    from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 
     from utils.log import LogManager
 
@@ -464,6 +561,7 @@ if __name__ == "__main__":
     session_id = uuid.uuid4().hex
     thread = {"configurable": {"thread_id": session_id}}
     init_state = {
+        "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
         "user_input": user_input,
         "user_intent": DataGenSQLModeUserIntentSchema(
             **{
@@ -477,7 +575,7 @@ if __name__ == "__main__":
         "session_id": session_id,
     }
     for event in sql_mode_data_gen_graph.stream(
-        init_state, thread, stream_mode="values"
+            init_state, thread, stream_mode="values"
     ):
         user_intent: DataGenSQLModeUserIntentSchema = event.get("user_intent")
         if user_intent:
@@ -498,6 +596,14 @@ if __name__ == "__main__":
         table_info_data: SQLModeTableInfoSchema = event.get("table_info_data")
         if table_info_data:
             logger.info(f"table_info_data: {table_info_data.model_dump_json()}")
+
+        table_metadata_info: SQLModeTableInfoSchema = event.get("table_metadata_info")
+        if table_metadata_info:
+            logger.info(f"table_metadata_info: {table_metadata_info.model_dump_json()}")
+
+        table_metadata_error: SQLModeTableInfoSchema = event.get("table_metadata_error")
+        if table_metadata_error:
+            logger.info(f"table_metadata_error: {table_metadata_error}")
 
         create_data_genius_task_error = event.get("create_data_genius_task_error")
         if create_data_genius_task_error:
