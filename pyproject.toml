@@ -38,6 +38,7 @@ dependencies = [
     "ruff>=0.11.8",
     "sqlalchemy>=2.0.40",
     "sqlglot[rs]>=26.12.1",
+    "sqlmodel>=0.0.24",
     "streamlit>=1.44.1",
 ]
 
