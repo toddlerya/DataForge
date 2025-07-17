@@ -321,6 +321,9 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
             category = llm_dg_field_category_recommendation.category
             if category in table_dictkey_map:
                 dict_items: list[RecommendPanGuDictSchema] = table_dictkey_map.get(category)
+                # TODO: 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
+                if len(dict_items) > 100:
+                    dict_items = dict_items[:100]
                 choices = [item.dict_id for item in dict_items]
                 args = {"choices": choices}
                 name = f"{category}_字典规则"
