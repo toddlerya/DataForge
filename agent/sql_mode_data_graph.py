@@ -136,12 +136,14 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     logger.info("RAG增强字段属性信息")
     table_info_data: SQLModeTableInfoSchema = state["table_info_data"]
+    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     table_metadata_info = TableMetadataSchema(table_en_name=table_info_data.table_en_name)
     table_metadata_error: list[str] = list()
     table_dictkey_slice: list[str] = list()
-
+    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
+    db_handler = Database()
     for each_field in table_info_data.fields_info:
-        status, message, recommend_data = query_field_recommend_info_by_ename(db_handler=Database(),
+        status, message, recommend_data = query_field_recommend_info_by_ename(db_handler=db_handler,
                                                                               field_en_name=each_field.en_name)
         if status is False:
             err_message = f"RAG增强字段属性异常: table_en_name={table_info_data.table_en_name} " \
@@ -160,46 +162,67 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
                 is_require=recommend_data.is_required,
                 dict_key=[recommend_data.dictkey if recommend_data.dictkey else ""][0],
             )
-            table_metadata_info.raw_fields_info.append(raw_field_data)
             if recommend_data.dictkey:
                 table_dictkey_slice.append(recommend_data.dictkey)
+                dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(
+                    db_handler=db_handler,
+                    dictkey_with_nlevel=recommend_data.dictkey)
+                if dict_status is False:
+                    logger.error(f"获取盘古字典异常: {dict_message}")
+                elif dict_result:
+                    one_dict = dict_result[0]
+                    category = one_dict.dict_category
+                    value = one_dict.model_dump()
+                    value.pop("uuid")
+                    value.pop("dictkey_with_nlevel")
+                    value.pop("dict_category_code")
+                    value.pop("dict_category")
+                    logger.info(f"将盘古字典添加到DG规则配置中: {category}")
+                    config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
+                    DG_FIELD_CATEGORY_CONFIG.append(config_value)
+                    table_dictkey_map[category] = dict_result
+                    raw_field_data.dict_name = category
+            table_metadata_info.raw_fields_info.append(raw_field_data)
     state["table_metadata_info"] = table_metadata_info
     state["table_metadata_error"] = table_metadata_error
-    state["table_dictkey_slice"] = list(set(table_dictkey_slice))
-    return state
-
-
-def add_pg_dict2dg_category(state: SQLModeDataGenState) -> SQLModeDataGenState:
-    """
-    将盘古字典加入到dg规则类别中
-    :param state:
-    :return:
-    """
-    logger.info("[+] 将盘古字典加入到dg规则类别中")
-    table_dictkey_with_nlevel_slice: list[str] = state.get("table_dictkey_with_nlevel_slice", [])
-    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
-    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
-    for each_dictkey_with_nlevel in table_dictkey_with_nlevel_slice:
-        status, message, result = query_dict_items_info_by_dictkey(db_handler=Database(),
-                                                                   dictkey_with_nlevel=each_dictkey_with_nlevel)
-        if status is False:
-            logger.error(f"获取盘古字典异常: {message}")
-            continue
-        else:
-            if result:
-                one_dict = result[0]
-                category = one_dict.dict_category
-                value = one_dict.model_dump()
-                value.pop("uuid")
-                value.pop("dictkey_with_nlevel")
-                value.pop("dict_category_code")
-                value.pop("dict_category_code")
-                config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
-                DG_FIELD_CATEGORY_CONFIG.append(config_value)
-                table_dictkey_map[category] = result
+    state["table_dictkey_with_nlevel_slice"] = list(set(table_dictkey_slice))
     state["table_dictkey_map"] = table_dictkey_map
     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
     return state
+
+#
+# def add_pg_dict2dg_category(state: SQLModeDataGenState) -> SQLModeDataGenState:
+#     """
+#     将盘古字典加入到dg规则类别中
+#     :param state:
+#     :return:
+#     """
+#     logger.info("[+] 将盘古字典加入到dg规则类别中")
+#     table_dictkey_with_nlevel_slice: list[str] = state.get("table_dictkey_with_nlevel_slice", [])
+#     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
+#     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
+#     for each_dictkey_with_nlevel in table_dictkey_with_nlevel_slice:
+#         dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(db_handler=Database(),
+#                                                                                   dictkey_with_nlevel=each_dictkey_with_nlevel)
+#         if dict_status is False:
+#             logger.error(f"获取盘古字典异常: {dict_message}")
+#             continue
+#         else:
+#             if dict_result:
+#                 one_dict = dict_result[0]
+#                 category = one_dict.dict_category
+#                 value = one_dict.model_dump()
+#                 value.pop("uuid")
+#                 value.pop("dictkey_with_nlevel")
+#                 value.pop("dict_category_code")
+#                 value.pop("dict_category")
+#                 logger.info(f"将盘古字典添加到DG规则配置中: {category}")
+#                 config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
+#                 DG_FIELD_CATEGORY_CONFIG.append(config_value)
+#                 table_dictkey_map[category] = dict_result
+#     state["table_dictkey_map"] = table_dictkey_map
+#     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
+#     return state
 
 
 def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
@@ -511,7 +534,7 @@ sql_mode_data_gen_builder.add_node(
 )
 sql_mode_data_gen_builder.add_node("sql_parse_to_table_info", sql_parse_to_table_info)
 sql_mode_data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
-sql_mode_data_gen_builder.add_node("add_pg_dict2dg_category", add_pg_dict2dg_category)
+# sql_mode_data_gen_builder.add_node("add_pg_dict2dg_category", add_pg_dict2dg_category)
 sql_mode_data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
 sql_mode_data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 sql_mode_data_gen_builder.add_node("create_dg_task", create_dg_task)
@@ -527,8 +550,8 @@ sql_mode_data_gen_builder.add_conditional_edges(
     ["analyze_intent", "sql_parse_to_table_info"],
 )
 sql_mode_data_gen_builder.add_edge("sql_parse_to_table_info", "rag_sql_table_filed_info")
-sql_mode_data_gen_builder.add_edge("rag_sql_table_filed_info", "add_pg_dict2dg_category")
-sql_mode_data_gen_builder.add_edge("add_pg_dict2dg_category", "dg_category_recommend")
+sql_mode_data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_recommend")
+# sql_mode_data_gen_builder.add_edge("add_pg_dict2dg_category", "dg_category_recommend")
 sql_mode_data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
 sql_mode_data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 sql_mode_data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
@@ -597,13 +620,17 @@ if __name__ == "__main__":
         if table_info_data:
             logger.info(f"table_info_data: {table_info_data.model_dump_json()}")
 
-        table_metadata_info: SQLModeTableInfoSchema = event.get("table_metadata_info")
+        table_metadata_info = event.get("table_metadata_info")
         if table_metadata_info:
             logger.info(f"table_metadata_info: {table_metadata_info.model_dump_json()}")
 
-        table_metadata_error: SQLModeTableInfoSchema = event.get("table_metadata_error")
+        table_metadata_error = event.get("table_metadata_error")
         if table_metadata_error:
             logger.info(f"table_metadata_error: {table_metadata_error}")
+
+        table_dictkey_with_nlevel_slice = event.get("table_dictkey_with_nlevel_slice")
+        if table_dictkey_with_nlevel_slice:
+            logger.info(f"table_dictkey_with_nlevel_slice: {table_dictkey_with_nlevel_slice}")
 
         create_data_genius_task_error = event.get("create_data_genius_task_error")
         if create_data_genius_task_error:
