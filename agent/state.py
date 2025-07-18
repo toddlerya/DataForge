@@ -141,6 +141,9 @@ class DataGenState(TypedDict):
     human_intent_feedback: str
     table_metadata_array: list[TableMetadataSchema]
     table_metadata_error: list[str]
+    DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
+    table_dict_category_code_map: dict[str, str]
+    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
     pydantic_data_genius_plan: PydanticDataGeniusPlan
     data_genius_headers: dict
     create_data_genius_task_error: str
@@ -186,7 +189,7 @@ class SQLModeDataGenState(TypedDict):
     table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
     DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
-    table_dictkey_with_nlevel_slice: list[str]
+    table_dict_category_code_map: dict[str, str]
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
     pydantic_data_genius_plan: PydanticDataGeniusPlan
     data_genius_headers: dict

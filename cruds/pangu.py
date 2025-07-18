@@ -335,6 +335,30 @@ def query_dict_items_info_by_dictkey(db_handler: Database, dictkey_with_nlevel: 
     return True, "ok", data
 
 
+def query_dict_items_info_by_dict_category(db_handler: Database, dict_category: str) -> tuple[
+    bool, str, list[RecommendPanGuDictSchema]]:
+    """
+    查询字典类别的所有字典值
+    """
+    data: list[RecommendPanGuDictSchema] = list()
+    try:
+        result = db_handler.session.query(PanGuDictInfo).filter(
+            PanGuDictInfo.dict_category == dict_category.strip()
+        ).all()
+        for row in result:
+            row_data = row.to_dict()
+            row_data.pop("id")
+            row_data.pop("create_time")
+            row_data.pop("update_time")
+            row_data.pop("remark")
+            row_dict_data = RecommendPanGuDictSchema(**row_data)
+            data.append(row_dict_data)
+    except Exception as err:
+        message = f"数据库查询异常: {err}"
+        return False, message, data
+    return True, "ok", data
+
+
 if __name__ == '__main__':
     # from config import METADATA_DB_IP, METADATA_DB_NAME, METADATA_DB_USER, METADATA_DB_PORT, METADATA_DB_PASSWORD
     #

@@ -29,9 +29,9 @@ from agent.state import (
 )
 from config import DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
 from cruds.table_metadata import table_metadata_query
-from database_models.schema import TableRawFieldSchema
+from cruds.pangu import query_dict_items_info_by_dict_category, query_dict_items_info_by_dictkey
+from database_models.schema import TableRawFieldSchema, RecommendPanGuDictSchema
 from agent.dg_configs import (
-    DG_FIELD_CATEGORY_CONFIG,
     DG_STORAGE_PATH,
     DG_SERVER_BASE_URL,
     DG_TASK_ADD_URL,
@@ -95,7 +95,7 @@ def should_table_raw_field_info_continue(state: DataGenState):
         logger.error(f"存在table_metadata_error: {' '.join(table_metadata_error)}")
         return END
     else:
-        return "dg_category_recommend"
+        return "rag_sql_table_filed_info"
 
 
 def query_table_raw_field_info(state: DataGenState) -> DataGenState:
@@ -134,6 +134,70 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     return state
 
 
+def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
+    """
+    根据字段知识库增强字段信息
+    :param state:
+    :return:
+    """
+    global dict_result
+    logger.info("RAG增强字段属性信息")
+    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
+    table_metadata_array = state["table_metadata_array"]
+    table_metadata: TableMetadataSchema = table_metadata_array[0] if table_metadata_array else None
+    if not table_metadata:
+        logger.error("未查询到表元数据，无法进行字段字典RAG增强推荐")
+        state["error_message"].append("未查询到表元数据，无法进行字段字典RAG增强推荐")
+        return state
+    table_metadata_error: list[str] = list()
+    table_dictkey_slice: list[str] = list()
+    table_dict_category_code_map: dict[str,str] = dict()
+    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
+    db_handler = Database()
+    for index, each_field in enumerate(table_metadata.raw_fields_info):
+        if each_field.dict_key:
+            # 数据域页面获取的表元数据没有dict_name，只有dict_key，且dict_key是没有nlevel的，需要补上, 默认2
+            dict_key_with_nlevel = each_field.dict_key + ":2"
+            table_dictkey_slice.append(dict_key_with_nlevel)
+            dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(
+                db_handler=db_handler,
+                dictkey_with_nlevel=dict_key_with_nlevel)
+            if dict_status is False:
+                logger.error(f"获取盘古字典异常: {dict_message}")
+        elif each_field.dict_name:
+            # 盘古页面获取的表元数据没有dict_key，只有dict_name，对应RecommendPanGuDictSchema.dict_category
+            dict_status, dict_message, dict_result = query_dict_items_info_by_dict_category(
+                db_handler=db_handler,
+                dict_category=each_field.dict_name
+            )
+        else:
+            # 都没有就跳过
+            continue
+        if dict_result:
+            one_dict = dict_result[0]
+            category = one_dict.dict_category
+            if category not in table_dict_category_code_map:
+                table_dict_category_code_map[category] = one_dict.dictkey_with_nlevel
+                value = one_dict.model_dump()
+                value.pop("uuid")
+                value.pop("dictkey_with_nlevel")
+                value.pop("dict_category_code")
+                value.pop("dict_category")
+                logger.info(f"将盘古字典添加到DG规则配置中: {category}")
+                config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
+                DG_FIELD_CATEGORY_CONFIG.append(config_value)
+                table_dictkey_map[category] = dict_result
+            # 补充字典类别名称
+            each_field.dict_name = category
+            each_field.dict_key = one_dict.dictkey_with_nlevel
+    state["table_metadata_array"][0] = table_metadata
+    state["table_metadata_error"] = table_metadata_error
+    state["table_dict_category_code_map"] = table_dict_category_code_map
+    state["table_dictkey_map"] = table_dictkey_map
+    state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
+    return state
+
+
 def dg_category_recommend(state: DataGenState) -> DataGenState:
     """
     DataGenius字段分类推荐节点
@@ -147,6 +211,8 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
     table_metadata_array = state["table_metadata_array"]
     user_intent = state["user_intent"]
     client_ip = state["client_ip"]
+    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
+    table_dictkey_map = state.get("table_dictkey_map")
     state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
     table_en_name = user_intent.table_en_names[0]
     row_count = user_intent.table_data_count.get(table_en_name, 1000)
@@ -228,15 +294,29 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
         else:
             last_error_message = ""
             # 构建该字段的DataGenius规则参数
+            # 处理字典规则
+            args = {}
+            name = ""
+            category = llm_dg_field_category_recommendation.category
+            if category in table_dictkey_map:
+                dict_items: list[RecommendPanGuDictSchema] = table_dictkey_map.get(category)
+                # TODO: 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
+                if len(dict_items) > 100:
+                    dict_items = dict_items[:100]
+                choices = [item.dict_id for item in dict_items]
+                args = {"choices": choices}
+                name = f"{category}_字典规则"
+                category = "自定义-枚举"
+                logger.debug(f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}")
             pydantic_data_genius_rule = PydanticDataGeniusRule(
                 col=field_index + 1,
-                category=llm_dg_field_category_recommendation.category,
-                name="",
+                category=category,
+                name=name,
                 ename=field_info.en_name,
                 cname=field_info.cn_name,
-                preview=f"score: {llm_dg_field_category_recommendation.score}, "
-                f"reason: {llm_dg_field_category_recommendation.reason}",
+                preview=f"score: {llm_dg_field_category_recommendation.score}, reason: {llm_dg_field_category_recommendation.reason}",
                 value=field_info.example,
+                args=args
             )
             logger.trace(
                 f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
@@ -435,6 +515,7 @@ data_gen_builder = StateGraph(DataGenState)
 data_gen_builder.add_node("analyze_intent", analyze_data_intent)
 data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
+data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
 data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
 data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 data_gen_builder.add_node("create_dg_task", create_dg_task)
@@ -452,8 +533,9 @@ data_gen_builder.add_conditional_edges(
 data_gen_builder.add_conditional_edges(
     "query_table_raw_field_info",
     should_table_raw_field_info_continue,
-    ["dg_category_recommend", END],
+    ["rag_sql_table_filed_info", END],
 )
+data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_recommend")
 data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
 data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
@@ -467,6 +549,7 @@ data_gen_graph = data_gen_builder.compile(
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
+    from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 
     from utils.log import LogManager
 
@@ -488,11 +571,12 @@ massdata.ADM_REL_MOBILE: 5"""
     thread = {"configurable": {"thread_id": session_id}}
 
     init_state = {
+        "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
         "user_input": user_input,
         "user_intent": DataGenUserIntentSchema(
             **{
-                "table_en_names": ["massdata.ADM_REL_MOBILE"],
-                "table_data_count": {"massdata.ADM_REL_MOBILE": 5},
+                "table_en_names": ["massdata.ADM_BEH_TRANS_TRAIN"],
+                "table_data_count": {"massdata.ADM_BEH_TRANS_TRAIN": 5},
             }
         ),
         "human_intent_feedback": "正确",
@@ -515,6 +599,9 @@ massdata.ADM_REL_MOBILE: 5"""
         # human_intent_feedback = event.get("human_intent_feedback")
         # if human_intent_feedback:
         #     logger.info(f"human_intent_feedback: {human_intent_feedback}")
+        table_dict_category_code_map = event.get("table_dict_category_code_map")
+        if table_dict_category_code_map:
+            logger.info(f"table_dict_category_code_map: {table_dict_category_code_map}")
 
         create_data_genius_task_error = event.get("create_data_genius_task_error")
         if create_data_genius_task_error:

@@ -139,7 +139,7 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     table_metadata_info = TableMetadataSchema(table_en_name=table_info_data.table_en_name)
     table_metadata_error: list[str] = list()
-    table_dictkey_slice: list[str] = list()
+    table_dict_category_code_map: dict[str, str] = dict()
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
     db_handler = Database()
     for each_field in table_info_data.fields_info:
@@ -163,7 +163,6 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
                 dict_key=[recommend_data.dictkey if recommend_data.dictkey else ""][0],
             )
             if recommend_data.dictkey:
-                table_dictkey_slice.append(recommend_data.dictkey)
                 dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(
                     db_handler=db_handler,
                     dictkey_with_nlevel=recommend_data.dictkey)
@@ -172,20 +171,22 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
                 elif dict_result:
                     one_dict = dict_result[0]
                     category = one_dict.dict_category
-                    value = one_dict.model_dump()
-                    value.pop("uuid")
-                    value.pop("dictkey_with_nlevel")
-                    value.pop("dict_category_code")
-                    value.pop("dict_category")
-                    logger.info(f"将盘古字典添加到DG规则配置中: {category}")
-                    config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
-                    DG_FIELD_CATEGORY_CONFIG.append(config_value)
-                    table_dictkey_map[category] = dict_result
-                    raw_field_data.dict_name = category
+                    if category not in table_dict_category_code_map:
+                        table_dict_category_code_map[category] = one_dict.dictkey_with_nlevel
+                        value = one_dict.model_dump()
+                        value.pop("uuid")
+                        value.pop("dictkey_with_nlevel")
+                        value.pop("dict_category_code")
+                        value.pop("dict_category")
+                        logger.info(f"将盘古字典添加到DG规则配置中: {category}")
+                        config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
+                        DG_FIELD_CATEGORY_CONFIG.append(config_value)
+                        table_dictkey_map[category] = dict_result
+                        raw_field_data.dict_name = category
             table_metadata_info.raw_fields_info.append(raw_field_data)
     state["table_metadata_info"] = table_metadata_info
     state["table_metadata_error"] = table_metadata_error
-    state["table_dictkey_with_nlevel_slice"] = list(set(table_dictkey_slice))
+    state["table_dict_category_code_map"] = table_dict_category_code_map
     state["table_dictkey_map"] = table_dictkey_map
     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
     return state
@@ -631,9 +632,9 @@ if __name__ == "__main__":
         if table_metadata_error:
             logger.info(f"table_metadata_error: {table_metadata_error}")
 
-        table_dictkey_with_nlevel_slice = event.get("table_dictkey_with_nlevel_slice")
-        if table_dictkey_with_nlevel_slice:
-            logger.info(f"table_dictkey_with_nlevel_slice: {table_dictkey_with_nlevel_slice}")
+        table_dict_category_code_map = event.get("table_dict_category_code_map")
+        if table_dict_category_code_map:
+            logger.info(f"table_dict_category_code_map: {table_dict_category_code_map}")
 
         create_data_genius_task_error = event.get("create_data_genius_task_error")
         if create_data_genius_task_error:

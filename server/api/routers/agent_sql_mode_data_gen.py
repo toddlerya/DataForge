@@ -19,6 +19,7 @@ from server.api.schemas.agent_data_gen import (
 )
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import DataGenSQLModeUserIntentSchema
+from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 from utils.err_code import error_code
 
 router = APIRouter(
@@ -46,6 +47,7 @@ async def init_sql_mode_data_gen_graph(
     session_id = uuid.uuid4().hex
     resp_data.session_id = session_id
     init_state = {
+        "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
         "user_input": init_data_gen.user_input,
         "max_retries": init_data_gen.max_retries,
         "session_id": session_id,
@@ -148,6 +150,7 @@ async def run_graph(user_intent: DataGenSQLModeUserIntentSchema, request: Reques
     session_id = uuid.uuid4().hex
     resp_data.session_id = session_id
     init_state = {
+        "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
         "user_input": user_intent.model_dump_json(),
         "user_intent": user_intent,
         "human_intent_feedback": "正确",

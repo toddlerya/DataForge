@@ -13,6 +13,7 @@ from loguru import logger
 
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import DataGenSQLModeUserIntentSchema, PydanticDataGeniusPlan
+from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 from common.initialization import init_env, setup_logging
 from config import PROJECT_PATH, DG_PLAN_PATH
 
@@ -256,6 +257,7 @@ async def main(message: cl.Message):
     )
     if not current_state.values.get("user_input"):
         init_state = {
+            "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
             "user_input": message.content.strip(),
             "table_info_error": "",
             "max_retries": 5,
