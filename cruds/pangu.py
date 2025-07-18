@@ -281,8 +281,8 @@ def query_field_recommend_info_by_ename(db_handler: Database, field_en_name: str
     recommend_field_data = None
     try:
         result = db_handler.session.query(RecommendPanGuFieldInfo).filter(
-            or_(RecommendPanGuFieldInfo.ename == field_en_name,
-                RecommendPanGuFieldInfo.identifier == field_en_name)
+            or_(RecommendPanGuFieldInfo.ename.like(field_en_name),
+                RecommendPanGuFieldInfo.identifier.like(field_en_name))
         ).all()
         max_cname_percentage = 0.0
         max_identifier_percentage = 0.0
@@ -388,12 +388,12 @@ if __name__ == '__main__':
     # else:
     #     print(m)
 
-    # print(query_field_recommend_info_by_ename(db_handler=Database(), field_en_name="RELE_DIRECTION_TYPE"))
-    s,m,d=(query_dict_items_info_by_dictkey(db_handler=Database(), dictkey_with_nlevel="FHWACODE_0098:2"))
-    print(s)
-    print(m)
-    print(d)
-    one_dict = d[0]
-    category = one_dict.dict_category
-    print(f"category: {category}")
-    value = [ele.model_dump_json() for ele in d]
+    print(query_field_recommend_info_by_ename(db_handler=Database(), field_en_name="RELE_DIRECTION_TYPE"))
+    # s,m,d=(query_dict_items_info_by_dictkey(db_handler=Database(), dictkey_with_nlevel="FHWACODE_0098:2"))
+    # print(s)
+    # print(m)
+    # print(d)
+    # one_dict = d[0]
+    # category = one_dict.dict_category
+    # print(f"category: {category}")
+    # value = [ele.model_dump_json() for ele in d]
