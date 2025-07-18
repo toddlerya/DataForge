@@ -220,7 +220,7 @@ class PanGuCrawler:
                 url=self.query_url,
                 headers=self.bdp_headers,
                 params=payload,
-                timeout=60,
+                timeout=30,
                 verify=False,
             )
         except Exception as err:
@@ -272,6 +272,9 @@ class PanGuCrawler:
             logger.info(f"采集实例元数据入库中: entity_id={entity_id}")
             each_table_metadata_model = self.crawl_entity_detail(entity_id=entity_id)
             # 采集表的样例数据
+            if not each_table_metadata_model.table_en_name.startswith("massdata") or \
+                    not each_table_metadata_model.table_en_name.startswith("fmdbmeta"):
+                continue
             example_data = self.crawl_sample(
                 table_en_name=each_table_metadata_model.table_en_name,
                 entity_id=entity_id,
