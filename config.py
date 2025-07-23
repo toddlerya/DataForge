@@ -146,6 +146,10 @@ pangu_ip_port = "172.21.4.42:11018"
 pangu_data_resource_dir_url = (
     f"https://{pangu_ip_port}/catalog/catalog/res/searchResourceManage"
 )
+# 数据资产-设置中心-资源管理(内部)
+pangu_data_inner_resource_dir_url = (
+    f"https://{pangu_ip_port}/catalog/catalog/data/getResourcePage"
+)
 pangu_entity_list_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntityList"
 pangu_entity_detail_url = (
     f"https://{pangu_ip_port}/catalog/catalog/query/getEntityDetail"
@@ -154,7 +158,7 @@ pangu_data_sample_query_url = (
     f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
 )
 
-pangu_cookie = "contextPath=/catalog; JSESSIONID=0E7B1D95AEED232D337D760292ECCFCD; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; JSESSIONID=27567A59395B583C049687C843A06585; userToken=afb82688c9e9464ea2a8abf0c2a54167; appToken=c527727b764744e5b39d005df2b3d7ee"
+pangu_cookie = "contextPath=/catalog; JSESSIONID=104C440F6DA73DF66D055B67A737E856; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D; userToken=c9930d7bbdb44b78a75382d7697a383a; appToken=f3dbf55cb2c04069a210c7514dcb892c; sessiongovern=2D798E73233C3F91280896ECD26ADA38; JSESSIONID=26C148EC3840299C3CB3CFAB39DDF35A"
 
 pangu_field_type_map = {
     -1: "string",

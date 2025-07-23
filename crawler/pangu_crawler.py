@@ -15,6 +15,7 @@ from urllib3.exceptions import InsecureRequestWarning
 
 from config import (
     pangu_data_resource_dir_url,
+    pangu_data_inner_resource_dir_url,
     pangu_entity_list_url,
     pangu_data_sample_query_url,
     pangu_entity_detail_url,
@@ -36,28 +37,85 @@ urllib3.disable_warnings(InsecureRequestWarning)
 
 class PanGuCrawler:
     def __init__(
-        self,
-        inner_db: Database,
-        resource_url: str,
-        entity_list_url: str,
-        detail_url: str,
-        query_url: str,
-        cookie: str,
-        resource_count: int = 2000,
+            self,
+            inner_db: Database,
+            resource_url: str,
+            pangu_data_inner_resource_dir_url: str,
+            entity_list_url: str,
+            detail_url: str,
+            query_url: str,
+            cookie: str,
+            resource_count: int = 2000,
     ):
         self.resource_url = resource_url
+        self.pangu_data_inner_resource_dir_url = pangu_data_inner_resource_dir_url
         self.entity_list_url = entity_list_url
         self.detail_url = detail_url
         self.query_url = query_url
         self.resource_count = resource_count
         self.bdp_headers = {"Cookie": cookie}
         self.resource_elements: list[dict] = []
+        self.template_id_slice: list[int] = []
         self.entity_elements: list[dict] = []
         self.inner_db = inner_db
 
+    def crawl_inner_resource(self):
+        """
+        抓取资源管理(内部)清单
+        :return:
+        """
+        page_size = 200
+        page_no = 1
+        # 初始值，可以是任意值，但会被动态覆盖
+        page_no_max = 50
+        while True:
+            payload = {
+                "dataAtlas": 0,
+                "dirIds": [],
+                "ignore": -1,
+                "isGab": 0,
+                "keyword": "",
+                "manageDataSizeFilter": -1,
+                "pageType": "inner",
+                "pageno": page_no,
+                "pagesize": page_size,
+                "release": -1,
+                "state": "-1",
+                "treeId": "-2",
+                "type": 2,
+            }
+            resp = requests.post(
+                url=self.pangu_data_inner_resource_dir_url, headers=self.bdp_headers, json=payload, verify=False
+            )
+            if resp.status_code != 200:
+                logger.error(resp.raise_for_status())
+                raise resp.raise_for_status()
+            try:
+                resp_json = resp.json()
+                if resp_json.get("status") != 200:
+                    logger.error(
+                        f"数据资产-设置中心-资源管理(内部)获取异常: resp_json.status={resp_json.get('status')}"
+                    )
+                data = resp_json.get("data", {})
+                records_total = data.get("recordsTotal", 200)
+                resources = data.get("data", [])
+                self.template_id_slice.extend([ele.get('TEMPLATE_ID', -1) for ele in resources])
+
+                # 计算下一页的页码
+                page_no += 1
+                page_no_max = int(records_total / page_size) + 1
+                # 如果当前页已经大于等于最大页数，就退出循环
+                if page_no > page_no_max:
+                    logger.info(
+                        f"盘古数据资源目录获取到{records_total}个资源, 实际{len(self.template_id_slice)}个资源"
+                    )
+                    break
+            except Exception as err:
+                logger.error(err)
+
     def crawl_resource(self):
         """
-        抓取资源清单
+        抓取数据资源目录
         Returns:
 
         """
@@ -85,7 +143,7 @@ class PanGuCrawler:
             logger.info(
                 f"盘古数据资源目录获取到{total_records}个资源, 实际{len(resources)}个资源"
             )
-            self.resource_elements = resources
+            self.template_id_slice.extend([ele.get('templateId', -1) for ele in resources])
         except Exception as err:
             logger.error(err)
 
@@ -200,7 +258,7 @@ class PanGuCrawler:
             return None
 
     def crawl_sample(
-        self, table_en_name: str, entity_id: int, type_value: str = 2, limit: int = 100
+            self, table_en_name: str, entity_id: int, type_value: str = 2, limit: int = 100
     ) -> list[dict]:
         """
         抓取样例数据
@@ -248,9 +306,12 @@ class PanGuCrawler:
             return data
 
     def run(self, overwrite: bool = False):
+        self.crawl_inner_resource()
         self.crawl_resource()
-        for resource in self.resource_elements:
-            template_id = resource.get("templateId", -1)
+        # template_id_slice 去重
+        self.template_id_slice = list(set(self.template_id_slice))
+        logger.info(f"盘古去重后一共有{len(self.template_id_slice)}个资源")
+        for template_id in self.template_id_slice:
             self.crawl_resource_entity_list(template_id=template_id)
         logger.info(f"盘古实体清单获取到{len(self.entity_elements)}个实体信息")
         for entity_info in self.entity_elements:
@@ -322,6 +383,7 @@ if __name__ == "__main__":
     pgc = PanGuCrawler(
         inner_db=Database(),
         resource_url=pangu_data_resource_dir_url,
+        pangu_data_inner_resource_dir_url=pangu_data_inner_resource_dir_url,
         entity_list_url=pangu_entity_list_url,
         detail_url=pangu_entity_detail_url,
         query_url=pangu_data_sample_query_url,
