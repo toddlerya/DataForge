@@ -226,15 +226,11 @@ class PanGuCrawler:
                 table_metadata_model = table_metadata_verify2model(
                     table_metadata_fields=field_info_list, source=MetaDataSource.pangu
                 )
-                table_metadata_model.table_en_name = (
-                    f"{data_source_name}.{base_table_en_name}"
-                )
+                table_metadata_model.table_en_name = f"{data_source_name}.{base_table_en_name}"
                 table_metadata_model.table_cn_name = entity_info.get("name", "")
                 table_metadata_model.description = entity_info.get("description", "")
                 table_metadata_model.position_type = entity_info.get("positionName", "")
-                table_metadata_model.storage_type = __get_storage_type_value(
-                    entity_extends=entity_extends_value
-                )
+                table_metadata_model.storage_type = __get_storage_type_value(entity_extends=entity_extends_value)
                 table_metadata_model.area_name = entity_info.get("areaName", "")
                 table_metadata_model.source = MetaDataSource.pangu
                 status, tb_meta_uuid = get_md5(
@@ -278,7 +274,7 @@ class PanGuCrawler:
                 url=self.query_url,
                 headers=self.bdp_headers,
                 params=payload,
-                timeout=30,
+                timeout=60,
                 verify=False,
             )
         except Exception as err:
@@ -333,8 +329,9 @@ class PanGuCrawler:
             logger.info(f"采集实例元数据入库中: entity_id={entity_id}")
             each_table_metadata_model = self.crawl_entity_detail(entity_id=entity_id)
             # 采集表的样例数据
-            if not each_table_metadata_model.table_en_name.startswith("massdata") or \
+            if not each_table_metadata_model.table_en_name.startswith("massdata") and \
                     not each_table_metadata_model.table_en_name.startswith("fmdbmeta"):
+                logger.warning(f"不是massdata或fmdbmeta库的表，跳过: {each_table_metadata_model.table_en_name}")
                 continue
             example_data = self.crawl_sample(
                 table_en_name=each_table_metadata_model.table_en_name,
