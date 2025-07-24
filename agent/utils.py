@@ -7,6 +7,7 @@
 
 import json
 from typing import Any, List, Dict
+from datetime import datetime, timezone
 
 import sqlglot
 import aiofiles
@@ -19,7 +20,7 @@ async def save_json_data_async(save_json_path, fake_data):
 
 
 def create_model_from_dict(
-    data: dict, model_name: str = "row_field_model"
+        data: dict, model_name: str = "row_field_model"
 ) -> type[BaseModel]:
     # 构建字段注解
     annotations = {key: (Any, None) for key in data}
@@ -157,6 +158,23 @@ def sqlglot_parse_sql(sql: str) -> tuple[Dict[str, List[str]], Exception | None]
                         }
                     )
     return table_column_map, None
+
+
+def today_timestamp_range() -> tuple[str, str]:
+    """
+    获取当日开始时间（00:00:00）到当前时刻的时间戳区间范围（以秒为单位）。
+    :return: (start_timestamp, end_timestamp)
+    """
+    # 获取当前时间（UTC+0）
+    now = datetime.now(timezone.utc)
+    # 获取当天的开始时间（00:00:00）
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    # 获取当前时间的时间戳（秒）
+    end_timestamp = int(now.timestamp())
+    # 获取当天开始时间的时间戳（秒）
+    start_timestamp = int(start_of_day.timestamp())
+    return str(start_timestamp), str(end_timestamp)
+
 
 
 if __name__ == "__main__":

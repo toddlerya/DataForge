@@ -20,6 +20,7 @@ from loguru import logger
 from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
 from database_models.schema import RecommendPanGuDictSchema
 from agent.llm import chat_llm
+from agent.dg_rule_extend import force_update_dg_timestamp_rule
 from agent.prompt import dg_category_prompt, sql_mode_data_intent_prompt
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from agent.state import (
@@ -294,6 +295,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
                 preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
                 value="",
             )
+            pydantic_data_genius_rule = force_update_dg_timestamp_rule(pydantic_data_genius_rule)
             rules.append(pydantic_data_genius_rule)
             field_index += 1
             # 清空字段重试次数，开始下一个字段的推荐
@@ -350,6 +352,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
             logger.trace(
                 f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
             )
+            pydantic_data_genius_rule = force_update_dg_timestamp_rule(pydantic_data_genius_rule)
             rules.append(pydantic_data_genius_rule)
             field_index += 1
             # 清空字段重试次数，开始下一个字段的推荐
