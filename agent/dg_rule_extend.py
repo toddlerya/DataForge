@@ -37,3 +37,26 @@ def force_update_dg_timestamp_rule(pydantic_data_genius_rule: PydanticDataGenius
         }
         pydantic_data_genius_rule.preview += "【时间字段-由程序强制设置规则为今日时间戳】"
     return pydantic_data_genius_rule
+
+
+def force_update_dg_data_color_id_rule(pydantic_data_genius_rule: PydanticDataGeniusRule):
+    """
+    强制给data_color_id字段增加dg标识
+    :param pydantic_data_genius_rule:
+    :return:
+    """
+    if "DATA_COLOR_ID" in pydantic_data_genius_rule.ename.upper():
+        pydantic_data_genius_rule.category = "自定义-字符串"
+        pydantic_data_genius_rule.name = "dg_data_color_id"
+        pydantic_data_genius_rule.args = {
+            "head": "dg_",
+            "chars_in": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "tail": "",
+            "max_": "32",
+            "min_": "32"
+        }
+        pydantic_data_genius_rule.preview += "【时间字段-由程序强制设置规则为今日时间戳】"
+
+
+if __name__ == '__main__':
+    print(today_timestamp_range())
