@@ -47,6 +47,13 @@ class TableMetadataSchema(BaseModel):
     )
 
 
+class DGCategoryConfig:
+    DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
+
+
+init_dg_category_config = DGCategoryConfig()
+
+
 class PydanticDataGeniusCategoryRecommendation(BaseModel):
     """
     用于定义LLM输出的结构，包含推荐的类别、置信度分数和推荐理由。
@@ -65,11 +72,16 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
         if cls._allowed_categories is None:
             all_categories = set()
             # 直接遍历字典列表，提取 category 字段
-            for item in DG_FIELD_CATEGORY_CONFIG:
+            for item in init_dg_category_config.DG_FIELD_CATEGORY_CONFIG:
                 if isinstance(item, dict) and "category" in item:
                     all_categories.add(item["category"])
             cls._allowed_categories = all_categories
         return cls._allowed_categories
+
+    @classmethod
+    def reset_allowed_categories(cls):
+        # 如果已经生成过实例了，需要调用此方法清空缓存更新
+        cls._allowed_categories = None
 
     @field_validator("category")
     @classmethod
@@ -102,7 +114,6 @@ class PydanticDataGeniusRule(BaseModel):
     args: Dict[str, str | list] = Field(
         default_factory=dict, description="规则参数字典，包含生成数据所需的参数。"
     )
-
 
 
 class PydanticDataGeniusPlan(BaseModel):
@@ -293,7 +304,23 @@ class TableGenState(TypedDict):
 
 
 if __name__ == "__main__":
-    pdgcr = PydanticDataGeniusCategoryRecommendation(
-        category="姓名", score=95, reason="根据姓名生成规则推测"
-    )
-    print(pdgcr)
+    # 初始验证
+    try:
+        PydanticDataGeniusCategoryRecommendation(category="sports", score=90, reason="初始配置不包含 sports")
+    except ValueError as e:
+        print("初始验证失败:", e)  # 输出: category 'sports' is not in allowed categories...
+
+    # 动态更新配置
+    init_dg_category_config.DG_FIELD_CATEGORY_CONFIG.append({"category": "sports"})
+    PydanticDataGeniusCategoryRecommendation.reset_allowed_categories()
+
+    # 再次验证
+    try:
+        instance = PydanticDataGeniusCategoryRecommendation(
+            category="sports",
+            score=90,
+            reason="现在配置包含 sports"
+        )
+        print("验证成功:", instance.category)  # 输出: sports
+    except ValueError as e:
+        print("验证失败:", e)

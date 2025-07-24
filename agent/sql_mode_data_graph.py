@@ -10,6 +10,7 @@ import json
 import time
 import uuid
 from urllib.parse import urljoin
+from copy import deepcopy
 
 import httpx
 from langgraph.checkpoint.memory import MemorySaver
@@ -20,6 +21,7 @@ from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
 from database_models.schema import RecommendPanGuDictSchema
 from agent.llm import chat_llm
 from agent.prompt import dg_category_prompt, sql_mode_data_intent_prompt
+from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from agent.state import (
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
@@ -28,7 +30,8 @@ from agent.state import (
     SQLModeDataGenState,
     SQLModeTableInfoSchema,
     TableMetadataSchema,
-    TableRawFieldSchema
+    TableRawFieldSchema,
+    init_dg_category_config
 )
 from agent.sql_parser import advanced_column_lineage_parser
 from agent.dg_configs import (
@@ -136,7 +139,7 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     logger.info("RAG增强字段属性信息")
     table_info_data: SQLModeTableInfoSchema = state["table_info_data"]
-    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
+    DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
     table_metadata_info = TableMetadataSchema(table_en_name=table_info_data.table_en_name)
     table_metadata_error: list[str] = list()
     table_dict_category_code_map: dict[str, str] = dict()
@@ -189,6 +192,10 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     state["table_dict_category_code_map"] = table_dict_category_code_map
     state["table_dictkey_map"] = table_dictkey_map
     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
+    # 动态更新配置
+    init_dg_category_config.DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
+    # 如果已经生成过实例了，需要清空缓存更新
+    PydanticDataGeniusCategoryRecommendation.reset_allowed_categories()
     return state
 
 #
@@ -569,7 +576,6 @@ sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
-    from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 
     from utils.log import LogManager
 
@@ -588,7 +594,6 @@ if __name__ == "__main__":
     session_id = uuid.uuid4().hex
     thread = {"configurable": {"thread_id": session_id}}
     init_state = {
-        "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
         "user_input": user_input,
         "user_intent": DataGenSQLModeUserIntentSchema(
             **{

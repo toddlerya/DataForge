@@ -14,7 +14,6 @@ from loguru import logger
 
 from agent.data_graph import data_gen_graph
 from agent.state import DataGenUserIntentSchema, PydanticDataGeniusPlan
-from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 from common.initialization import init_env, setup_logging
 from config import PROJECT_PATH, DG_PLAN_PATH
 
@@ -272,8 +271,8 @@ async def main(message: cl.Message):
         f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} current_state: {current_state}"
     )
     if not current_state.values.get("user_input"):
+        logger.info(f"初始化: session_id={cl.context.session.id} client_ip={cl.user_session.get('client_ip')}")
         init_state = {
-            "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
             "user_input": message.content.strip(),
             "table_metadata_error": list(),
             "max_retries": 5,

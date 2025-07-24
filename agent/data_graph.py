@@ -10,6 +10,7 @@ import json
 import time
 import uuid
 from urllib.parse import urljoin
+from copy import deepcopy
 
 import httpx
 from langgraph.checkpoint.memory import MemorySaver
@@ -26,7 +27,9 @@ from agent.state import (
     PydanticDataGeniusRule,
     TableMetadataSchema,
     DataGenUserIntentSchema,
+    init_dg_category_config
 )
+from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from config import DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
 from cruds.table_metadata import table_metadata_query
 from cruds.pangu import query_dict_items_info_by_dict_category, query_dict_items_info_by_dictkey
@@ -142,7 +145,7 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
     """
     global dict_result
     logger.info("RAG增强字段属性信息")
-    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
+    DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
     table_metadata_array = state["table_metadata_array"]
     table_metadata: TableMetadataSchema = table_metadata_array[0] if table_metadata_array else None
     if not table_metadata:
@@ -151,7 +154,7 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
         return state
     table_metadata_error: list[str] = list()
     table_dictkey_slice: list[str] = list()
-    table_dict_category_code_map: dict[str,str] = dict()
+    table_dict_category_code_map: dict[str, str] = dict()
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
     db_handler = Database()
     for index, each_field in enumerate(table_metadata.raw_fields_info):
@@ -195,6 +198,10 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
     state["table_dict_category_code_map"] = table_dict_category_code_map
     state["table_dictkey_map"] = table_dictkey_map
     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
+    # 动态更新配置
+    init_dg_category_config.DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
+    # 如果已经生成过实例了，需要清空缓存更新
+    PydanticDataGeniusCategoryRecommendation.reset_allowed_categories()
     return state
 
 
@@ -212,6 +219,8 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
     user_intent = state["user_intent"]
     client_ip = state["client_ip"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
+    logger.info(
+        f"DG_FIELD_CATEGORY_CONFIG category slice: {[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}")
     table_dictkey_map = state.get("table_dictkey_map")
     state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
     table_en_name = user_intent.table_en_names[0]
@@ -549,7 +558,6 @@ data_gen_graph = data_gen_builder.compile(
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
-    from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 
     from utils.log import LogManager
 
@@ -571,7 +579,7 @@ fmdbmeta.DWD_BEH_TRANS_ENTRY：100"""
     thread = {"configurable": {"thread_id": session_id}}
 
     init_state = {
-        "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
+        # "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
         "user_input": user_input,
         "user_intent": DataGenUserIntentSchema(
             **{
