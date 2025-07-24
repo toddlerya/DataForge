@@ -55,7 +55,8 @@ def force_update_dg_data_color_id_rule(pydantic_data_genius_rule: PydanticDataGe
             "max_": "32",
             "min_": "32"
         }
-        pydantic_data_genius_rule.preview += "【时间字段-由程序强制设置规则为今日时间戳】"
+        pydantic_data_genius_rule.preview += "【数据染色字段-由程序强制设置规则为DG前缀】"
+    return pydantic_data_genius_rule
 
 
 if __name__ == '__main__':
