@@ -564,10 +564,10 @@ if __name__ == "__main__":
     print(data_gen_graph.get_graph(xray=True).draw_mermaid())
 
     session_id = uuid.uuid4().hex
-    user_input = """数据库表名称:
-massdata.ADM_REL_MOBILE
-期望生成数据条数:
-massdata.ADM_REL_MOBILE: 5"""
+    user_input = """数据库表名称：
+fmdbmeta.DWD_BEH_TRANS_ENTRY
+期望生成数据条数：
+fmdbmeta.DWD_BEH_TRANS_ENTRY：100"""
     thread = {"configurable": {"thread_id": session_id}}
 
     init_state = {
@@ -575,8 +575,8 @@ massdata.ADM_REL_MOBILE: 5"""
         "user_input": user_input,
         "user_intent": DataGenUserIntentSchema(
             **{
-                "table_en_names": ["massdata.ADM_BEH_TRANS_TRAIN"],
-                "table_data_count": {"massdata.ADM_BEH_TRANS_TRAIN": 5},
+                "table_en_names": ["fmdbmeta.DWD_BEH_TRANS_ENTRY"],
+                "table_data_count": {"fmdbmeta.DWD_BEH_TRANS_ENTRY": 100},
             }
         ),
         "human_intent_feedback": "正确",
