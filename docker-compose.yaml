@@ -15,6 +15,7 @@ services:
       - "25702:25702"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - ./data:/app/data
       - ./database:/app/database
       - ./logs:/app/logs
@@ -30,6 +31,7 @@ services:
       - ./serve.py:/app/serve.py
       - ./.env:/app/.env
     environment:
+      - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
       - SQLALCHEMY_ECHO=false
@@ -55,6 +57,7 @@ services:
       - "9801:9801"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - ./data:/app/data
       - ./database:/app/database
       - ./logs:/app/logs
@@ -68,6 +71,7 @@ services:
       - ./.env:/app/.env
       - ./.chainlit:/app/.chainlit
     environment:
+      - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
       - SQLALCHEMY_ECHO=false
@@ -88,6 +92,7 @@ services:
       - "9802:9802"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - ./data:/app/data
       - ./database:/app/database
       - ./logs:/app/logs
@@ -101,6 +106,7 @@ services:
       - ./.env:/app/.env
       - ./.chainlit:/app/.chainlit
     environment:
+      - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
       - SQLALCHEMY_ECHO=false
@@ -121,6 +127,7 @@ services:
       - "9803:9803"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - ./data:/app/data
       - ./database:/app/database
       - ./logs:/app/logs
@@ -134,6 +141,7 @@ services:
       - ./.env:/app/.env
       - ./.chainlit:/app/.chainlit
     environment:
+      - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
       - SQLALCHEMY_ECHO=false
