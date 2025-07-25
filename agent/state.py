@@ -306,7 +306,8 @@ class TableGenState(TypedDict):
 if __name__ == "__main__":
     # 初始验证
     try:
-        PydanticDataGeniusCategoryRecommendation(category="sports", score=90, reason="初始配置不包含 sports")
+        test1 = PydanticDataGeniusCategoryRecommendation(category="sports", score=90, reason="初始配置不包含 sports")
+        print(id(test1))
     except ValueError as e:
         print("初始验证失败:", e)  # 输出: category 'sports' is not in allowed categories...
 
@@ -321,6 +322,10 @@ if __name__ == "__main__":
             score=90,
             reason="现在配置包含 sports"
         )
+        print(id(instance))
+
+        instance.category="日期"
+        print(id(instance))
         print("验证成功:", instance.category)  # 输出: sports
     except ValueError as e:
         print("验证失败:", e)

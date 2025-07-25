@@ -20,7 +20,7 @@ from loguru import logger
 from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
 from agent.llm import chat_llm
 from agent.prompt import dg_category_prompt, data_intent_prompt
-from agent.dg_rule_extend import force_update_dg_timestamp_rule, force_update_dg_data_color_id_rule
+from agent.dg_rule_extend import force_update_dg_rule
 from agent.state import (
     DataGenState,
     PydanticDataGeniusCategoryRecommendation,
@@ -275,8 +275,6 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
                 preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
                 value=field_info.example,
             )
-            pydantic_data_genius_rule = force_update_dg_timestamp_rule(pydantic_data_genius_rule)
-            pydantic_data_genius_rule = force_update_dg_data_color_id_rule(pydantic_data_genius_rule)
             rules.append(pydantic_data_genius_rule)
             field_index += 1
             # 清空字段重试次数，开始下一个字段的推荐
@@ -333,13 +331,14 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
             logger.trace(
                 f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
             )
-            pydantic_data_genius_rule = force_update_dg_timestamp_rule(pydantic_data_genius_rule)
-            pydantic_data_genius_rule = force_update_dg_data_color_id_rule(pydantic_data_genius_rule)
+
             rules.append(pydantic_data_genius_rule)
             field_index += 1
             # 清空字段重试次数，开始下一个字段的推荐
             retry_count = 0
     rule_uuid = str(uuid.uuid4())
+    # 检查特例规则进行更新
+    rules = [force_update_dg_rule(rule) for rule in rules]
     pydantic_data_genius_plan = PydanticDataGeniusPlan(
         rule_name=f"{DG_PLAN_CONFIG_PREFIX}{rule_uuid}",
         type_="规则",
