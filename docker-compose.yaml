@@ -160,7 +160,7 @@ services:
     networks:
       harbor_net:
     ports:
-      - "9803:9803"
+      - "9804:9804"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
