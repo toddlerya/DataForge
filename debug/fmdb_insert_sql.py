@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-table_en_name = "fmdbmeta.DWD_BEH_TRANS_ENTRY_RT"
+table_en_name = "fmdbmeta.NB_APP_SKE_DELIVERY"
 
 current_p3_timestamp = int(time.time())
 current_p4_date = datetime.strftime(datetime.now(), "%Y%m%d")
@@ -11,7 +11,7 @@ insert_sql = f"INSERT INTO {table_en_name} " \
              f"VALUES "
 
 
-with open("1753343777_p0_0.txt", mode="r", encoding="utf-8") as r:
+with open("1753436780_p0_0.txt", mode="r", encoding="utf-8") as r:
     content = r.readlines()
     for index, line in enumerate(content, start=1):
         line_value_tuple = tuple(line.rstrip("\n").split("\t"))
