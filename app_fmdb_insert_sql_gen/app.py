@@ -52,7 +52,7 @@ async def start_chat():
 上传你的表元数据配置JSON和DG生成的数据TXT文件"""
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(
-        author="Assistant", content="请上传文件", elements=elements
+        author="Assistant", content="功能介绍", elements=elements
     ).send()
 
     # 等待用户上传表元数据信息
@@ -61,8 +61,9 @@ async def start_chat():
         table_meta_json_files = await cl.AskFileMessage(
             content="请上传表元数据JSON配置文件",
             accept={"text/plain": [".json"]},
-            max_size_mb=2,
-            max_files=1
+            max_size_mb=5,
+            max_files=1,
+            timeout=600
         ).send()
     table_meta_json_file = table_meta_json_files[0]
     try:
