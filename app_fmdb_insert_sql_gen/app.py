@@ -132,7 +132,7 @@ async def start_chat():
     dg_lines_data = cl.user_session.get("dg_lines_data", [])
     partition_sql = ""
     if cl.user_session.get("partiton"):
-        current_p3_timestamp = int(time.time())
+        current_p3_timestamp = int(time.time()) - 3600
         current_p4_date = datetime.strftime(datetime.now(), "%Y%m%d")
         partition_sql = f"PARTITION (p1='final', p2='update', p3={current_p3_timestamp}, p4={current_p4_date}) \n"
 
