@@ -11,3 +11,4 @@ from enum import Enum
 class MetaDataSource(str, Enum):
     data_scope = "数据域"
     pangu = "盘古"
+    bdos = "BDOS"

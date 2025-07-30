@@ -354,7 +354,7 @@ class PanGuCrawler:
             )
             if save_status is False:
                 logger.error(
-                    f"盘古元数据信息入库异常: {each_table_metadata_record} ERROR: save_message"
+                    f"盘古元数据信息入库异常: {each_table_metadata_record} ERROR: {save_message}"
                 )
             for ex_data in example_data:
                 data_uuid_md5_status, data_uuid = get_md5(json.dumps(ex_data))
