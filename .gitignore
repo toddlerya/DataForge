@@ -26,8 +26,9 @@ database/data_forge.db
 .langgraph_api
 /design/*.bkp
 /data/gen_models/
-/data/*
+data/*
 *.log
 .files
 *.log.zip
-/input_data/bdos_table_meta_data/
+input_data/bdos_table_meta_data/*
+
