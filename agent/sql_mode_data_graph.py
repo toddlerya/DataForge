@@ -245,6 +245,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     logger.info("DataGenius字段分类推荐")
     table_metadata_info = state["table_metadata_info"]
+    table_info_data = state["table_info_data"]
     user_intent = state["user_intent"]
     client_ip = state["client_ip"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
