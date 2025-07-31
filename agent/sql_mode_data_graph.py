@@ -245,7 +245,6 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     logger.info("DataGenius字段分类推荐")
     table_metadata_info = state["table_metadata_info"]
-    table_info_data = state["table_info_data"]
     user_intent = state["user_intent"]
     client_ip = state["client_ip"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
@@ -367,7 +366,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
         rules=rules,
         output=f"{DG_STORAGE_PATH}/output/{client_ip}/{rule_uuid}",
         model=f"{DG_STORAGE_PATH}/models/{client_ip}/{table_en_name}",
-        cols=len(table_info_data.fields_info),
+        cols=len(table_metadata_info.raw_fields_info),
     )
     state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
     return state
