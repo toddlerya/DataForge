@@ -111,7 +111,7 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     user_sql = user_intent.sql
     logger.info(f"用户提供的SQL: {user_sql}")
     status, error, result = parse_simple_select(user_sql)
-    if error or not result:
+    if status is False or not result:
         table_info_error = f"解析SQL异常! error={error} result={result}"
         logger.error(table_info_error)
         state["table_info_error"] = table_info_error
@@ -198,6 +198,7 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     # 如果已经生成过实例了，需要清空缓存更新
     PydanticDataGeniusCategoryRecommendation.reset_allowed_categories()
     return state
+
 
 #
 # def add_pg_dict2dg_category(state: SQLModeDataGenState) -> SQLModeDataGenState:
