@@ -4,9 +4,11 @@
 # @Author   : guoqun X2590
 # @FileName : sql_parser.py
 # @Project  : DataForge
+import re
+from typing import Dict, List
 
 import sqlglot
-from sqlglot import exp
+from sqlglot import exp, parse_one
 
 
 def build_alias_context(query_expr: exp.Query | exp.Expression) -> dict:
@@ -15,7 +17,10 @@ def build_alias_context(query_expr: exp.Query | exp.Expression) -> dict:
     # 查找FROM和JOIN子句中所有的数据源
     sources = []
     if query_expr.args.get("from"):
-        sources.append(query_expr.args["from"].this)
+        from_exp = query_expr.args["from"]
+        source_from = from_exp.this
+        print(f"解析到的表名: {source_from.name}")  # 调试输出
+        sources.append(source_from)
     for join in query_expr.args.get("joins", []):
         sources.append(join.this)
 
@@ -25,7 +30,7 @@ def build_alias_context(query_expr: exp.Query | exp.Expression) -> dict:
 
 
 def trace_column_origin(
-    column_expr: exp.Column, alias_content: dict
+        column_expr: exp.Column, alias_content: dict
 ) -> tuple[str, str] or None:
     """
     递归追踪一个字段表达式，直到找到最终的物理表
@@ -33,6 +38,7 @@ def trace_column_origin(
     :param alias_content: 当前查询层级的别名->表达式映射
     :return: 一个元组（物理表明，物理字段名）或None
     """
+    print(f"column_expr: {column_expr} {type(column_expr)} {column_expr.name}")
     if not isinstance(column_expr, exp.Column):
         return None
 
@@ -89,8 +95,13 @@ def advanced_column_lineage_parser(sql: str) -> tuple[dict, Exception | None]:
     final_map = {}
 
     # 1. 为最外层查询构建别名上下文
-    root_context = build_alias_context(parsed)
+    if isinstance(parsed, exp.Select):
+        root_context = build_alias_context(parsed)
+    else:
+        # 如不是Select节点，可能是个子查询或其他结构
+        root_context = build_alias_context(parsed)
 
+    print(f"root_context: {list(root_context.keys())[0]}")
     # 2. 遍历最外层SELECT的每个字段
     for projection in parsed.expressions:
         if isinstance(projection, exp.Star):
@@ -98,6 +109,17 @@ def advanced_column_lineage_parser(sql: str) -> tuple[dict, Exception | None]:
             continue
 
         column_expr = projection.this
+        if isinstance(column_expr, exp.Identifier):
+            print(f"column_expr: {column_expr.alias_or_name}")
+            # final_map[table_name].append(
+            #     {
+            #         "en_name": original_column_name,
+            #         "alias_name": projection.alias_or_name,
+            #         "comment": "".join(c.strip() for c in projection.comments)
+            #         if projection.comments
+            #         else "",
+            #     }
+            # )
         # 3. 对每个字段进行递归追踪
         origin = trace_column_origin(
             column_expr=column_expr, alias_content=root_context
@@ -118,6 +140,57 @@ def advanced_column_lineage_parser(sql: str) -> tuple[dict, Exception | None]:
             )
 
     return final_map, None
+
+
+def parse_simple_select(sql: str) -> tuple[bool, str, dict]:
+    """
+    解析单表SELECT
+    :param sql:
+    :return:
+    """
+    # 去除多余空白，方便正则抓取行尾注释
+    sql = " ".join(sql.split())
+
+    # 解析语法树
+    tree = parse_one(sql, dialect="spark")
+    if not isinstance(tree, exp.Select):
+        return False, "仅支持解析SELECT语句", {}
+
+    # 拒绝select *
+    for sel in tree.expressions:
+        if isinstance(sel, exp.Star):
+            return False, "不支持SELECT *语句，请显示提供字段列表", {}
+
+    # 找表，只支持单表
+    from_ = tree.find(exp.From)
+    if not from_:
+        return False, "找不到FROM子句", {}
+    table_expr = from_.this
+    if isinstance(table_expr, exp.Table):
+        real_table = table_expr.name
+    else:
+        return False, "暂时只支持单张物理表", {}
+
+    # 收集字段信息
+    columns = []
+    for sel in tree.expressions:
+        # 原字段名
+        col_name = sel.name if isinstance(sel, exp.Column) else str(sel)
+        # 别名
+        alias_name = sel.alias_or_name if sel.alias else col_name
+        # 行尾注释, 在SQL中出现--的注释
+        comment = ""
+        expr_sql = sel.sql()
+        pattern = re.escape(expr_sql) + r"(?:\s*(--[^\r\n]*))?(?:,|\sFROM\b)"
+        m = re.search(pattern, sql, flags=re.IGNORECASE)
+        if m and m.group(1):
+            comment = m.group(1).lstrip("--").strip()
+        columns.append({
+            "en_name": col_name,
+            "alias_name": alias_name,
+            "comment": comment
+        })
+    return True, "ok", {real_table: columns}
 
 
 if __name__ == "__main__":
@@ -167,9 +240,15 @@ if __name__ == "__main__":
     demo_sql_2 = """select F859 as F2079, F860 as F2085, F861 as F2091, F862 as F2097, STR_SRC_IP as F2103, F863 as F2109, STR_DST_IP as F2115, F864 as F2121, F865 as F2127, F866 as F2133, F867 as F2139, F868 as F2145, F869 as F2151, F870 as F2157, F871 as F2163, F872 as F2169, F873 as F2175, F874 as F2181, F875 as F2187, F876 as F2193, F877 as F2199, PASSWORD as F2205, TITLE as 
 F2211, ARTICLE_ID as F2217, CONTENT_S as F2223, F878 as F2229, F879 as F2235 from massdata.NB_MASS_RESOURCE_REGISTER"""
 
+    demo_sql_3 = "select xuhao from phy_adm_vmodel_res_ce_shi_wen_jian_shang_chuan_001c4b40999f016c1ad8d4581dec6b18"
+
     import json
 
-    result, err = advanced_column_lineage_parser(demo_sql_2)
+    result, err = advanced_column_lineage_parser(demo_sql_3)
     print(err)
     print(result)
     print(json.dumps(result, ensure_ascii=False))
+
+    print("=== 使用sqlglot解析 ===")
+    parsed = parse_simple_select(demo_sql_3)
+    print(parsed)

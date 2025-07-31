@@ -34,7 +34,7 @@ from agent.state import (
     TableRawFieldSchema,
     init_dg_category_config
 )
-from agent.sql_parser import advanced_column_lineage_parser
+from agent.sql_parser import parse_simple_select
 from agent.dg_configs import (
     DG_STORAGE_PATH,
     DG_SERVER_BASE_URL,
@@ -110,7 +110,7 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     user_intent = state.get("user_intent")
     user_sql = user_intent.sql
     logger.info(f"用户提供的SQL: {user_sql}")
-    result, error = advanced_column_lineage_parser(user_sql)
+    status, error, result = parse_simple_select(user_sql)
     if error or not result:
         table_info_error = f"解析SQL异常! error={error} result={result}"
         logger.error(table_info_error)
