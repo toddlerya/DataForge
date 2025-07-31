@@ -21,7 +21,7 @@ app_data_gen/.files
 data/output
 data/dg_plans
 data/dg_payload
-database/data_forge.db
+database/*
 
 .langgraph_api
 /design/*.bkp

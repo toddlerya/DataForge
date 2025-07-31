@@ -251,7 +251,7 @@ def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     table_dictkey_map = state.get("table_dictkey_map")
     state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
-    table_en_name = table_info_data.table_en_name
+    table_en_name = table_metadata_info.table_en_name
     row_count = user_intent.data_count
     structured_llm = chat_llm.with_structured_output(
         PydanticDataGeniusCategoryRecommendation
