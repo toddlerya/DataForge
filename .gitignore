@@ -30,3 +30,4 @@ database/data_forge.db
 *.log
 .files
 *.log.zip
+/input_data/bdos_table_meta_data/

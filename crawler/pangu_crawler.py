@@ -107,7 +107,7 @@ class PanGuCrawler:
                 # 如果当前页已经大于等于最大页数，就退出循环
                 if page_no > page_no_max:
                     logger.info(
-                        f"盘古数据资源目录获取到{records_total}个资源, 实际{len(self.template_id_slice)}个资源"
+                        f"盘古内部数据资源目录获取到{records_total}个资源, 实际{len(self.template_id_slice)}个资源"
                     )
                     break
             except Exception as err:
