@@ -2,4 +2,6 @@
     tls internal
 
     reverse_proxy localhost:9804
+
+    encode gzip
 }

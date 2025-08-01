@@ -86,7 +86,7 @@ def should_data_intent_continue(state: DataGenState):
 
     # Check if human feedback
     human_intent_feedback = state.get("human_intent_feedback", "").strip()
-    if human_intent_feedback == "正确":
+    if human_intent_feedback == "正确" or human_intent_feedback == "Y":
         return "query_table_raw_field_info"
 
     # Otherwise proceed to create table info

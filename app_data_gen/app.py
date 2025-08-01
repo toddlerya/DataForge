@@ -80,7 +80,7 @@ async def process_step(event, graph):
             ).send()
             res = await cl.AskUserMessage(
                 author="Assistant",
-                content="上述意图识别结果是否正确？若不正确请调整输入信息再次尝试意图识别；若正确，请输入“正确”，将开始数据生成任务。",
+                content="上述意图识别结果是否正确？若不正确请调整输入信息再次尝试意图识别；若正确，请输入“正确“或”Y”，将开始数据生成任务。",
                 timeout=300,
             ).send()
             if res:
