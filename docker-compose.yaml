@@ -184,6 +184,26 @@ services:
       # 数据默认保留时间
       - DATA_EXPIRED_DAY=30
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    networks:
+      harbor_net:
+    ports:
+      - "9443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/data:/data
+      - ./caddy/config:/config
+      - ./caddy/logs:/var/log/caddy
+    depends_on:
+      - fmdb_insert_sql_gen_chat
+    environment:
+      - TZ=Asia/Shanghai
+
+
+
 networks:
   harbor_net:
     external: true

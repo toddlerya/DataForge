@@ -1,7 +1,16 @@
-172.16.150.178 {
+:443 {
     tls internal
 
-    reverse_proxy localhost:9804
+    reverse_proxy FMDBInsertSQLGenApp:9804
 
     encode gzip
+
+    log {
+            output file /var/log/caddy/gen_insert_sql.log {
+                roll_size 32MiB
+                roll_local_time
+                roll_keep 10
+                roll_keep_for 2160h
+            }
+    }
 }
