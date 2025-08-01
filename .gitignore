@@ -32,3 +32,4 @@ data/*
 *.log.zip
 input_data/bdos_table_meta_data/*
 
+caddy/logs
