@@ -186,12 +186,12 @@ services:
 
   caddy:
     image: caddy:2-alpine
-    container_name: caddy
+    container_name: DFCaddy
     restart: unless-stopped
     networks:
       harbor_net:
     ports:
-      - "9443:443"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy/data:/data

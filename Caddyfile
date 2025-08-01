@@ -7,7 +7,7 @@
 
     reverse_proxy FMDBInsertSQLGenApp:9804
 
-    encode gzip
+    encode gzip zstd
 
     log {
             output file /var/log/caddy/gen_insert_sql.log {
