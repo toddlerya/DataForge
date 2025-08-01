@@ -191,7 +191,9 @@ services:
     networks:
       harbor_net:
     ports:
-      - "443:443"
+      - "80:80"
+      - "443:80"
+      - "8443:80"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy/data:/data

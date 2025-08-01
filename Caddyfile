@@ -1,8 +1,4 @@
-{
-    auto_https disable_redirects
-}
-
-:443 {
+FMDBInsertSQLGenApp {
     tls internal
 
     reverse_proxy FMDBInsertSQLGenApp:9804
