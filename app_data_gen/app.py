@@ -44,7 +44,8 @@ async def start_chat():
         cl.user_session.set("client_ip", "127.0.0.1")
 
     text_content = f"""{cl.user_session.get("client_ip")}，您好！我是您的测试数据生成助手\n\n目前支持的表为盘古或数据域管理的表。\n
-请输入需要构造的表名称，期望的表字段约束条件，期望生成的数据条数。\n
+请输入需要构造的表名称，期望生成的数据条数。\n
+若需字段对字段有特殊的约束条件，比如期望某些字段满足特定的固定值或枚举值，请在工具运行完成后端DG任务链接页面按照DG规则进行配置。
 ====输入内容示例====\n
 数据库表名称 (必填):
 massdata.ADM_REL_MOBILE

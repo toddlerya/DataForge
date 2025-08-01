@@ -5,6 +5,7 @@
 # @FileName : bdos_table_meta_excel.py
 # @Project  : DataForge
 
+import re
 import pathlib
 import warnings
 
@@ -82,6 +83,10 @@ class BDOSTableMetaExcelLoad:
             table_fields.append(table_raw_field)
         table_resource_sheet = wb["资源"]
         table_ename_cell_value = table_resource_sheet["A2"].value.strip()
+        # 没有bdos数据库前缀要追加
+        pattern = r'^' + re.escape('bdos') + r'\.\w+'
+        if bool(re.match(pattern, table_ename_cell_value, re.IGNORECASE)) is False:
+            table_ename_cell_value = f"bdos.{table_ename_cell_value}"
         table_cname_cell_value = table_resource_sheet["B2"].value.strip()
         description_cell_value = table_resource_sheet["C2"].value.strip()
         bdos_table_metadata = TableMetaDataSchema(
