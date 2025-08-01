@@ -1,8 +1,6 @@
 172.16.150.178 {
     tls internal
 
-    bind 172.16.150.178
-
     reverse_proxy FMDBInsertSQLGenApp:9804
 
     encode gzip zstd
