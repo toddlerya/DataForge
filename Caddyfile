@@ -1,4 +1,4 @@
-FMDBInsertSQLGenApp {
+172.16.150.178 {
     tls internal
 
     reverse_proxy FMDBInsertSQLGenApp:9804
