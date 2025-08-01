@@ -1,0 +1,14 @@
+[Unit]
+Description=DataForge Caddy
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+Restart=on-failure
+ExecStart=/usr/local/bin/caddy run --config /root/RunContainers/DataForge/Caddyfile
+
+[Install]
+WantedBy=multi-user.target
