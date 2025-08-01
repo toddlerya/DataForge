@@ -1,6 +1,6 @@
 172.16.150.178 {
     tls internal
-    reverse_proxy FMDBInsertSQLGenApp:9804
+    reverse_proxy 127.0.0.1:9804
     encode gzip zstd
     log {
             level DEBUG
