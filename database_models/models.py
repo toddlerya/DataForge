@@ -217,6 +217,24 @@ class PanGuDictInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
         return info_dict
 
 
+class FieldDGRuleCache(CommonTableArgsMixin, CommonColumnMixin, Base):
+    __tablename__ = "field_dg_rule_cache"
+    __table_args_map__ = {
+        "comment": "字段的DG规则配置缓存",
+    }
+    __table_args_array__ = [
+        UniqueConstraint("uuid", name="uuid")
+    ]
+    uuid = Column(String(length=36), nullable=False, comment="规则唯一ID, md5(ename+cname+description+field_type_name)")
+    ename = Column(String(length=512), default="", index=True, unique=True, comment="字段英文名称")
+    cname = Column(String(length=512), default="", comment="字段出现次数最多的中文名称")
+    description = Column(Text, default="", comment="字段描述")
+    field_type_name = Column(String(length=128), default="", comment="字段类型")
+    dg_rule = Column(JSON, nullable=False, comment="DG规则配置")
+    example_data = Column(Text, nullable=True, comment="样例数据")
+    ttl = Column(Integer, nullable=False, default=86400 * 7, comment="缓存规则过期时间，默认7天")
+
+
 class EnvironmentInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     __tablename__ = "environment_info"
     __table_args_map__ = {

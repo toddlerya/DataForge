@@ -99,3 +99,14 @@ class TableExampleSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
         ..., description="表的唯一ID: md5(table_en_name+source+area_code+area_name)"
     )
     example_data: dict = Field(..., description="样例数据")
+
+
+class FieldDGRuleCacheSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+    uuid: str = Field(..., description="规则唯一ID, md5(ename+cname+description+field_type_name)")
+    ename: str = Field(..., description="字段英文名称")
+    cname: str = Field(..., description="字段出现次数最多的中文名称")
+    description: str = Field("", description="字段描述")
+    field_type_name: str = Field(..., description="字段类型")
+    dg_rule: dict = Field(..., description="DG规则配置")
+    example_data: str = Field("", description="样例数据")
+    ttl: int = Field(86400 * 7, description="缓存规则过期时间，默认7天")
