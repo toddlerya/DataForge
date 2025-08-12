@@ -202,7 +202,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                                                                         field_type_name=field_info.field_type)
         # 命中缓存，直接使用缓存的DG规则
         if query_status and query_result:
-            logger.trace(f"命中缓存 field_info: {field_info.model_dump_json()} cache_result: {query_result.to_dict()}")
+            logger.info(f"字段 {field_info.en_name} 命中DG规则缓存 cache_result: {query_result.to_dict()}")
             cached_dg_rule = PydanticDataGeniusRule(**query_result.dg_rule)
             # 更新字段的DG规则配置
             cached_dg_rule.col = field_index
@@ -255,7 +255,6 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                     field_index += 1
                     # 清空错误信息
                     last_error_message = ""
-                    # 存储当前推荐的字段DG规则到缓存中
                     # 存储当前推荐的字段DG规则到缓存中
                     cache_dg_rule(db_handler=db_handler,
                                   field_info=field_info,
