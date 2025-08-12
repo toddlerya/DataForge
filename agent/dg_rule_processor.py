@@ -34,6 +34,7 @@ from agent.dg_configs import (
 from agent.llm import chat_llm
 from utils.db import Database
 from utils.log import logger
+from utils.file import get_md5
 
 
 def cache_dg_rule(db_handler: Database,
@@ -50,8 +51,12 @@ def cache_dg_rule(db_handler: Database,
     Returns:
 
     """
+    _, rule_uuid = get_md5(f"{field_info.en_name}{field_info.cn_name}{field_info.desc}{field_info.field_type}")
+    logger.trace(
+        f"存储DG规则到缓存, rule_uuid: {rule_uuid} "
+        f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}")
     field_dg_rule_cache_data = {
-        "uuid": "",
+        "uuid": rule_uuid,
         "ename": field_info.en_name,
         "cname": field_info.cn_name,
         "description": field_info.desc,
@@ -197,8 +202,8 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                                                                         field_type_name=field_info.field_type)
         # 命中缓存，直接使用缓存的DG规则
         if query_status and query_result:
-            logger.debug(f"field_info: {field_info.model_dump_json()} cache_result: {query_result}")
-            cached_dg_rule = query_result.dg_rule
+            logger.trace(f"命中缓存 field_info: {field_info.model_dump_json()} cache_result: {query_result.to_dict()}")
+            cached_dg_rule = PydanticDataGeniusRule(**query_result.dg_rule)
             # 更新字段的DG规则配置
             cached_dg_rule.col = field_index
             cached_dg_rule.value = field_info.example

@@ -234,6 +234,18 @@ class FieldDGRuleCache(CommonTableArgsMixin, CommonColumnMixin, Base):
     example_data = Column(Text, nullable=True, comment="样例数据")
     ttl = Column(Integer, nullable=False, default=86400 * 7, comment="缓存规则过期时间，默认7天")
 
+    def to_dict(self):
+        """
+        将 EnvironmentInfo 对象转换为字典
+
+        Returns:
+            dict: 字典表示的 EnvironmentInfo 对象
+        """
+        info_dict = instance_dict(self)
+        if info_dict.get("_sa_instance_state", None):
+            info_dict.pop("_sa_instance_state")
+        return info_dict
+
 
 class EnvironmentInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     __tablename__ = "environment_info"
