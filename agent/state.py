@@ -19,7 +19,10 @@ from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
 
-from database_models.schema import TableRawFieldSchema, GenTableFieldSchema, RecommendPanGuDictSchema
+from database_models.schema import (TableRawFieldSchema,
+                                    GenTableFieldSchema,
+                                    RecommendPanGuDictSchema,
+                                    PydanticDataGeniusRule)
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 
 
@@ -92,28 +95,6 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
                 f"category '{v}' is not in allowed categories: {', '.join(sorted(allowed))}"
             )
         return v
-
-
-class PydanticDataGeniusRule(BaseModel):
-    """DataGenius 输出的规则 Pydantic模型"""
-
-    col: int = Field(
-        default=1,
-        ge=1,
-        description="字段在表中的列索引，从 0 开始计数。",
-    )
-    category: str = Field(
-        default=...,
-        description="规则类型，根据表的字段信息推测从指定的分类中选择。",
-    )
-    name: str = Field(..., description="规则名称")
-    ename: str = Field(..., description="字段英文名称")
-    cname: str = Field("", description="字段中文名称")
-    preview: str = Field("", description="字段示例数据预览")
-    value: str = Field("", description="字段示例数据值")
-    args: Dict[str, str | list] = Field(
-        default_factory=dict, description="规则参数字典，包含生成数据所需的参数。"
-    )
 
 
 class PydanticDataGeniusPlan(BaseModel):
@@ -324,7 +305,7 @@ if __name__ == "__main__":
         )
         print(id(instance))
 
-        instance.category="日期"
+        instance.category = "日期"
         print(id(instance))
         print("验证成功:", instance.category)  # 输出: sports
     except ValueError as e:

@@ -25,16 +25,16 @@ from agent.state import (
     DataGenState,
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
-    PydanticDataGeniusRule,
     TableMetadataSchema,
     DataGenUserIntentSchema,
     init_dg_category_config
 )
+from agent.dg_rule_processor import dg_rule_processor
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from config import DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
 from cruds.table_metadata import table_metadata_query
 from cruds.pangu import query_dict_items_info_by_dict_category, query_dict_items_info_by_dictkey
-from database_models.schema import TableRawFieldSchema, RecommendPanGuDictSchema
+from database_models.schema import TableRawFieldSchema, RecommendPanGuDictSchema, PydanticDataGeniusRule
 from agent.dg_configs import (
     DG_STORAGE_PATH,
     DG_SERVER_BASE_URL,
@@ -529,7 +529,8 @@ data_gen_builder.add_node("analyze_intent", analyze_data_intent)
 data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
-data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
+# data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
+data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
 data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 data_gen_builder.add_node("create_dg_task", create_dg_task)
 data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)

@@ -86,7 +86,7 @@ dg_category_human_prompt = HumanMessagePromptTemplate.from_template(
 字典名称: {dict_name}
 字段示例数据: {sample_value}
 
-**上次尝试的推荐类别错误信息, 请不要重蹈覆辙:**
+**上次尝试的推荐类别错误信息, 不要重复之前错误的推荐类别:**
 {last_error_message}
 """
 )

@@ -35,6 +35,7 @@ from agent.state import (
     init_dg_category_config
 )
 from agent.sql_parser import parse_simple_select
+from agent.dg_rule_processor import dg_rule_processor
 from agent.dg_configs import (
     DG_STORAGE_PATH,
     DG_SERVER_BASE_URL,
@@ -550,7 +551,7 @@ sql_mode_data_gen_builder.add_node(
 sql_mode_data_gen_builder.add_node("sql_parse_to_table_info", sql_parse_to_table_info)
 sql_mode_data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
 # sql_mode_data_gen_builder.add_node("add_pg_dict2dg_category", add_pg_dict2dg_category)
-sql_mode_data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
+sql_mode_data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
 sql_mode_data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 sql_mode_data_gen_builder.add_node("create_dg_task", create_dg_task)
 sql_mode_data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)

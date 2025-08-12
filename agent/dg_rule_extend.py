@@ -6,7 +6,7 @@
 # @Project  : DataForge
 
 
-from agent.state import PydanticDataGeniusRule
+from database_models.schema import PydanticDataGeniusRule
 from agent.utils import today_timestamp_range
 
 

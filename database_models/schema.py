@@ -5,6 +5,7 @@
 # @FileName : schemas.py
 # @Project  : DataForge
 
+from typing import Dict
 
 from pydantic import BaseModel, Field
 
@@ -101,12 +102,34 @@ class TableExampleSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     example_data: dict = Field(..., description="样例数据")
 
 
+class PydanticDataGeniusRule(BaseModel):
+    """DataGenius 输出的规则 Pydantic模型"""
+
+    col: int = Field(
+        default=1,
+        ge=1,
+        description="字段在表中的列索引，从 0 开始计数。",
+    )
+    category: str = Field(
+        default=...,
+        description="规则类型，根据表的字段信息推测从指定的分类中选择。",
+    )
+    name: str = Field(..., description="规则名称")
+    ename: str = Field(..., description="字段英文名称")
+    cname: str = Field("", description="字段中文名称")
+    preview: str = Field("", description="字段示例数据预览")
+    value: str = Field("", description="字段示例数据值")
+    args: Dict[str, str | list] = Field(
+        default_factory=dict, description="规则参数字典，包含生成数据所需的参数。"
+    )
+
+
 class FieldDGRuleCacheSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     uuid: str = Field(..., description="规则唯一ID, md5(ename+cname+description+field_type_name)")
     ename: str = Field(..., description="字段英文名称")
     cname: str = Field(..., description="字段出现次数最多的中文名称")
     description: str = Field("", description="字段描述")
     field_type_name: str = Field(..., description="字段类型")
-    dg_rule: dict = Field(..., description="DG规则配置")
+    dg_rule: PydanticDataGeniusRule = Field(..., description="DG规则配置")
     example_data: str = Field("", description="样例数据")
     ttl: int = Field(86400 * 7, description="缓存规则过期时间，默认7天")
