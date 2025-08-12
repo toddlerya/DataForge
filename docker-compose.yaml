@@ -3,8 +3,8 @@ version: "3"
 services:
   db:
     image: postgres:14.2
-    container_name: HETUTaskCheckerDB
-    hostname: HETUTaskCheckerDB
+    container_name: DataForgeDB
+    hostname: DataForgeDB
     restart: unless-stopped
     networks:
       harbor_net:
