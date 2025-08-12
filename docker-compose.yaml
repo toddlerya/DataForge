@@ -1,6 +1,29 @@
 version: "3"
 
 services:
+  db:
+    image: postgres:14.2
+    container_name: HETUTaskCheckerDB
+    hostname: HETUTaskCheckerDB
+    restart: unless-stopped
+    networks:
+      harbor_net:
+    ports:
+      - "5432:5432"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./postgresql/data:/var/lib/postgresql/data
+      - ./postgresql/conf/postgresql.conf:/etc/postgresql/postgresql.conf
+    command:
+      - 'postgres'
+      - '-c'
+      - 'config_file=/etc/postgresql/postgresql.conf'
+    environment:
+      POSTGRES_DB: data_forge
+      # 请务必修改密码
+      POSTGRES_USER: data_forge
+      POSTGRES_PASSWORD: data_forge_2590
+
   server:
     image: llm_server_py313_env:1.0.0
     container_name: DataForgeServer
