@@ -147,6 +147,7 @@ class DataGenState(TypedDict):
     data_genius_plan_edit_url: str
     error_message: Annotated[List[AnyMessage], add_messages]
     max_retries: int
+    pre_heat_mode: bool
 
 
 class DataGenSQLModeUserIntentSchema(BaseModel):

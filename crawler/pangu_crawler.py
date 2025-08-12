@@ -254,7 +254,7 @@ class PanGuCrawler:
             return None
 
     def crawl_sample(
-            self, table_en_name: str, entity_id: int, type_value: str = 2, limit: int = 100
+            self, table_en_name: str, entity_id: int, type_value: str = 2, limit: int = 10
     ) -> list[dict]:
         """
         抓取样例数据
@@ -336,7 +336,7 @@ class PanGuCrawler:
             example_data = self.crawl_sample(
                 table_en_name=each_table_metadata_model.table_en_name,
                 entity_id=entity_id,
-                limit=100,
+                limit=10,
             )
             logger.debug(
                 f"entity_id={entity_id} table_en_name={each_table_metadata_model.table_en_name} "

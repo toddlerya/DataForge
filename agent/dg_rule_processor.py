@@ -8,13 +8,13 @@
 import uuid
 from typing import Union, Optional
 
-from config import DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
+from config import DG_PLAN_CONFIG_PREFIX
 from cruds.dg_rule_cache import query_field_dg_rule, save_field_dg_rule
-from database_models.schema import TableRawFieldSchema, RecommendPanGuDictSchema
-from agent.state import DataGenState, SQLModeDataGenState
-from agent.prompt import dg_category_prompt, data_intent_prompt
+from database_models.schema import RecommendPanGuDictSchema
+from agent.prompt import dg_category_prompt
 from agent.dg_rule_extend import force_update_dg_rule
 from agent.state import (
+    DataGenState,
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
     PydanticDataGeniusRule,
@@ -25,11 +25,7 @@ from agent.state import (
     TableRawFieldSchema,
 )
 from agent.dg_configs import (
-    DG_STORAGE_PATH,
-    DG_SERVER_BASE_URL,
-    DG_TASK_ADD_URL,
-    DG_TASK_HISTORY,
-    DG_NEW_TASK,
+    DG_STORAGE_PATH
 )
 from agent.llm import chat_llm
 from utils.db import Database
@@ -127,7 +123,8 @@ def recommend_dg_rule_by_llm(structured_llm,
             name=name,
             ename=field_info.en_name,
             cname=field_info.cn_name,
-            preview=f"score: {llm_dg_field_category_recommendation.score}, reason: {llm_dg_field_category_recommendation.reason}",
+            preview=f"score: {llm_dg_field_category_recommendation.score}, "
+                    f"reason: {llm_dg_field_category_recommendation.reason}",
             value=field_info.example,
             args=args
         )
@@ -239,7 +236,8 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                         f"已达到最大推荐重试次数 {max_retries}，自动填充默认DataGenius分类推荐"
                     )
                     logger.trace(
-                        f"llm_dg_field_category_recommendation: {llm_dg_field_category_recommendation.model_dump_json()}"
+                        f"llm_dg_field_category_recommendation: "
+                        f"{llm_dg_field_category_recommendation.model_dump_json()}"
                     )
                     # 构建该字段的DataGenius规则参数
                     pydantic_data_genius_rule = PydanticDataGeniusRule(
@@ -269,7 +267,6 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                               field_info=field_info,
                               pydantic_data_genius_rule=pydantic_data_genius_rule)
                 break
-
     rule_uuid = str(uuid.uuid4())
     # 检查特例规则进行更新
     rules = [force_update_dg_rule(rule) for rule in rules]
@@ -285,3 +282,9 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
     )
     state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
     return state
+
+
+if __name__ == '__main__':
+    import os
+    print(os.getcwd())
+    preheat_llm_recommendation_dg_rule(db_handler=Database())

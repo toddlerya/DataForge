@@ -383,6 +383,22 @@ def save_dg_plan2json(state: DataGenState):
     return state
 
 
+def is_pre_heat_dg_rule_mode(state: DataGenState):
+    """
+    如果是预热字段推荐DG规则模式则不创建DG任务
+    Args:
+        state:
+
+    Returns:
+
+    """
+    pre_heat_mode = state.get("pre_heat_mode", False)
+    if pre_heat_mode is True:
+        return END
+    else:
+        return "create_dg_task"
+
+
 def create_dg_task(state: DataGenState) -> DataGenState:
     """
     创建人DataGenius任务
@@ -529,7 +545,6 @@ data_gen_builder.add_node("analyze_intent", analyze_data_intent)
 data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
-# data_gen_builder.add_node("dg_category_recommend", dg_category_recommend)
 data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
 data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 data_gen_builder.add_node("create_dg_task", create_dg_task)
@@ -551,7 +566,11 @@ data_gen_builder.add_conditional_edges(
 )
 data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_recommend")
 data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
-data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
+data_gen_builder.add_conditional_edges(
+    "save_dg_plan2json",
+    is_pre_heat_dg_rule_mode,
+    ["create_dg_task", END]
+)
 data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
 data_gen_builder.add_edge("query_dg_task_status", END)
 

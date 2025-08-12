@@ -110,13 +110,27 @@ print(
     f"当前运行日志级别: {ENV_LOG_LEVEL} 数据默认保留{ENV_DATA_EXPIRED_DAY}天, {__file__}"
 )
 
-ENV_DB_MODE = "SQLITE"
-DIALECT = "sqlite"
-CHARSET = "UTF8"
+# ENV_DB_MODE = "SQLITE"
+# DIALECT = "sqlite"
+# CHARSET = "UTF8"
+# DB_NAME = "data_forge"
+# DB_FILE = DB_NAME + ".db"
+# DATABASE_FILE_PATH = DATABASE_PATH.joinpath(DB_FILE)
+# SQLALCHEMY_URL = f"{DIALECT}:///{DATABASE_FILE_PATH}?mode=WAL&charset={CHARSET}"
+
+
+ENV_DB_MODE = "POSTGRESQL"
+DIALECT = "postgresql"
+DRIVER = "psycopg2"
+DB_HOST = "172.16.150.178"
+DB_PORT = 5432
+DB_USERNAME = "data_forge"
+DB_PASSWORD = "data_forge_2590"
 DB_NAME = "data_forge"
-DB_FILE = DB_NAME + ".db"
-DATABASE_FILE_PATH = DATABASE_PATH.joinpath(DB_FILE)
-SQLALCHEMY_URL = f"{DIALECT}:///{DATABASE_FILE_PATH}?mode=WAL&charset={CHARSET}"
+CHARSET = "UTF8"
+SQLALCHEMY_URL = f"{DIALECT}+{DRIVER}://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}" \
+                 f"?client_encoding={CHARSET}"
+
 # SQLAlchemy Config
 SQLALCHEMY_ECHO = ENV_SQLALCHEMY_ECHO
 SQLALCHEMY_AUTO_FLUSH = True
@@ -138,7 +152,7 @@ data_scope_resource_url = (
 data_scope_resource_detail_url = (
     f"https://{data_scope_ip_port}/offsite/v1/resource/detail"
 )
-data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=e2718e9b23fa473b9f178712b6265c1e; appToken=a53643cdb0a544a98f2ed42c71cb2bb7"
+data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=0532be9c6d2c42778c83b348490ac21a; appToken=2a170db2c98344dfbc13d05a8aae02d8"
 
 # 盘古配置
 pangu_ip_port = "172.21.4.42:11018"
@@ -158,7 +172,7 @@ pangu_data_sample_query_url = (
     f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
 )
 
-pangu_cookie = "contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; JSESSIONID=A6AFE5CF70EEBFA4F195594DDF9DA005; userToken=f30611ab883f4efa9a5b1a9be286e22e; appToken=0366c7831658498c84fb913f99bfdf65; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D"
+pangu_cookie = "contextPath=/catalog; JSESSIONID=212D9047AF5D54880D245EE23D92C371; contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; JSESSIONID=8CE476D6DFFC4A1DEEEC90D89199E76D; userToken=fc661ef848c8490ca04f65f94bbd4d03; appToken=d3ec1cb3323440f7976b28f487ba6425; loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D"
 
 pangu_field_type_map = {
     -1: "string",

@@ -17,6 +17,7 @@ from utils.log import logger
 class PanGuFieldCrawler:
     def __init__(self, inner_db: Database):
         self.inner_db = inner_db
+        logger.info(f"inner_db: {inner_db.db}")
         self.metadata_sqlalchemy_url = f"postgresql+psycopg2://" \
                                        f"{METADATA_DB_USER}:{quote_plus(METADATA_DB_PASSWORD)}" \
                                        f"@{METADATA_DB_IP}:{METADATA_DB_PORT}" \
@@ -25,7 +26,7 @@ class PanGuFieldCrawler:
         self.metadata_db = Database(url=self.metadata_sqlalchemy_url)
         self.all_field_stat_data: list[dict[str, int]] = list()
         self.all_dictkey_with_nlevel_data: list[str] = list()
-        self.batch_size = 1000
+        self.batch_size = 100
 
     def fetch_pangu_all_field_stat(self) -> bool:
         logger.info("正在执行采集盘古所有字段统计信息")
@@ -39,7 +40,7 @@ class PanGuFieldCrawler:
 
     def fetch_pangu_field_recommend_info(self) -> bool:
         logger.info("正在执行盘古字段推荐")
-        for index, each_field_data in enumerate(self.all_field_stat_data):
+        for index, each_field_data in enumerate(self.all_field_stat_data, start=1):
             field_en_name = each_field_data.get("ename", "")
             logger.info(f"[{index}]正在进行盘古字段推荐: field_en_name={field_en_name}")
             status, message, data = pangu_recommend_field_info(db_handler=self.metadata_db,
@@ -54,16 +55,17 @@ class PanGuFieldCrawler:
                 recommend_pangu_field_data=data.model_dump())
             if save_filed_status is False:
                 logger.error(f"存储盘古字段推荐异常: field_en_name={field_en_name} ERROR: {save_field_message}")
-                self.inner_db.session.rollback()
                 return False
             if index % self.batch_size == 0:
                 self.inner_db.session.commit()
+                logger.info(f"盘古字段推荐 db commit: {index}")
         self.inner_db.session.commit()
+        logger.info(f"盘古字段推荐 db commit done")
         return True
 
     def fetch_pangu_dict_info(self) -> bool:
         logger.info("正在执行盘古字典采集")
-        for index, dictkey_with_nlevel in enumerate(set(self.all_dictkey_with_nlevel_data)):
+        for index, dictkey_with_nlevel in enumerate(set(self.all_dictkey_with_nlevel_data), start=1):
             logger.info(f"[{index}]正在采集盘古字典: dictkey_with_nlevel={dictkey_with_nlevel}")
             status, message, data = pangu_dict_key_values(db_handler=self.metadata_db,
                                                           dictkey_with_nlevel=dictkey_with_nlevel)
@@ -81,7 +83,9 @@ class PanGuFieldCrawler:
                     return False
             if index % self.batch_size == 0:
                 self.inner_db.session.commit()
+                logger.info(f"盘古字典采集 db commit: {index}")
         self.inner_db.session.commit()
+        logger.info(f"盘古字典采集 db commit done")
         return True
 
     def run(self):

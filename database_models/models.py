@@ -223,10 +223,11 @@ class FieldDGRuleCache(CommonTableArgsMixin, CommonColumnMixin, Base):
         "comment": "字段的DG规则配置缓存",
     }
     __table_args_array__ = [
-        UniqueConstraint("uuid", name="uuid")
+        UniqueConstraint("uuid", name="uuid"),
+        UniqueConstraint("ename", "uuid", name="ename_uuid_unique")
     ]
     uuid = Column(String(length=36), nullable=False, comment="规则唯一ID, md5(ename+cname+description+field_type_name)")
-    ename = Column(String(length=512), default="", index=True, unique=True, comment="字段英文名称")
+    ename = Column(String(length=512), nullable=False, index=True, comment="字段英文名称")
     cname = Column(String(length=512), default="", comment="字段出现次数最多的中文名称")
     description = Column(Text, default="", comment="字段描述")
     field_type_name = Column(String(length=128), default="", comment="字段类型")
