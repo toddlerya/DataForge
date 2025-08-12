@@ -36,6 +36,42 @@ from utils.db import Database
 from utils.log import logger
 
 
+def cache_dg_rule(db_handler: Database,
+                  field_info: TableRawFieldSchema,
+                  pydantic_data_genius_rule: PydanticDataGeniusRule,
+                  ttl: int = 86400 * 7):
+    """
+    缓存DG规则到数据库
+    Args:
+        db_handler:
+        field_info:
+        pydantic_data_genius_rule:
+        ttl:
+    Returns:
+
+    """
+    field_dg_rule_cache_data = {
+        "uuid": "",
+        "ename": field_info.en_name,
+        "cname": field_info.cn_name,
+        "description": field_info.desc,
+        "field_type_name": field_info.field_type,
+        "dg_rule": pydantic_data_genius_rule.model_dump(),
+        "example_data": field_info.example,
+        "ttl": ttl
+    }
+    save_status, save_message = save_field_dg_rule(db_handler=db_handler,
+                                                   field_dg_rule_cache_data=field_dg_rule_cache_data)
+    if save_status is False:
+        logger.error(f"存储DG字段规则缓存异常! "
+                     f"field_dg_rule_cache_data: {field_dg_rule_cache_data} "
+                     f"ERROR: {save_message}")
+        db_handler.session.rollback()
+    else:
+        db_handler.session.flush()
+        db_handler.session.commit()
+
+
 def recommend_dg_rule_by_llm(structured_llm,
                              field_index: int,
                              field_info: TableRawFieldSchema,
@@ -214,10 +250,20 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                     field_index += 1
                     # 清空错误信息
                     last_error_message = ""
+                    # 存储当前推荐的字段DG规则到缓存中
+                    # 存储当前推荐的字段DG规则到缓存中
+                    cache_dg_rule(db_handler=db_handler,
+                                  field_info=field_info,
+                                  pydantic_data_genius_rule=pydantic_data_genius_rule,
+                                  ttl=86400 * 3)
                     break
             else:
                 rules.append(pydantic_data_genius_rule)
                 field_index += 1
+                # 存储当前推荐的字段DG规则到缓存中
+                cache_dg_rule(db_handler=db_handler,
+                              field_info=field_info,
+                              pydantic_data_genius_rule=pydantic_data_genius_rule)
                 break
 
     rule_uuid = str(uuid.uuid4())
