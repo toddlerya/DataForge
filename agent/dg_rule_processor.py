@@ -225,7 +225,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
             )
             # 推荐异常，重试
             if recommend_status is False:
-                logger.warning(f"推荐异常, 重试中... field_info: {field_info.model_dump_json()}")
+                logger.warning(f"推荐异常, 重试第{retry_count}次... field_info: {field_info.model_dump_json()}")
                 # LLM推荐重试达到最大次数，给默认DG规则
                 if retry_count > max_retries:
                     llm_dg_field_category_recommendation = PydanticDataGeniusCategoryRecommendation(
@@ -260,6 +260,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                                   pydantic_data_genius_rule=pydantic_data_genius_rule,
                                   ttl=86400 * 3)
                     break
+                retry_count += 1
             else:
                 rules.append(pydantic_data_genius_rule)
                 field_index += 1
