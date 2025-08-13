@@ -7,6 +7,7 @@
 
 from urllib.parse import quote_plus
 
+from cruds.dynamic_query import query_sql
 from config import METADATA_DB_IP, METADATA_DB_NAME, METADATA_DB_USER, METADATA_DB_PORT, METADATA_DB_PASSWORD
 from cruds.pangu import (get_all_pangu_field_stat, pangu_recommend_field_info, pangu_dict_key_values,
                          save_recommend_pangu_field_info, save_pangu_dict_info)
@@ -25,7 +26,6 @@ class PanGuFieldCrawler:
                                        f"?client_encoding=UTF8"
         self.metadata_db = Database(url=self.metadata_sqlalchemy_url)
         self.all_field_stat_data: list[dict[str, int]] = list()
-        self.all_dictkey_with_nlevel_data: list[str] = list()
         self.batch_size = 100
 
     def fetch_pangu_all_field_stat(self) -> bool:
@@ -48,8 +48,6 @@ class PanGuFieldCrawler:
             if status is False:
                 logger.error(f"盘古字段推荐异常: field_en_name={field_en_name} ERROR: {message}")
                 return False
-            if data.dictkey:
-                self.all_dictkey_with_nlevel_data.append(data.dictkey)
             save_filed_status, save_field_message = save_recommend_pangu_field_info(
                 db_handler=self.inner_db,
                 recommend_pangu_field_data=data.model_dump())
@@ -65,7 +63,15 @@ class PanGuFieldCrawler:
 
     def fetch_pangu_dict_info(self) -> bool:
         logger.info("正在执行盘古字典采集")
-        for index, dictkey_with_nlevel in enumerate(set(self.all_dictkey_with_nlevel_data), start=1):
+        query_status, query_message, distinct_dict_keys = query_sql(
+            db=self.inner_db,
+            sql_text="SELECT DISTINCT dictkey FROM recommend_pangu_field_info WHERE dictkey IS NOT NULL")
+        if query_status is False:
+            logger.error(f"无法获取推荐字段的字典集合: {query_message}")
+            return False
+        all_dictkey_with_nlevel_data = [ele["dictkey"] for ele in distinct_dict_keys]
+        logger.info(f"共计需要采集 {len(all_dictkey_with_nlevel_data)} 个盘古字典")
+        for index, dictkey_with_nlevel in enumerate(all_dictkey_with_nlevel_data, start=1):
             logger.info(f"[{index}]正在采集盘古字典: dictkey_with_nlevel={dictkey_with_nlevel}")
             status, message, data = pangu_dict_key_values(db_handler=self.metadata_db,
                                                           dictkey_with_nlevel=dictkey_with_nlevel)
@@ -78,7 +84,7 @@ class PanGuFieldCrawler:
                 if save_status is False:
                     logger.error(f"存储盘古字典异常: dictkey_with_nlevel={dictkey_with_nlevel} "
                                  f"each_data={each_data} "
-                                 f"ERROR: {message}")
+                                 f"ERROR: {save_message}")
                     self.inner_db.session.rollback()
                     return False
             if index % self.batch_size == 0:

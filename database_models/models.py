@@ -196,7 +196,11 @@ class PanGuDictInfo(CommonTableArgsMixin, CommonColumnMixin, Base):
     __table_args_map__ = {
         "comment": "盘古字典",
     }
-    uuid = Column(BigInteger, nullable=False, unique=True, comment="字典的唯一编码")
+    __table_args_array__ = [
+        UniqueConstraint("uuid", name="uuid"),
+        UniqueConstraint("dictkey_with_nlevel", "uuid", name="dictkey_with_nlevel_uuid_unique")
+    ]
+    uuid = Column(BigInteger, nullable=False, comment="字典的唯一编码")
     dictkey_with_nlevel = Column(String(length=128), nullable=False, index=True, comment="字段存储的字典key")
     dict_category_code = Column(String(length=128), nullable=False, comment="字典类别key")
     dict_category = Column(String(length=384), nullable=False, comment="字典类别名称")
