@@ -55,9 +55,9 @@ GEN_TABLE_MODELS_DATA_PATH = GEN_TABLE_MODELS_BASE_PATH.joinpath("data").absolut
 CONF_DATA_PATH = PROJECT_PATH.joinpath("conf").absolute()
 DATABASE_PATH = PROJECT_PATH.joinpath("database").absolute()
 
-TTH_CONFIG_PATH = CONF_DATA_PATH.joinpath("tth_config.yaml").absolute()
-REGISTRY_CONFIG_PATH = CONF_DATA_PATH.joinpath("registry.yaml").absolute()
-OMS_CONFIG_PATH = CONF_DATA_PATH.joinpath("oms_config.yaml").absolute()
+PRESET_FIXED_DG_RULE_PATH = PROJECT_PATH.joinpath("preset_fixed_field_dg_rule").absolute()
+PRESET_FIXED_PANGU_DG_RULE_PATH = PRESET_FIXED_DG_RULE_PATH.joinpath("pangu.yaml")
+PRESET_FIXED_TRE_DG_RULE_PATH = PRESET_FIXED_DG_RULE_PATH.joinpath("tre.yaml")
 
 PICK_DATA_SQL_LIMIT = 1
 BEGIN_TIME_OFFSET = -60
@@ -122,7 +122,7 @@ print(
 ENV_DB_MODE = "POSTGRESQL"
 DIALECT = "postgresql"
 DRIVER = "psycopg2"
-DB_HOST = "172.16.150.178"
+DB_HOST = os.getenv("INNER_DB_HOST", "172.16.150.178")
 DB_PORT = 5432
 DB_USERNAME = "data_forge"
 DB_PASSWORD = "data_forge_2590"
