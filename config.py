@@ -10,7 +10,7 @@ import os
 import pathlib
 
 ENV_LOG_LEVEL = os.getenv("LOG_LEVEL", default="INFO")
-ENV_SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", default=False)
+ENV_SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", default=0)
 ENV_HOST = os.getenv("SERVER_HOST", default="0.0.0.0")
 ENV_PORT = os.getenv("SERVER_PORT", default=25702)
 dev3_env = "172.16.112.99"
@@ -132,7 +132,7 @@ SQLALCHEMY_URL = f"{DIALECT}+{DRIVER}://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{D
                  f"?client_encoding={CHARSET}"
 
 # SQLAlchemy Config
-SQLALCHEMY_ECHO = bool(ENV_SQLALCHEMY_ECHO)
+SQLALCHEMY_ECHO = True if int(ENV_SQLALCHEMY_ECHO) else False
 SQLALCHEMY_AUTO_FLUSH = True
 SQLALCHEMY_AUTO_COMMIT = False
 
