@@ -57,7 +57,7 @@ services:
       - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=false
+      - SQLALCHEMY_ECHO=0
       # 数据默认保留时间
       - DATA_EXPIRED_DAY=30
       # 部署环境的服务器IP
@@ -65,6 +65,7 @@ services:
       - SERVER_PORT=25702
       - APOLLO_WEB_IP=172.21.5.130
       - APOLLO_WEB_PORT=8070
+      - INNER_DB_HOST=DataForgeDB
 
   data_gen_chat:
     image: llm_server_py313_env:1.0.0
@@ -97,9 +98,10 @@ services:
       - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=false
+      - SQLALCHEMY_ECHO=0
       # 数据默认保留时间
       - DATA_EXPIRED_DAY=30
+      - INNER_DB_HOST=DataForgeDB
 
   table_gen_chat:
     image: llm_server_py313_env:1.0.0
@@ -132,9 +134,10 @@ services:
       - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=false
+      - SQLALCHEMY_ECHO=0
       # 数据默认保留时间
       - DATA_EXPIRED_DAY=30
+      - INNER_DB_HOST=DataForgeDB
 
   sql_mode_data_gen_chat:
     image: llm_server_py313_env:1.0.0
@@ -167,9 +170,10 @@ services:
       - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=false
+      - SQLALCHEMY_ECHO=0
       # 数据默认保留时间
       - DATA_EXPIRED_DAY=30
+      - INNER_DB_HOST=DataForgeDB
 
 
   fmdb_insert_sql_gen_chat:
@@ -203,9 +207,10 @@ services:
       - TZ=Asia/Shanghai
       # 日志级别
       - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=false
+      - SQLALCHEMY_ECHO=0
       # 数据默认保留时间
       - DATA_EXPIRED_DAY=30
+      - INNER_DB_HOST=DataForgeDB
 
 #  caddy:
 #    image: caddy:2-alpine
