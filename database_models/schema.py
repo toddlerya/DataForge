@@ -118,7 +118,7 @@ class PydanticDataGeniusRule(BaseModel):
     ename: str = Field(..., description="字段英文名称")
     cname: str = Field("", description="字段中文名称")
     preview: str = Field("", description="字段示例数据预览")
-    value: str = Field("", description="字段示例数据值")
+    value: str | int | float | list | dict = Field("", description="字段示例数据值")
     args: Dict[str, str | list] = Field(
         default_factory=dict, description="规则参数字典，包含生成数据所需的参数。"
     )

@@ -213,6 +213,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
             logger.error(f"查询DG规则缓存异常: {query_message}")
 
         # 无法命中缓存则继续LLM推荐，有重试机制
+        logger.info(f"字段{field_info.en_name}未命中缓存，触发LLM推荐")
         for retry_count in range(max_retries + 1):
             recommend_status, last_error_message, pydantic_data_genius_rule = recommend_dg_rule_by_llm(
                 structured_llm=structured_llm,

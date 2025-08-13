@@ -396,7 +396,7 @@ def is_pre_heat_dg_rule_mode(state: DataGenState):
     if pre_heat_mode is True:
         return END
     else:
-        return "create_dg_task"
+        return "save_dg_plan2json"
 
 
 def create_dg_task(state: DataGenState) -> DataGenState:
@@ -565,12 +565,12 @@ data_gen_builder.add_conditional_edges(
     ["rag_sql_table_filed_info", END],
 )
 data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_recommend")
-data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
 data_gen_builder.add_conditional_edges(
-    "save_dg_plan2json",
+    "dg_category_recommend",
     is_pre_heat_dg_rule_mode,
-    ["create_dg_task", END]
+    ["save_dg_plan2json", END]
 )
+data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
 data_gen_builder.add_edge("query_dg_task_status", END)
 

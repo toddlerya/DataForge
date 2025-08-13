@@ -152,7 +152,7 @@ data_scope_resource_url = (
 data_scope_resource_detail_url = (
     f"https://{data_scope_ip_port}/offsite/v1/resource/detail"
 )
-data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=0532be9c6d2c42778c83b348490ac21a; appToken=2a170db2c98344dfbc13d05a8aae02d8"
+data_scope_cookie = "contextPath=/offsite; citycode=330000; appId=offsite; topoptid=offsite; userToken=e52cd971b6b34d6cb2392f509afb28e3; appToken=dd9da97d36d247d18c60cf73327b4c7c"
 
 # 盘古配置
 pangu_ip_port = "172.21.4.42:11018"
