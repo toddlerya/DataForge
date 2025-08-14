@@ -74,7 +74,7 @@ def cache_dg_rule(db_handler: Database,
 
 
 def recommend_dg_rule_by_llm(structured_llm,
-                             field_index: int,
+                             col_index: int,
                              field_info: TableRawFieldSchema,
                              DG_FIELD_CATEGORY_CONFIG: list[dict],
                              table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]],
@@ -118,7 +118,7 @@ def recommend_dg_rule_by_llm(structured_llm,
             category = "自定义-枚举"
             logger.debug(f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}")
         pydantic_data_genius_rule = PydanticDataGeniusRule(
-            col=field_index,
+            col=col_index,
             category=category,
             name=name,
             ename=field_info.en_name,
@@ -177,7 +177,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
 
     # 如果类别推荐错误，记录错误信息，补充到提示词不要再次生成错误的类别推荐，重试N次
     last_error_message = ""
-    field_index = 1
+    field_index = 0
     # 设置最大重试次数
     max_retries = state["max_retries"]
     stop_flag = False
@@ -186,6 +186,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
     db_handler = Database()
 
     while True:
+        col_index = field_index + 1
         if field_index >= len(table_metadata.raw_fields_info):
             stop_flag = True
         if stop_flag:
@@ -202,7 +203,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
             logger.info(f"字段 {field_info.en_name} 命中DG规则缓存 cache_result: {query_result.to_dict()}")
             cached_dg_rule = PydanticDataGeniusRule(**query_result.dg_rule)
             # 更新字段的DG规则配置
-            cached_dg_rule.col = field_index
+            cached_dg_rule.col = col_index
             cached_dg_rule.value = field_info.example
             rules.append(cached_dg_rule)
             # 字段序号+1
@@ -217,7 +218,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
         for retry_count in range(max_retries + 1):
             recommend_status, last_error_message, pydantic_data_genius_rule = recommend_dg_rule_by_llm(
                 structured_llm=structured_llm,
-                field_index=field_index,
+                col_index=col_index,
                 field_info=field_info,
                 DG_FIELD_CATEGORY_CONFIG=DG_FIELD_CATEGORY_CONFIG,
                 table_dictkey_map=table_dictkey_map,
@@ -242,7 +243,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                     )
                     # 构建该字段的DataGenius规则参数
                     pydantic_data_genius_rule = PydanticDataGeniusRule(
-                        col=field_index,
+                        col=col_index,
                         category=llm_dg_field_category_recommendation.category,
                         name="",
                         ename=field_info.en_name,

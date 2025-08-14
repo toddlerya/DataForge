@@ -389,7 +389,7 @@ def save_dg_plan2json(state: SQLModeDataGenState):
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
         save_json_path = DG_PLAN_PATH.joinpath(
-            f"{pydantic_data_genius_plan.rule_name}"
+            f"{pydantic_data_genius_plan.rule_name}.json"
         ).absolute()
         save_dict2jl(json_data=data, save_path=str(save_json_path))
     if table_metadata_info:
@@ -594,7 +594,7 @@ if __name__ == "__main__":
     init_env()
 
     print(sql_mode_data_gen_graph.get_graph(xray=True).draw_mermaid())
-    user_input = """SQL内容(必填): select node_22.MD_ID as F1131,node_22.AUTH_TYPE as F1132,node_22.AUTH_ACCOUNT as F1133,node_22.VPN_TYPE as F1134,node_22.SERVER_IP as F1135,node_22.SERVER_PORT as F1136,node_22.FIRST_TIME as F1137,node_22.LAST_TIME as F1138,node_22.CCOUNT as F1139,node_22.DCOUNT as F1140,node_22.DETAIL as F1141,node_22.DATA_COLOR_ID as F1142,node_2.adsl as F1144 from massdata.DWS_BEH_ANA_VPN as node_22
+    user_input = """SQL内容(必填): select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE, NICKNAME, REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT, REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE, REGISIP_REGIONAL_CODE, PACKAGENAME, CAPTURE_TIME, ACTIONTYPE, ACTIONTIME from XY_BF_ACCOUNT
     期望生成数据条数(必填): 100"""
     session_id = uuid.uuid4().hex
     thread = {"configurable": {"thread_id": session_id}}
@@ -602,7 +602,7 @@ if __name__ == "__main__":
         "user_input": user_input,
         "user_intent": DataGenSQLModeUserIntentSchema(
             **{
-                "sql": "SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134, SERVER_IP AS F1135, SERVER_PORT AS F1136, FIRST_TIME AS F1137, LAST_TIME AS F1138, CCOUNT AS F1139, DCOUNT AS F1140, DETAIL AS F1141, DATA_COLOR_ID AS F1142, adsl AS F1144 FROM massdata.DWS_BEH_ANA_VPN",
+                "sql": "select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE, NICKNAME, REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT, REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE, REGISIP_REGIONAL_CODE, PACKAGENAME, CAPTURE_TIME, ACTIONTYPE, ACTIONTIME from XY_BF_ACCOUNT",
                 "data_count": 100,
             }
         ),
