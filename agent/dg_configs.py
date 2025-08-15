@@ -74,6 +74,7 @@ DG_FIELD_CATEGORY_CONFIG = [
     {"category": "日期", "value": "1975-01-28"},
     {"category": "日期-2", "value": "19790809"},
     {"category": "当前日期", "value": "2025-06-05"},
+    {"category": "当前日期-2", "value": "20250605"},
     {"category": "当月日期", "value": "2025-06-05"},
     {"category": "时间", "value": "2022-12-02 16:48:10"},
     {"category": "时间绝对秒", "value": 970229372},
