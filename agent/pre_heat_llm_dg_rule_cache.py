@@ -9,9 +9,30 @@ import uuid
 
 from cruds.dynamic_query import query_sql
 from utils.db import Database
-from utils.log import logger
+from utils.log import logger, TracedLogger
+from utils.file import load_yaml_from_file
 from agent.state import DataGenUserIntentSchema
 from agent.data_graph import data_gen_graph
+from agent.dg_rule_processor import cache_dg_rule
+from config import PRESET_FIXED_PANGU_DG_RULE_PATH, PRESET_FIXED_TRE_DG_RULE_PATH
+
+
+def preset_fixed_dg_rule(db_handler: Database):
+    """
+    初始化预置固化的字段DG规则
+    Args:
+        db_handler:
+
+    Returns:
+
+    """
+    for yaml_file in [PRESET_FIXED_PANGU_DG_RULE_PATH]:
+        load_message, yaml_data = load_yaml_from_file(yaml_file_path=yaml_file)
+        if load_message != "ok":
+            logger.error(f"读取数据异常! yaml_file={yaml_file} error: {load_message}")
+            continue
+        logger.info(yaml_data)
+    # cache_dg_rule(db_handler=db_handler)
 
 
 async def pre_heat_llm_recommendation_dg_rule(db_handler: Database):
@@ -52,8 +73,13 @@ async def pre_heat_llm_recommendation_dg_rule(db_handler: Database):
         event = await data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
 
 
-if __name__ == '__main__':
+def run_data_graph_preheat():
     import asyncio
+
+    asyncio.run(pre_heat_llm_recommendation_dg_rule(db_handler=Database()))
+
+
+if __name__ == '__main__':
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
 
@@ -67,5 +93,15 @@ if __name__ == '__main__':
     )
     setup_logging(log_config.get_config().get("handlers"))
     init_env()
+    # run_data_graph_preheat()
+    # preset_fixed_dg_rule(db_handler=Database())
+    session_id = uuid.uuid4().hex
 
-    asyncio.run(pre_heat_llm_recommendation_dg_rule(db_handler=Database()))
+    trace_logger = TracedLogger()
+    token = trace_logger.set_trace_uuid(session_id)
+    trace_logger.info("测试trace--1")
+    trace_logger.info("测试trace--2")
+    trace_logger.reset_trace_uuid(token)
+    trace_logger.info("测试trace--reset")
+    token = trace_logger.set_trace_uuid(uuid.uuid4().hex)
+    trace_logger.info("测试trace--3")

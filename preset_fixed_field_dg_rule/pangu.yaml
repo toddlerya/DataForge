@@ -1,0 +1,25 @@
+---
+field_info:
+  en_name: "LAW_REPR_FIXED_TEL"
+  cn_name: "法人固定电话"
+  desc: "字段说明：【人员或机构的联系电话号码】样例数据：【63722142】"
+  field_type: "string"
+  is_require: 0
+  dict_key: ""
+  dict_name: ""
+  example: "63722142"
+pydantic_data_genius_rule:
+  col: 0,
+  category: "自定义-字符串"
+  name: "固定电话"
+  ename: "LAW_REPR_FIXED_TEL"
+  cname: "法人固定电话"
+  preview: "预置固化DG规则"
+  value: "025-5328730"
+  args: {
+    "max_": "6",
+    "head": "025-",
+    "chars_in": "123456789",
+    "tail": "0",
+    "min_": "6"
+  }

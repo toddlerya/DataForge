@@ -10,7 +10,7 @@ import uuid
 
 from fastapi import APIRouter, Request
 
-from utils.log import logger
+from utils.log import logger, TracedLogger
 from server.api.utils import extract_client_ip
 from server.api.schemas.base_schema import ResponseBaseSchema
 from server.api.schemas.agent_data_gen import (
@@ -38,18 +38,24 @@ async def init_sql_mode_data_gen_graph(
     :param request
     :return:
     """
+    session_id = uuid.uuid4().hex
+
+    trace_logger = TracedLogger()
+    trace_token = trace_logger.set_trace_uuid(session_id)
+
     client_ip = extract_client_ip(request)
-    logger.info(
+    trace_logger.info(
         f"[数据生成Graph] 初始化, client_ip={client_ip}, 分析用户意图: init_data_gen={init_data_gen.model_dump_json()}"
     )
     resp_data = ResponseBaseSchema(description="[数据生成Graph] 初始化，分析用户意图")
-    session_id = uuid.uuid4().hex
     resp_data.session_id = session_id
+
     init_state = {
         "user_input": init_data_gen.user_input,
         "max_retries": init_data_gen.max_retries,
         "session_id": session_id,
         "client_ip": client_ip,
+        "trace_token": trace_token
     }
 
     thread = {"configurable": {"thread_id": session_id}}
@@ -75,7 +81,7 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
     :param feedback_data:
     :return:
     """
-    logger.info(f"[数据生成Graph] 用户反馈: {feedback_data.model_dump_json()}")
+    trace_logger.info(f"[数据生成Graph] 用户反馈: {feedback_data.model_dump_json()}")
     resp_data = ResponseBaseSchema(
         description="[数据生成Graph] 确认用户反馈并开始生成数据"
     )

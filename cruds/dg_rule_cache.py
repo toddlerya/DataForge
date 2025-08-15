@@ -67,3 +67,11 @@ def query_field_dg_rule(
         return False, f"查询失败: {str(e)}", None
 
 
+if __name__ == '__main__':
+    query_status, query_message, query_result = query_field_dg_rule(db_handler=Database(),
+                                                                    ename="GROUPID",
+                                                                    cname="群号",
+                                                                    field_type_name="string")
+    print(query_status)
+    print(query_message)
+    print(query_result)

@@ -21,27 +21,8 @@ from utils.file import create_dir
 import logging
 import sys
 
-
-from utils.log import logger
+from utils.log import logger, InterceptHandler
 from config import ENV_LOG_LEVEL
-
-
-class InterceptHandler(logging.Handler):
-    def emit(self, record):
-        # Get corresponding loguru level if exists
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-        # Find caller from where originated the loggerd message
-        frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
 
 
 def setup_logging(handlers: list):
@@ -58,6 +39,7 @@ def setup_logging(handlers: list):
     # requests禁用debug和info日志，不跟随业务日志级别，其中requests调用的是urllib3.connectionpool，因此设置这个日志级别即可
     logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
     logging.getLogger("apscheduler").setLevel(logging.WARNING)
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 
 def init_env():
