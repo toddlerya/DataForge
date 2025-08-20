@@ -78,7 +78,7 @@ async def process_step(event, graph):
             ).send()
             res = await cl.AskUserMessage(
                 author="Assistant",
-                content="上述意图识别结果是否正确？若不正确请调整输入信息再次尝试意图识别；若正确，请输入“正确”，将开始数据生成任务。",
+                content="上述意图识别结果是否正确？若不正确请调整输入信息再次尝试意图识别；若正确，请输入“正确“或”Y”，将开始数据生成任务。",
                 timeout=300,
             ).send()
             if res:
@@ -156,12 +156,12 @@ async def process_step(event, graph):
                 "pydantic_data_genius_plan"
             )
             dg_plan_json_path = DG_PLAN_PATH.joinpath(
-                f"{pydantic_data_genius_plan.rule_name}"
+                f"{pydantic_data_genius_plan.rule_name}.json"
             ).absolute()
             logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
             download_dg_plan_json_elements = [
                 cl.File(
-                    name=pydantic_data_genius_plan.rule_name,
+                    name=f"{pydantic_data_genius_plan.rule_name}.json",
                     path=str(dg_plan_json_path),
                     display="inline",
                 ),

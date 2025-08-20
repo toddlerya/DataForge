@@ -94,7 +94,7 @@ def should_data_intent_continue(state: SQLModeDataGenState):
 
     # Check if human feedback
     human_intent_feedback = state.get("human_intent_feedback", "").strip()
-    if human_intent_feedback == "正确":
+    if human_intent_feedback == "正确" or human_intent_feedback == "Y":
         return "sql_parse_to_table_info"
 
     # Otherwise proceed to create table info
