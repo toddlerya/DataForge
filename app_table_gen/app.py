@@ -18,7 +18,7 @@ from agent.state import TableGenUserIntentSchema
 
 from common.initialization import init_env, setup_logging
 
-from utils.log import LogManager
+from utils.log import LogManager, TracedLogger
 
 log_config = LogManager(
     base_path=str(PROJECT_PATH.absolute()),
@@ -27,6 +27,7 @@ log_config = LogManager(
     file_log_level="INFO",
 )
 setup_logging(log_config.get_config().get("handlers"))
+traced_logger = TracedLogger()
 init_env()
 
 # 加载 .env 文件
@@ -192,6 +193,11 @@ async def process_step(event, graph):
 
 @cl.on_message
 async def main(message: cl.Message):
+    # 如果没有初始化trace_uuid则初始化trace_token
+    if traced_logger.get_trace_uuid() is None:
+        trace_token = traced_logger.set_trace_uuid(trace_uuid=cl.context.session.id)
+        cl.user_session.set("trace_token", trace_token)
+
     logger.info(
         f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} message: {message.content}"
     )
@@ -220,6 +226,9 @@ async def main(message: cl.Message):
 
     async for step_output in table_gen_graph.astream(None, config):
         await process_step(step_output, table_gen_graph)
+
+    # 完成会话清空trace_uuid
+    traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
 
 
 if __name__ == "__main__":

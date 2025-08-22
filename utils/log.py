@@ -4,15 +4,19 @@
 # @Time    :   2023/04/13 13:57:32
 # @Author  :   toddlerya
 # @Desc    :   None
-
+import asyncio
 import logging
 import pathlib
 import sys
-from typing import Optional
+import uuid
+from functools import wraps
+from typing import Optional, Dict, Any, Callable
 from contextvars import ContextVar, Token
 
+from fastapi import Request, FastAPI
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.responses import Response
 from loguru import logger
-
 
 # 创建上下文变量来存储trace_uuid
 trace_context: ContextVar[Optional[str]] = ContextVar("trace_uuid", default=None)
@@ -22,6 +26,7 @@ class TraceFilter:
     """
     为loguru添加trace_uuid的过滤器
     """
+
     def __call__(self, record):
         trace_uuid = trace_context.get()
         record["extra"]["trace_uuid"] = trace_uuid or "NO_TRACE"
@@ -32,6 +37,7 @@ class InterceptHandler(logging.Handler):
     """
     拦截标准库logging的handler，转发给loguru
     """
+
     def emit(self, record):
         # Get corresponding loguru level if exists
         try:
@@ -51,18 +57,18 @@ class InterceptHandler(logging.Handler):
 
 class LogManager:
     def __init__(
-        self,
-        base_path,
-        log_path,
-        log_name,
-        log_format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | "
-                   "<yellow>[{extra[trace_uuid]}]</yellow>  | <cyan>{module} {function}:{line}</cyan> - <level>{message}</level>",
-        file_log_level="INFO",
-        console_log_level="INFO",
-        rotation="32 MB",
-        compression="zip",
-        log_encode="utf-8",
-        enqueue=True,
+            self,
+            base_path,
+            log_path,
+            log_name,
+            log_format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | "
+                       "<yellow>[{extra[trace_uuid]}]</yellow>  | <cyan>{module} {function}:{line}</cyan> - <level>{message}</level>",
+            file_log_level="INFO",
+            console_log_level="INFO",
+            rotation="32 MB",
+            compression="zip",
+            log_encode="utf-8",
+            enqueue=True,
     ):
         """
         初始化logger参数
@@ -113,29 +119,50 @@ class LogManager:
         return self.__config
 
 
+class TraceMiddleware(BaseHTTPMiddleware):
+    """FastAPI中间件，为每个请求生成和管理trace_uuid"""
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        # 生成或获取trace_uuid
+        trace_uuid = request.headers.get("X-Trace-UUID") or uuid.uuid4().hex
+
+        # 设置到上下文变量中
+        token = trace_context.set(trace_uuid)
+
+        try:
+            # 记录请求开始
+            logger.info(f"Request started: {request.method} {request.url.path}")
+
+            # 处理请求
+            response = await call_next(request)
+
+            # 添加trace_uuid到响应头
+            response.headers["X-Trace-UUID"] = trace_uuid
+
+            # 记录请求结束
+            logger.info(f"Request completed: {response.status_code}")
+
+            return response
+
+        except Exception as e:
+            logger.error(f"Request failed with exception: {str(e)}")
+            raise
+
+        finally:
+            # 清理上下文
+            trace_context.reset(token)
+
+
 class TracedLogger:
     """
-    封装logger类，提供更便捷的日志追踪方法
+    单例模式封装logger类，提供更便捷的日志追踪方法
     """
-    @staticmethod
-    def info(message: str, **kwargs):
-        logger.info(message, **kwargs)
+    _instance = None
 
-    @staticmethod
-    def error(message: str, **kwargs):
-        logger.error(message, **kwargs)
-
-    @staticmethod
-    def warning(message: str, **kwargs):
-        logger.warning(message, **kwargs)
-
-    @staticmethod
-    def debug(message: str, **kwargs):
-        logger.debug(message, **kwargs)
-
-    @staticmethod
-    def trace(message: str, **kwargs):
-        logger.trace(message, **kwargs)
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(TracedLogger, cls).__new__(cls)
+        return cls._instance
 
     @staticmethod
     def get_trace_uuid() -> Optional[str]:

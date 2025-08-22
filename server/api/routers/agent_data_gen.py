@@ -7,10 +7,11 @@
 
 import json
 import uuid
+from loguru import logger
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 
-from utils.log import logger
+from server.api.depends import get_transaction_logger
 from server.api.utils import extract_client_ip
 from server.api.schemas.base_schema import ResponseBaseSchema
 from server.api.schemas.agent_data_gen import (
@@ -29,19 +30,22 @@ router = APIRouter(
 
 
 @router.post("/set_intent", response_model=ResponseBaseSchema)
-async def init_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request):
+async def init_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request,
+                              traced_logger=Depends(get_transaction_logger)):
     """
     设置用户意图，初始化图
     :param init_data_gen:
     :param request
+    :param traced_logger
     :return:
     """
+    # session_id = uuid.uuid4().hex
+    session_id = traced_logger.get_trace_uuid()
     client_ip = extract_client_ip(request)
     logger.info(
         f"[数据生成Graph] 初始化, client_ip={client_ip}, 分析用户意图: init_data_gen={init_data_gen.model_dump_json()}"
     )
     resp_data = ResponseBaseSchema(description="[数据生成Graph] 初始化，分析用户意图")
-    session_id = uuid.uuid4().hex
     resp_data.session_id = session_id
     init_state = {
         "user_input": init_data_gen.user_input,
@@ -65,12 +69,15 @@ async def init_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request
 
 
 @router.post("/human_intent_feedback", response_model=ResponseBaseSchema)
-async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
+async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema,
+                                    traced_logger=Depends(get_transaction_logger)):
     """
     用户反馈确认
     :param feedback_data:
+    :param traced_logger:
     :return:
     """
+    traced_logger.set_trace_uuid(trace_uuid=feedback_data.session_id)
     logger.info(f"[数据生成Graph] 用户反馈: {feedback_data.model_dump_json()}")
     resp_data = ResponseBaseSchema(
         description="[数据生成Graph] 确认用户反馈并开始生成数据"
@@ -133,17 +140,19 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema):
 
 
 @router.post("/run", response_model=ResponseBaseSchema)
-async def run_graph(user_intent: DataGenUserIntentSchema, request: Request):
+async def run_graph(user_intent: DataGenUserIntentSchema, request: Request,
+                    traced_logger=Depends(get_transaction_logger)):
     """
     用户反馈确认
     :param user_intent:
     :param request
+    :param traced_logger
     :return:
     """
+    session_id = traced_logger.get_trace_uuid()
     logger.info(f"[数据生成Graph] 初始化图并运行: {user_intent.model_dump_json()}")
     resp_data = ResponseBaseSchema(description="[数据生成Graph] 初始化图并运行")
     client_ip = extract_client_ip(request)
-    session_id = uuid.uuid4().hex
     resp_data.session_id = session_id
     init_state = {
         "user_input": user_intent.model_dump_json(),

@@ -6,13 +6,13 @@
 # @Project  : DataForge
 
 
-import sys
+import uuid
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import pathlib
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import (
@@ -21,34 +21,12 @@ from fastapi.openapi.docs import (
     get_swagger_ui_oauth2_redirect_html,
 )
 
-from config import (
-    SQLALCHEMY_AUTO_COMMIT,
-    SQLALCHEMY_AUTO_FLUSH,
-    SQLALCHEMY_ECHO,
-    SQLALCHEMY_URL,
-)
-from utils.log import logger
-from utils.db import Database
 from server.api.routers import agent_data_gen
 from server.api.routers import agent_sql_mode_data_gen
 from common.initialization import init_env
 
 # 实例化动态任务调度器
 scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
-
-
-@logger.catch(reraise=True)
-def get_db():
-    db = Database(
-        url=SQLALCHEMY_URL,
-        echo=SQLALCHEMY_ECHO,
-        auto_flush=SQLALCHEMY_AUTO_FLUSH,
-        auto_commit=SQLALCHEMY_AUTO_COMMIT,
-    )
-    try:
-        yield db
-    finally:
-        db.session.close()
 
 
 init_env()

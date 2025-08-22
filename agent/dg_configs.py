@@ -84,6 +84,7 @@ DG_FIELD_CATEGORY_CONFIG = [
     {"category": "当月时间绝对秒", "value": 1748848272},
     {"category": "警情编号", "value": "JQ21390160"},
     {"category": "案件编号", "value": "JQ57848142"},
+    {"category": "香烟品牌", "value": "软玉溪"},
 ]
 
 DG_FIELD_CATEGORY_RAW_CONFIG = {

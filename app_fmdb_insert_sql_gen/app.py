@@ -22,7 +22,7 @@ from agent.state import TableMetadataSchema
 from common.initialization import init_env, setup_logging
 from config import PROJECT_PATH, DG_PLAN_PATH
 
-from utils.log import LogManager
+from utils.log import LogManager, TracedLogger
 
 log_config = LogManager(
     base_path=str(PROJECT_PATH.absolute()),
@@ -31,6 +31,7 @@ log_config = LogManager(
     file_log_level="INFO",
 )
 setup_logging(log_config.get_config().get("handlers"))
+traced_logger = TracedLogger()
 init_env()
 # 加载 .env 文件
 load_dotenv(PROJECT_PATH.absolute())
@@ -38,6 +39,11 @@ load_dotenv(PROJECT_PATH.absolute())
 
 @cl.on_chat_start
 async def start_chat():
+    # 如果没有初始化trace_uuid则初始化trace_token
+    if traced_logger.get_trace_uuid() is None:
+        trace_token = traced_logger.set_trace_uuid(trace_uuid=cl.context.session.id)
+        cl.user_session.set("trace_token", trace_token)
+
     if hasattr(cl.context.session, "environ") and cl.context.session.environ:
         client_port_tuple = cl.context.session.environ.get("asgi.scope", {}).get(
             "client"
@@ -155,6 +161,8 @@ async def start_chat():
             insert_sql += ";"
     await cl.Message(content=insert_sql, language="sql").send()
 
+    # 完成会话清空trace_uuid
+    traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
 
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit

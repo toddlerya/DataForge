@@ -27,14 +27,21 @@ from agent.state import (
     PydanticDataGeniusPlan,
     TableMetadataSchema,
     DataGenUserIntentSchema,
-    init_dg_category_config
+    init_dg_category_config,
 )
 from agent.dg_rule_processor import dg_rule_processor
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from config import DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
 from cruds.table_metadata import table_metadata_query
-from cruds.pangu import query_dict_items_info_by_dict_category, query_dict_items_info_by_dictkey
-from database_models.schema import TableRawFieldSchema, RecommendPanGuDictSchema, PydanticDataGeniusRule
+from cruds.pangu import (
+    query_dict_items_info_by_dict_category,
+    query_dict_items_info_by_dictkey,
+)
+from database_models.schema import (
+    TableRawFieldSchema,
+    RecommendPanGuDictSchema,
+    PydanticDataGeniusRule,
+)
 from agent.dg_configs import (
     DG_STORAGE_PATH,
     DG_SERVER_BASE_URL,
@@ -44,6 +51,7 @@ from agent.dg_configs import (
 )
 from utils.db import Database
 from utils.file import save_dict2jl
+from utils.log import TracedLogger
 
 
 def detect_input_type(state: DataGenState):
@@ -52,6 +60,7 @@ def detect_input_type(state: DataGenState):
     :param state:
     :return:
     """
+
     user_intent: DataGenUserIntentSchema = state.get("user_intent")
     if user_intent:
         return "query_table_raw_field_info"
@@ -148,7 +157,9 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
     logger.info("RAG增强字段属性信息")
     DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
     table_metadata_array = state["table_metadata_array"]
-    table_metadata: TableMetadataSchema = table_metadata_array[0] if table_metadata_array else None
+    table_metadata: TableMetadataSchema = (
+        table_metadata_array[0] if table_metadata_array else None
+    )
     if not table_metadata:
         logger.error("未查询到表元数据，无法进行字段字典RAG增强推荐")
         state["error_message"].append("未查询到表元数据，无法进行字段字典RAG增强推荐")
@@ -164,15 +175,16 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
             dict_key_with_nlevel = each_field.dict_key + ":2"
             table_dictkey_slice.append(dict_key_with_nlevel)
             dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(
-                db_handler=db_handler,
-                dictkey_with_nlevel=dict_key_with_nlevel)
+                db_handler=db_handler, dictkey_with_nlevel=dict_key_with_nlevel
+            )
             if dict_status is False:
                 logger.error(f"获取盘古字典异常: {dict_message}")
         elif each_field.dict_name:
             # 盘古页面获取的表元数据没有dict_key，只有dict_name，对应RecommendPanGuDictSchema.dict_category
-            dict_status, dict_message, dict_result = query_dict_items_info_by_dict_category(
-                db_handler=db_handler,
-                dict_category=each_field.dict_name
+            dict_status, dict_message, dict_result = (
+                query_dict_items_info_by_dict_category(
+                    db_handler=db_handler, dict_category=each_field.dict_name
+                )
             )
         else:
             # 都没有就跳过
@@ -188,7 +200,10 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
                 value.pop("dict_category_code")
                 value.pop("dict_category")
                 logger.info(f"将盘古字典添加到DG规则配置中: {category}")
-                config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
+                config_value = {
+                    "category": category,
+                    "value": json.dumps(value, ensure_ascii=False),
+                }
                 DG_FIELD_CATEGORY_CONFIG.append(config_value)
                 table_dictkey_map[category] = dict_result
             # 补充字典类别名称
@@ -221,7 +236,8 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
     client_ip = state["client_ip"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     logger.info(
-        f"DG_FIELD_CATEGORY_CONFIG category slice: {[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}")
+        f"DG_FIELD_CATEGORY_CONFIG category slice: {[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}"
+    )
     table_dictkey_map = state.get("table_dictkey_map")
     state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
     table_en_name = user_intent.table_en_names[0]
@@ -309,7 +325,9 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
             name = ""
             category = llm_dg_field_category_recommendation.category
             if category in table_dictkey_map:
-                dict_items: list[RecommendPanGuDictSchema] = table_dictkey_map.get(category)
+                dict_items: list[RecommendPanGuDictSchema] = table_dictkey_map.get(
+                    category
+                )
                 # TODO: 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
                 if len(dict_items) > 100:
                     dict_items = dict_items[:100]
@@ -317,7 +335,9 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
                 args = {"choices": choices}
                 name = f"{category}_字典规则"
                 category = "自定义-枚举"
-                logger.debug(f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}")
+                logger.debug(
+                    f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}"
+                )
             pydantic_data_genius_rule = PydanticDataGeniusRule(
                 col=field_index + 1,
                 category=category,
@@ -326,7 +346,7 @@ def dg_category_recommend(state: DataGenState) -> DataGenState:
                 cname=field_info.cn_name,
                 preview=f"score: {llm_dg_field_category_recommendation.score}, reason: {llm_dg_field_category_recommendation.reason}",
                 value=field_info.example,
-                args=args
+                args=args,
             )
             logger.trace(
                 f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
@@ -566,9 +586,7 @@ data_gen_builder.add_conditional_edges(
 )
 data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_recommend")
 data_gen_builder.add_conditional_edges(
-    "dg_category_recommend",
-    is_pre_heat_dg_rule_mode,
-    ["save_dg_plan2json", END]
+    "dg_category_recommend", is_pre_heat_dg_rule_mode, ["save_dg_plan2json", END]
 )
 data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
@@ -592,10 +610,17 @@ if __name__ == "__main__":
         file_log_level="TRACE",
     )
     setup_logging(log_config.get_config().get("handlers"))
+
     init_env()
     print(data_gen_graph.get_graph(xray=True).draw_mermaid())
 
     session_id = uuid.uuid4().hex
+
+    traced_logger = TracedLogger()
+    # 如果没有初始化trace_uuid则初始化trace_token
+    if traced_logger.get_trace_uuid() is None:
+        traced_logger.set_trace_uuid(session_id)
+
     user_input = """数据库表名称：
 fmdbmeta.DWD_BEH_TRANS_ENTRY
 期望生成数据条数：
