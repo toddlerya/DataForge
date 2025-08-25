@@ -7,12 +7,10 @@
 
 
 import json
-import time
 import uuid
-from urllib.parse import urljoin
+
 from copy import deepcopy
 
-import httpx
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
@@ -20,13 +18,10 @@ from loguru import logger
 from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
 from database_models.schema import RecommendPanGuDictSchema
 from agent.llm import chat_llm
-from agent.dg_rule_extend import force_update_dg_rule
 from agent.prompt import dg_category_prompt, sql_mode_data_intent_prompt
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from agent.state import (
     PydanticDataGeniusCategoryRecommendation,
-    PydanticDataGeniusPlan,
-    PydanticDataGeniusRule,
     DataGenSQLModeUserIntentSchema,
     SQLModeDataGenState,
     SQLModeTableInfoSchema,
@@ -37,14 +32,7 @@ from agent.state import (
 from agent.sql_parser import parse_simple_select
 from agent.dg_rule_processor import dg_rule_processor
 from agent.dg_api_client import create_dg_task, query_dg_task_status
-from agent.dg_configs import (
-    DG_STORAGE_PATH,
-    DG_SERVER_BASE_URL,
-    DG_TASK_ADD_URL,
-    DG_TASK_HISTORY,
-    DG_NEW_TASK,
-)
-from config import SQL_MODE_DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
+
 from cruds.pangu import query_field_recommend_info_by_ename, query_dict_items_info_by_dictkey
 from utils.db import Database
 from utils.file import save_dict2jl

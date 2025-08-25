@@ -149,11 +149,12 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
 
     user_intent = state["user_intent"]
     client_ip = state["client_ip"]
+    session_id = state["session_id"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     logger.info(
         f"DG_FIELD_CATEGORY_CONFIG category slice: {[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}")
     table_dictkey_map = state.get("table_dictkey_map")
-    state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
+
 
     if isinstance(user_intent, DataGenUserIntentSchema):
         table_en_name = user_intent.table_en_names[0]
@@ -269,7 +270,7 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                               field_info=field_info,
                               pydantic_data_genius_rule=pydantic_data_genius_rule)
                 break
-    rule_uuid = str(uuid.uuid4())
+    rule_uuid = session_id
     # 检查特例规则进行更新
     rules = [force_update_dg_rule(rule) for rule in rules]
     pydantic_data_genius_plan = PydanticDataGeniusPlan(

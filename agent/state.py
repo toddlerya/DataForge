@@ -138,6 +138,7 @@ class DataGenState(TypedDict):
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
     pydantic_data_genius_plan: PydanticDataGeniusPlan
     data_genius_headers: dict
+    data_genius_task_id: str
     create_data_genius_task_error: str
     query_data_genius_task_error: str
     data_genius_plan_task_id: str
@@ -186,6 +187,7 @@ class SQLModeDataGenState(TypedDict):
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
     pydantic_data_genius_plan: PydanticDataGeniusPlan
     data_genius_headers: dict
+    data_genius_task_id: str
     create_data_genius_task_error: str
     query_data_genius_task_error: str
     data_genius_plan_task_id: str

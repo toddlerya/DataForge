@@ -2,6 +2,8 @@ DG_SERVER_BASE_URL = "http://172.17.55.30"
 
 DG_TASK_ADD_URL = "genius/task/add/"
 
+DG_GENERATE_TASK_URL = "genius/api/v1/generate_task/"
+
 DG_TASK_HISTORY = "genius/generate-record/"
 
 DG_NEW_TASK = "genius/page/new-task/"

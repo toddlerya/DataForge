@@ -22,7 +22,7 @@ from agent.state import (
 
 from agent.dg_configs import (
     DG_SERVER_BASE_URL,
-    DG_TASK_ADD_URL,
+    DG_GENERATE_TASK_URL,
     DG_TASK_HISTORY,
     DG_NEW_TASK,
 )
@@ -30,7 +30,7 @@ from utils.file import save_dict2jl
 
 
 def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
-                      ) -> Union[SQLModeDataGenState, DataGenState]:
+                   ) -> Union[SQLModeDataGenState, DataGenState]:
     """
     创建人DataGenius任务
     Args:
@@ -41,6 +41,8 @@ def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
     """
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     user_intent = state["user_intent"]
+    client_ip = state["client_ip"]
+    state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
     data_genius_headers = state["data_genius_headers"]
     table_en_name = user_intent.table_en_names[0]
     logger.info(
@@ -48,65 +50,73 @@ def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
     )
     pydantic_data_genius_plan_dict = pydantic_data_genius_plan.model_dump()
     payload = {
-        "task": json.dumps(
-            {
-                "step": "2",
-                "name": pydantic_data_genius_plan.rule_name,
-                "type_": pydantic_data_genius_plan.type_,
-                "modelName": table_en_name,
-                "mode": "create",
-                "task_id": "None",
-                "duration": None,
-                "output_filesize": None,
-            }
-        ),
-        "rules": json.dumps(pydantic_data_genius_plan_dict["rules"]),
+        "task": {
+            "step": "2",
+            "name": pydantic_data_genius_plan.rule_name,
+            "type_": pydantic_data_genius_plan.type_,
+            "modelName": table_en_name,
+            "mode": "create",
+            "task_id": "None",
+            "duration": None,
+            "output_filesize": None,
+        },
+        "rules": pydantic_data_genius_plan_dict["rules"],
         "separator": pydantic_data_genius_plan.separator,
         "rows": pydantic_data_genius_plan.rows,
         "cols": pydantic_data_genius_plan.cols,
-        "send": json.dumps(
-            {
-                "send_type": 1,
-                "id": None,
-                "tip": "无配置，点击刷新或添加。",
-                "connect_test": False,
-                "connect_test_tip": "",
-                "table_name": "",
-                "table_test": False,
-                "table_test_tip": "",
-                "table_columns": [],
-                "schemas": "public",
-            }
-        ),
+        "send": {
+            "send_type": 1,
+            "id": None,
+            "tip": "无配置，点击刷新或添加。",
+            "connect_test": False,
+            "connect_test_tip": "",
+            "table_name": "",
+            "table_test": False,
+            "table_test_tip": "",
+            "table_columns": [],
+            "schemas": "public",
+        },
         "saveRuleFile": False,
         "blockSize": 100000,
         "source": "",
-        "alam": json.dumps({"isRule": "1", "rule": "", "name": ""}),
+        "alam": {"isRule": "1", "rule": "", "name": ""},
+        "user": client_ip,
     }
 
     save_json_path = DG_PAYLOAD_PATH.joinpath(
-        f"payload_{pydantic_data_genius_plan.rule_name}"
+        f"payload_{pydantic_data_genius_plan.rule_name}.json"
     ).absolute()
     save_dict2jl(json_data=payload, save_path=str(save_json_path))
-    create_task_url = urljoin(DG_SERVER_BASE_URL, DG_TASK_ADD_URL)
+    create_task_url = urljoin(DG_SERVER_BASE_URL, DG_GENERATE_TASK_URL)
 
     with httpx.Client() as client:
-        response = client.post(
-            create_task_url, data=payload, headers=data_genius_headers
-        )
+        response = client.post(create_task_url, json=payload)
     if response.status_code != 200:
         logger.error(f"请求{create_task_url}异常, status_code: {response.status_code}")
         state["create_data_genius_task_error"] = (
             f"请求{create_task_url}异常, status_code: {response.status_code}"
         )
-        logger.debug(
-            f"state.create_data_genius_task_error: {state['create_data_genius_task_error']}"
+    try:
+        resp_json = response.json()
+    except Exception as err:
+        logger.error(f"获取{create_task_url}响应体异常, ERROR: {err}")
+        state["create_data_genius_task_error"] = (
+            f"请求{create_task_url}异常, error: {err}"
         )
+    else:
+        if resp_json.get("flag"):
+            state["data_genius_task_id"] = resp_json.get("task_id", "no_get_task_id")
+        else:
+            info = resp_json.get("info")
+            logger.error(f"创建任务异常{create_task_url}, info: {info}")
+            state["create_data_genius_task_error"] = (
+                f"创建任务异常{create_task_url}, error: {info}"
+            )
     return state
 
 
 def query_dg_task_status(state: Union[SQLModeDataGenState, DataGenState]
-                      ) -> Union[SQLModeDataGenState, DataGenState]:
+                         ) -> Union[SQLModeDataGenState, DataGenState]:
     """
     查询当前任务状态
     Args:
