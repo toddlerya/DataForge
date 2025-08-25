@@ -201,179 +201,6 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     return state
 
 
-#
-# def add_pg_dict2dg_category(state: SQLModeDataGenState) -> SQLModeDataGenState:
-#     """
-#     将盘古字典加入到dg规则类别中
-#     :param state:
-#     :return:
-#     """
-#     logger.info("[+] 将盘古字典加入到dg规则类别中")
-#     table_dictkey_with_nlevel_slice: list[str] = state.get("table_dictkey_with_nlevel_slice", [])
-#     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
-#     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
-#     for each_dictkey_with_nlevel in table_dictkey_with_nlevel_slice:
-#         dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(db_handler=Database(),
-#                                                                                   dictkey_with_nlevel=each_dictkey_with_nlevel)
-#         if dict_status is False:
-#             logger.error(f"获取盘古字典异常: {dict_message}")
-#             continue
-#         else:
-#             if dict_result:
-#                 one_dict = dict_result[0]
-#                 category = one_dict.dict_category
-#                 value = one_dict.model_dump()
-#                 value.pop("uuid")
-#                 value.pop("dictkey_with_nlevel")
-#                 value.pop("dict_category_code")
-#                 value.pop("dict_category")
-#                 logger.info(f"将盘古字典添加到DG规则配置中: {category}")
-#                 config_value = {"category": category, "value": json.dumps(value, ensure_ascii=False)}
-#                 DG_FIELD_CATEGORY_CONFIG.append(config_value)
-#                 table_dictkey_map[category] = dict_result
-#     state["table_dictkey_map"] = table_dictkey_map
-#     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
-#     return state
-
-
-def dg_category_recommend(state: SQLModeDataGenState) -> SQLModeDataGenState:
-    """
-    DataGenius字段分类推荐节点
-    Args:
-        state:
-
-    Returns:
-
-    """
-    logger.info("DataGenius字段分类推荐")
-    table_metadata_info = state["table_metadata_info"]
-    user_intent = state["user_intent"]
-    client_ip = state["client_ip"]
-    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
-    table_dictkey_map = state.get("table_dictkey_map")
-    state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
-    table_en_name = table_metadata_info.table_en_name
-    row_count = user_intent.data_count
-    structured_llm = chat_llm.with_structured_output(
-        PydanticDataGeniusCategoryRecommendation
-    )
-
-    # 如果类别推荐错误，记录错误信息，补充到提示词不要再次生成错误的类别推荐，重试N次
-    last_error_message = ""
-    field_index = 0
-    retry_count = 0
-    # 设置最大重试次数
-    max_retries = state["max_retries"]
-    stop_flag = False
-    rules: list[PydanticDataGeniusRule] = []
-    while True:
-        if field_index >= len(table_metadata_info.raw_fields_info):
-            stop_flag = True
-        if stop_flag:
-            logger.info("所有字段已处理完毕，结束DataGenius分类推荐")
-            break
-        field_info = table_metadata_info.raw_fields_info[field_index]
-        if retry_count >= max_retries:
-            llm_dg_field_category_recommendation = (
-                PydanticDataGeniusCategoryRecommendation(
-                    category="数字串",
-                    score=0,
-                    reason="未能识别字段类型, 填充数字串分类",
-                )
-            )
-            logger.warning(
-                f"已达到最大推荐重试次数 {max_retries}，自动填充默认DataGenius分类推荐"
-            )
-            logger.trace(
-                f"llm_dg_field_category_recommendation: {llm_dg_field_category_recommendation.model_dump_json()}"
-            )
-            # 构建该字段的DataGenius规则参数
-            pydantic_data_genius_rule = PydanticDataGeniusRule(
-                col=field_index + 1,
-                category=llm_dg_field_category_recommendation.category,
-                name="",
-                ename=field_info.en_name,
-                cname=field_info.cn_name,
-                preview=f"{llm_dg_field_category_recommendation.model_dump_json()}",
-                value="",
-            )
-            rules.append(pydantic_data_genius_rule)
-            field_index += 1
-            # 清空字段重试次数，开始下一个字段的推荐
-            retry_count = 0
-            continue
-        chat_prompt = dg_category_prompt.format_messages(
-            cn_name=field_info.cn_name,
-            en_name=field_info.en_name,
-            field_type=field_info.field_type,
-            desc=field_info.desc,
-            sample_value=field_info.example,
-            dict_name=field_info.dict_name,
-            dg_category_config_data=DG_FIELD_CATEGORY_CONFIG,
-            last_error_message=last_error_message,
-        )
-        logger.trace(f"llm_dg_field_category_recommendation chat_prompt: {chat_prompt}")
-        try:
-            llm_dg_field_category_recommendation = structured_llm.invoke(chat_prompt)
-            logger.trace(
-                f"llm_dg_field_category_recommendation.model_dump_json(): "
-                f"{llm_dg_field_category_recommendation.model_dump_json()}"
-            )
-        except Exception as e:
-            logger.error(f"llm_dg_field_category_recommendation error: {e}")
-            last_error_message = str(e)
-            retry_count += 1
-        else:
-            last_error_message = ""
-            # 构建该字段的DataGenius规则参数
-            # 处理字典规则
-            args = {}
-            name = ""
-            category = llm_dg_field_category_recommendation.category
-            if category in table_dictkey_map:
-                dict_items: list[RecommendPanGuDictSchema] = table_dictkey_map.get(category)
-                # TODO: 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
-                if len(dict_items) > 100:
-                    dict_items = dict_items[:100]
-                choices = [item.dict_id for item in dict_items]
-                args = {"choices": choices}
-                name = f"{category}_字典规则"
-                category = "自定义-枚举"
-                logger.debug(f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}")
-            pydantic_data_genius_rule = PydanticDataGeniusRule(
-                col=field_index + 1,
-                category=category,
-                name=name,
-                ename=field_info.en_name,
-                cname=field_info.cn_name,
-                preview=f"score: {llm_dg_field_category_recommendation.score}, reason: {llm_dg_field_category_recommendation.reason}",
-                value=field_info.example,
-                args=args
-            )
-            logger.trace(
-                f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
-            )
-            rules.append(pydantic_data_genius_rule)
-            field_index += 1
-            # 清空字段重试次数，开始下一个字段的推荐
-            retry_count = 0
-    rule_uuid = str(uuid.uuid4())
-    # 检查特例规则进行更新
-    rules = [force_update_dg_rule(rule) for rule in rules]
-    pydantic_data_genius_plan = PydanticDataGeniusPlan(
-        rule_name=f"{SQL_MODE_DG_PLAN_CONFIG_PREFIX}{rule_uuid}.json",
-        type_="规则",
-        rows=row_count,
-        separator="\t",
-        rules=rules,
-        output=f"{DG_STORAGE_PATH}/output/{client_ip}/{rule_uuid}",
-        model=f"{DG_STORAGE_PATH}/models/{client_ip}/{table_en_name}",
-        cols=len(table_metadata_info.raw_fields_info),
-    )
-    state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
-    return state
-
-
 def save_dg_plan2json(state: SQLModeDataGenState):
     """
     存储DG执行计划任务配置
@@ -550,7 +377,6 @@ sql_mode_data_gen_builder.add_node(
 )
 sql_mode_data_gen_builder.add_node("sql_parse_to_table_info", sql_parse_to_table_info)
 sql_mode_data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
-# sql_mode_data_gen_builder.add_node("add_pg_dict2dg_category", add_pg_dict2dg_category)
 sql_mode_data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
 sql_mode_data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 sql_mode_data_gen_builder.add_node("create_dg_task", create_dg_task)
@@ -567,7 +393,6 @@ sql_mode_data_gen_builder.add_conditional_edges(
 )
 sql_mode_data_gen_builder.add_edge("sql_parse_to_table_info", "rag_sql_table_filed_info")
 sql_mode_data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_recommend")
-# sql_mode_data_gen_builder.add_edge("add_pg_dict2dg_category", "dg_category_recommend")
 sql_mode_data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
 sql_mode_data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 sql_mode_data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
