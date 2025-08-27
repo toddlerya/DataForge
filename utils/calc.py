@@ -8,7 +8,7 @@
 
 from decimal import ROUND_HALF_UP, Decimal
 
-from server.utils.log import logger
+from utils.log import logger
 
 
 @logger.catch

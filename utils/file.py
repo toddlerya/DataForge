@@ -127,7 +127,7 @@ def load_xml_from_file(xml_file_path: str):
         tree = ElementTree.parse(xml_file_path)
         root = tree.getroot()
     except ElementTree.ParseError as err:
-        message = f"解析xmk文件{xml_file_path}失败: {err}"
+        message = f"解析xml文件{xml_file_path}失败: {err}"
         return message, None
     else:
         return message, root
