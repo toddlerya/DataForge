@@ -17,7 +17,10 @@ from loguru import logger
 from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
 from agent.state import (
     DataGenState,
-    SQLModeDataGenState
+    SQLModeDataGenState,
+    DataGenUserIntentSchema,
+    DataGenSQLModeUserIntentSchema,
+    TableMetadataSchema
 )
 
 from agent.dg_configs import (
@@ -44,7 +47,10 @@ def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
     client_ip = state["client_ip"]
     state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
     data_genius_headers = state["data_genius_headers"]
-    table_en_name = user_intent.table_en_names[0]
+    if isinstance(user_intent, DataGenUserIntentSchema):
+        table_en_name = user_intent.table_en_names[0]
+    else:
+        table_en_name = state.get("table_metadata_info").table_en_name
     logger.info(
         f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name} data_genius_headers: {data_genius_headers}"
     )
