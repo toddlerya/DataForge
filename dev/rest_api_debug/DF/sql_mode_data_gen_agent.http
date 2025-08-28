@@ -1,0 +1,43 @@
+@hostname = 172.16.150.178
+@port = 25702
+@host = {{hostname}}:{{port}}
+
+# @note 直接运行
+### 
+POST /sql_mode_data_gen_agent/run HTTP/1.1
+Host: {{host}}
+Content-Type: application/json
+
+{
+  "sql": "SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134 FROM massdata.DWS_BEH_ANA_VPN",
+  "data_count": 100,
+  "fields_info": {
+      "MD_ID": {
+          "cn_name": "md5计算唯一ID",
+          "field_type": "string"
+      }
+  }
+}
+
+# @note 分部运行
+
+### 
+POST /sql_mode_data_gen_agent/set_intent HTTP/1.1
+Host: {{host}}
+Content-Type: application/json
+
+{
+    "user_input": "SQL内容(必填): select node_22.MD_ID as F1131,node_22.AUTH_TYPE as F1132,node_22.AUTH_ACCOUNT as F1133,node_22.VPN_TYPE as F1134 from massdata.DWS_BEH_ANA_VPN as node_22 期望生成数据条数(必填): 100"
+}
+
+###
+POST /sql_mode_data_gen_agent/human_intent_feedback HTTP/1.1
+Host: {{host}}
+Content-Type: application/json
+
+{
+    "human_intent_feedback": "正确",
+    "session_id": "87bf3ebc20ae4e29a2c1993c6ee4d66b"
+}
+
+
