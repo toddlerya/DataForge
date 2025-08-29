@@ -9,13 +9,13 @@ import asyncio
 import chainlit as cl
 import pandas as pd
 from dotenv import load_dotenv
+from langchain_core.runnables.config import RunnableConfig
 from loguru import logger
 
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import DataGenSQLModeUserIntentSchema, PydanticDataGeniusPlan
 from common.initialization import init_env, setup_logging
-from config import PROJECT_PATH, DG_PLAN_PATH
-
+from config import DG_PLAN_PATH, PROJECT_PATH
 from utils.log import LogManager, TracedLogger
 
 log_config = LogManager(
@@ -46,17 +46,17 @@ async def start_chat():
     text_content = f"""{cl.user_session.get("client_ip")}，您好！我是您的测试数据生成助手\n\n
 请输入你的SELECT SQL语句，期望生成的数据条数。\n
 ====输入内容示例====\n
-SQL内容(必填): 
+SQL内容(必填):
 SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134, SERVER_IP AS F1135, SERVER_PORT AS F1136, FIRST_TIME AS F1137, LAST_TIME AS F1138, CCOUNT AS F1139, DCOUNT AS F1140, DETAIL AS F1141, DATA_COLOR_ID AS F1142, adsl AS F1144 FROM massdata.DWS_BEH_ANA_VPN
 期望生成数据条数(必填): 100
-"""
+"""  # noqa: E501
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(
         author="Assistant", content="请输入测试数据构造需求", elements=elements
     ).send()
 
 
-async def process_step(event, graph):
+async def process_step(event, graph):  # noqa: C901
     """
     辅助函数，用于处理和显示Langgraph的每一步
     Args:
@@ -70,7 +70,7 @@ async def process_step(event, graph):
         logger.debug(f"node: {node} state: {state} ")
 
         if node == "analyze_intent":
-            logger.info(f"[process] analyze_intent")
+            logger.info("[process] analyze_intent")
             user_intent: DataGenSQLModeUserIntentSchema = state.get("user_intent")
             await cl.Message(
                 author="AI",
@@ -247,9 +247,10 @@ async def main(message: cl.Message):
         cl.user_session.set("trace_token", trace_token)
 
     logger.info(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} message: {message.content}"
+        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
+        f"message: {message.content}"
     )
-    config = {
+    config: RunnableConfig = {
         "configurable": {"thread_id": cl.context.session.id},
         "recursion_limit": 50,
     }
@@ -258,7 +259,8 @@ async def main(message: cl.Message):
     current_state = sql_mode_data_gen_graph.get_state(config)
 
     logger.debug(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} current_state: {current_state}"
+        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
+        f"current_state: {current_state}"
     )
     if not current_state.values.get("user_input"):
         init_state = {
@@ -276,6 +278,7 @@ async def main(message: cl.Message):
 
     # 完成会话清空trace_uuid
     traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
+
 
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit

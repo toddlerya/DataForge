@@ -7,49 +7,33 @@
 
 
 import json
-import time
 import uuid
-from urllib.parse import urljoin
 from copy import deepcopy
 
-import httpx
+from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
-from agent.llm import chat_llm
-from agent.prompt import dg_category_prompt, data_intent_prompt
-from agent.dg_rule_extend import force_update_dg_rule
-from agent.state import (
-    DataGenState,
-    PydanticDataGeniusCategoryRecommendation,
-    PydanticDataGeniusPlan,
-    TableMetadataSchema,
-    DataGenUserIntentSchema,
-    init_dg_category_config,
-)
-from agent.dg_rule_processor import dg_rule_processor
 from agent.dg_api_client import create_dg_task, query_dg_task_status
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
-from config import DG_PLAN_CONFIG_PREFIX, PROJECT_PATH
-from cruds.table_metadata import table_metadata_query
+from agent.dg_rule_processor import dg_rule_processor
+from agent.llm import chat_llm
+from agent.prompt import data_intent_prompt
+from agent.state import (
+    DataGenState,
+    DataGenUserIntentSchema,
+    PydanticDataGeniusCategoryRecommendation,
+    TableMetadataSchema,
+    init_dg_category_config,
+)
+from config import DG_PLAN_PATH, PROJECT_PATH
 from cruds.pangu import (
     query_dict_items_info_by_dict_category,
     query_dict_items_info_by_dictkey,
 )
-from database_models.schema import (
-    TableRawFieldSchema,
-    RecommendPanGuDictSchema,
-    PydanticDataGeniusRule,
-)
-from agent.dg_configs import (
-    DG_STORAGE_PATH,
-    DG_SERVER_BASE_URL,
-    DG_TASK_ADD_URL,
-    DG_TASK_HISTORY,
-    DG_NEW_TASK,
-)
+from cruds.table_metadata import table_metadata_query
+from database_models.schema import RecommendPanGuDictSchema, TableRawFieldSchema
 from utils.db import Database
 from utils.file import save_dict2jl
 
@@ -164,14 +148,15 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
         logger.error("未查询到表元数据，无法进行字段字典RAG增强推荐")
         state["error_message"].append("未查询到表元数据，无法进行字段字典RAG增强推荐")
         return state
-    table_metadata_error: list[str] = list()
-    table_dictkey_slice: list[str] = list()
-    table_dict_category_code_map: dict[str, str] = dict()
-    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
+    table_metadata_error: list[str] = []
+    table_dictkey_slice: list[str] = []
+    table_dict_category_code_map: dict[str, str] = {}
+    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = {}
     db_handler = Database()
     for index, each_field in enumerate(table_metadata.raw_fields_info):
         if each_field.dict_key:
-            # 数据域页面获取的表元数据没有dict_name，只有dict_key，且dict_key是没有nlevel的，需要补上, 默认2
+            # 数据域页面获取的表元数据没有dict_name，只有dict_key，
+            # 且dict_key是没有nlevel的，需要补上, 默认2
             dict_key_with_nlevel = each_field.dict_key + ":2"
             table_dictkey_slice.append(dict_key_with_nlevel)
             dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(
@@ -180,7 +165,8 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
             if dict_status is False:
                 logger.error(f"获取盘古字典异常: {dict_message}")
         elif each_field.dict_name:
-            # 盘古页面获取的表元数据没有dict_key，只有dict_name，对应RecommendPanGuDictSchema.dict_category
+            # 盘古页面获取的表元数据没有dict_key，只有dict_name，
+            # 对应RecommendPanGuDictSchema.dict_category
             dict_status, dict_message, dict_result = (
                 query_dict_items_info_by_dict_category(
                     db_handler=db_handler, dict_category=each_field.dict_name
@@ -269,7 +255,7 @@ def is_pre_heat_dg_rule_mode(state: DataGenState):
 
 data_gen_builder = StateGraph(DataGenState)
 data_gen_builder.add_node("analyze_intent", analyze_data_intent)
-data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
+data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)  # type: ignore
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
 data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
@@ -307,7 +293,6 @@ data_gen_graph = data_gen_builder.compile(
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
-
     from utils.log import LogManager, TracedLogger
 
     log_config = LogManager(
@@ -332,7 +317,7 @@ if __name__ == "__main__":
 fmdbmeta.DWD_BEH_TRANS_ENTRY
 期望生成数据条数：
 fmdbmeta.DWD_BEH_TRANS_ENTRY：100"""
-    thread = {"configurable": {"thread_id": session_id}}
+    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
     init_state = {
         # "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,

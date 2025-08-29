@@ -1,27 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/7/28 14:58 
+# @Time     : 2025/7/28 14:58
 # @Author   : guoqun X2590
 # @FileName : app.py.py
 # @Project  : DataForge
 
 
-import asyncio
 import json
 import time
 from datetime import datetime
 
 import chainlit as cl
-import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from agent.sql_mode_data_graph import sql_mode_data_gen_graph
-from agent.state import DataGenSQLModeUserIntentSchema, PydanticDataGeniusPlan
 from agent.state import TableMetadataSchema
 from common.initialization import init_env, setup_logging
-from config import PROJECT_PATH, DG_PLAN_PATH
-
+from config import PROJECT_PATH
 from utils.log import LogManager, TracedLogger
 
 log_config = LogManager(
@@ -57,9 +52,7 @@ async def start_chat():
     text_content = f"""{cl.user_session.get("client_ip")}，您好！我是您的测试数据生成助手\n\n
 上传你的表元数据配置JSON和DG生成的数据TXT文件"""
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
-    await cl.Message(
-        author="Assistant", content="功能介绍", elements=elements
-    ).send()
+    await cl.Message(author="Assistant", content="功能介绍", elements=elements).send()
 
     # 等待用户上传表元数据信息
     table_meta_json_files = None
@@ -69,13 +62,17 @@ async def start_chat():
             accept={"text/plain": [".json"]},
             max_size_mb=5,
             max_files=1,
-            timeout=600
+            timeout=600,
         ).send()
     table_meta_json_file = table_meta_json_files[0]
     try:
-        with open(table_meta_json_file.path, mode="r", encoding="utf-8") as table_meta_file:
+        with open(
+            table_meta_json_file.path, mode="r", encoding="utf-8"
+        ) as table_meta_file:
             upload_table_meta_data = json.load(table_meta_file)
-            table_meta_data: TableMetadataSchema = TableMetadataSchema(**upload_table_meta_data)
+            table_meta_data: TableMetadataSchema = TableMetadataSchema(
+                **upload_table_meta_data
+            )
             cl.user_session.set("table_meta_data", table_meta_data)
             cl.user_session.set("col_number", len(table_meta_data.raw_fields_info))
             await cl.Message(
@@ -86,7 +83,9 @@ async def start_chat():
             content=f"上传的表元数据文件: {table_meta_json_file.name} 解析校验异常: {err}"
         ).send()
     else:
-        await cl.Message(content=f"上传的表元数据文件: {table_meta_json_file.name} 解析校验通过").send()
+        await cl.Message(
+            content=f"上传的表元数据文件: {table_meta_json_file.name} 解析校验通过"
+        ).send()
 
     # 等待用户上传DG生成的txt数据文件
     dg_table_data_txt_files = None
@@ -95,17 +94,22 @@ async def start_chat():
             content="请上传DG生成的表数据txt文件",
             accept={"text/plain": [".txt"]},
             max_size_mb=10,
-            max_files=5
+            max_files=5,
         ).send()
-    dg_lines_data = list()
+    dg_lines_data = []
     for dg_table_data_txt_file in dg_table_data_txt_files:
         try:
-            with open(dg_table_data_txt_file.path, mode="r", encoding="utf-8") as data_txt_file:
+            with open(
+                dg_table_data_txt_file.path, mode="r", encoding="utf-8"
+            ) as data_txt_file:
                 raw_lines_data = data_txt_file.readlines()
-                cleaned_lines_data = [line.rstrip("\n").split("\t") for line in raw_lines_data]
+                cleaned_lines_data = [
+                    line.rstrip("\n").split("\t") for line in raw_lines_data
+                ]
                 lines_col_count = [len(line) for line in cleaned_lines_data]
-                if len(set(lines_col_count)) == 1 and \
-                        list(set(lines_col_count))[0] == cl.user_session.get("col_number"):
+                if len(set(lines_col_count)) == 1 and list(set(lines_col_count))[
+                    0
+                ] == cl.user_session.get("col_number"):
                     dg_lines_data.extend(cleaned_lines_data)
                 else:
                     await cl.Message(
@@ -118,15 +122,19 @@ async def start_chat():
             ).send()
         else:
             await cl.Message(
-                content=f"上传的数据文件: {dg_table_data_txt_file.name} 读取校验通过, 共{len(cleaned_lines_data)}条数据").send()
+                content=f"上传的数据文件: {dg_table_data_txt_file.name} 读取校验通过, 共{len(cleaned_lines_data)}条数据"
+            ).send()
     await cl.Message(
-        content=f"{len(dg_table_data_txt_files)}个文件，共计读取到{len(dg_lines_data)}条数据").send()
+        content=f"{len(dg_table_data_txt_files)}个文件，共计读取到{len(dg_lines_data)}条数据"
+    ).send()
     cl.user_session.set("dg_lines_data", dg_lines_data)
 
-    partition_res = await cl.AskUserMessage(content="是否存在分区字段(p1,p2,p3,p4)，请回答Y或N", timeout=600).send()
+    partition_res = await cl.AskUserMessage(
+        content="是否存在分区字段(p1,p2,p3,p4)，请回答Y或N", timeout=600
+    ).send()
     if partition_res:
         partition_answer = partition_res["output"]
-        if partition_answer.upper() == 'Y':
+        if partition_answer.upper() == "Y":
             cl.user_session.set("partiton", True)
         else:
             cl.user_session.set("partiton", False)
@@ -135,7 +143,7 @@ async def start_chat():
 
     # 开始生成
     table_meta_data: TableMetadataSchema = cl.user_session.get("table_meta_data")
-    dg_lines_data = cl.user_session.get("dg_lines_data", [])
+    dg_lines_data: list = cl.user_session.get("dg_lines_data", [])
     partition_sql = ""
     if cl.user_session.get("partiton"):
         current_p3_timestamp = int(time.time()) - 3600
@@ -163,6 +171,7 @@ async def start_chat():
 
     # 完成会话清空trace_uuid
     traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
+
 
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit

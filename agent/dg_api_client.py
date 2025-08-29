@@ -1,39 +1,36 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/8/25 14:42 
+# @Time     : 2025/8/25 14:42
 # @Author   : guoqun X2590
 # @FileName : dg_api_client.py
 # @Project  : DataForge
 
-import json
 import time
-from urllib.parse import urljoin
 from typing import Union
+from urllib.parse import urljoin
 
 import httpx
-
 from loguru import logger
 
-from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
+from agent.dg_configs import (
+    DG_GENERATE_TASK_URL,
+    DG_NEW_TASK,
+    DG_SERVER_BASE_URL,
+    DG_TASK_HISTORY,
+)
 from agent.state import (
     DataGenState,
-    SQLModeDataGenState,
     DataGenUserIntentSchema,
-    DataGenSQLModeUserIntentSchema,
-    TableMetadataSchema
+    SQLModeDataGenState,
+    TableMetadataSchema,
 )
-
-from agent.dg_configs import (
-    DG_SERVER_BASE_URL,
-    DG_GENERATE_TASK_URL,
-    DG_TASK_HISTORY,
-    DG_NEW_TASK,
-)
+from config import DG_PAYLOAD_PATH
 from utils.file import save_dict2jl
 
 
-def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
-                   ) -> Union[SQLModeDataGenState, DataGenState]:
+def create_dg_task(
+    state: Union[SQLModeDataGenState, DataGenState],
+) -> Union[SQLModeDataGenState, DataGenState]:
     """
     创建人DataGenius任务
     Args:
@@ -50,9 +47,11 @@ def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
     if isinstance(user_intent, DataGenUserIntentSchema):
         table_en_name = user_intent.table_en_names[0]
     else:
-        table_en_name = state.get("table_metadata_info").table_en_name
+        table_metadata_info: TableMetadataSchema = state.get("table_metadata_info")
+        table_en_name = table_metadata_info.table_en_name
     logger.info(
-        f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name} data_genius_headers: {data_genius_headers}"
+        f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name} "
+        f"data_genius_headers: {data_genius_headers}"
     )
     pydantic_data_genius_plan_dict = pydantic_data_genius_plan.model_dump()
     payload = {
@@ -121,8 +120,9 @@ def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
     return state
 
 
-def query_dg_task_status(state: Union[SQLModeDataGenState, DataGenState]
-                         ) -> Union[SQLModeDataGenState, DataGenState]:
+def query_dg_task_status(
+    state: Union[SQLModeDataGenState, DataGenState],
+) -> Union[SQLModeDataGenState, DataGenState]:
     """
     查询当前任务状态
     Args:

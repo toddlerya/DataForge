@@ -10,6 +10,7 @@ import json
 import uuid
 from copy import deepcopy
 
+from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
@@ -293,7 +294,7 @@ if __name__ == "__main__":
      from XY_BF_ACCOUNT
     期望生成数据条数(必填): 100"""
     session_id = uuid.uuid4().hex
-    thread = {"configurable": {"thread_id": session_id}}
+    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
     init_state = {
         "user_input": user_input,
         "user_intent": DataGenSQLModeUserIntentSchema(

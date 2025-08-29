@@ -6,20 +6,19 @@
 # @Project  : DataForge
 
 import json
-import uuid
+
+from fastapi import APIRouter, Depends, Request
 from loguru import logger
 
-from fastapi import APIRouter, Request, Depends
-
-from server.api.depends import get_transaction_logger
-from server.api.utils import extract_client_ip
-from server.api.schemas.base_schema import ResponseBaseSchema
-from server.api.schemas.agent_data_gen import (
-    InitDataGenSchema,
-    HumanIntentFeedBackSchema,
-)
 from agent.data_graph import data_gen_graph
 from agent.state import DataGenUserIntentSchema
+from server.api.depends import get_transaction_logger
+from server.api.schemas.agent_data_gen import (
+    HumanIntentFeedBackSchema,
+    InitDataGenSchema,
+)
+from server.api.schemas.base_schema import ResponseBaseSchema
+from server.api.utils import extract_client_ip
 from utils.err_code import error_code
 
 router = APIRouter(
@@ -30,8 +29,11 @@ router = APIRouter(
 
 
 @router.post("/set_intent", response_model=ResponseBaseSchema)
-async def init_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request,
-                              traced_logger=Depends(get_transaction_logger)):
+async def init_data_gen_graph(
+    init_data_gen: InitDataGenSchema,
+    request: Request,
+    traced_logger=Depends(get_transaction_logger),
+):
     """
     设置用户意图，初始化图
     :param init_data_gen:
@@ -69,8 +71,10 @@ async def init_data_gen_graph(init_data_gen: InitDataGenSchema, request: Request
 
 
 @router.post("/human_intent_feedback", response_model=ResponseBaseSchema)
-async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema,
-                                    traced_logger=Depends(get_transaction_logger)):
+async def set_human_intent_feedback(
+    feedback_data: HumanIntentFeedBackSchema,
+    traced_logger=Depends(get_transaction_logger),
+):
     """
     用户反馈确认
     :param feedback_data:
@@ -90,7 +94,7 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema,
         message = f"[数据生成Graph] 用户提供的session_id={feedback_data.session_id}错误，没有初始化的Graph应用."
         logger.error(message)
         resp_data.message = message
-        resp_data.code = error_code.ARGS_VALUE_ERROR.get("code")
+        resp_data.code = error_code.ARGS_VALUE_ERROR.get("code", "")
         return resp_data.dict()
     if feedback_data.human_intent_feedback.strip() != "正确":
         message = (
@@ -140,8 +144,11 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema,
 
 
 @router.post("/run", response_model=ResponseBaseSchema)
-async def run_graph(user_intent: DataGenUserIntentSchema, request: Request,
-                    traced_logger=Depends(get_transaction_logger)):
+async def run_graph(
+    user_intent: DataGenUserIntentSchema,
+    request: Request,
+    traced_logger=Depends(get_transaction_logger),
+):
     """
     用户反馈确认
     :param user_intent:
