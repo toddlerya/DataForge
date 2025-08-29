@@ -96,8 +96,8 @@ class ToDictMixin:
 class TableMetaDataInfo(CommonColumnMixin, Base):
     __tablename__ = "table_meta_data_info"
     __table_args__ = (
-        {"comment": "表元数据信息"},
         UniqueConstraint("uuid", name="uk_tb_meta"),
+        {"comment": "表元数据信息"},
     )
 
     uuid = Column(
@@ -125,10 +125,10 @@ class TableMetaDataInfo(CommonColumnMixin, Base):
 
     def to_dict(self):
         """
-        将 EnvironmentInfo 对象转换为字典
+        将 TableMetaDataInfo 对象转换为字典
 
         Returns:
-            dict: 字典表示的 EnvironmentInfo 对象
+            dict: 字典表示的 TableMetaDataInfo 对象
         """
         info_dict = instance_dict(self)
         if info_dict.get("_sa_instance_state", None):
@@ -139,8 +139,8 @@ class TableMetaDataInfo(CommonColumnMixin, Base):
 class TableExampleDataInfo(CommonColumnMixin, Base):
     __tablename__ = "table_example_data_info"
     __table_args__ = (
-        {"comment": "表样例数据信息"},
         UniqueConstraint("uuid", name="uk_tb_example"),
+        {"comment": "表样例数据信息"},
     )
     # __table_args_map__ = {
     #     "comment": "表样例数据信息",
@@ -160,9 +160,7 @@ class TableExampleDataInfo(CommonColumnMixin, Base):
 class RecommendPanGuFieldInfo(CommonColumnMixin, Base):
     __tablename__ = "recommend_pangu_field_info"
     __table_args__ = ({"comment": "盘古字段元数据推荐"},)
-    # __table_args_map__ = {
-    #     "comment": "盘古字段元数据推荐",
-    # }
+
     ename = Column(
         String(length=512), default="", index=True, unique=True, comment="字段英文名称"
     )
@@ -269,11 +267,11 @@ class RecommendPanGuFieldInfo(CommonColumnMixin, Base):
 class PanGuDictInfo(CommonColumnMixin, Base):
     __tablename__ = "pangu_dict_info"
     __table_args__ = (
-        {"comment": "盘古字典"},
         UniqueConstraint("uuid", name="uuid"),
         UniqueConstraint(
             "dictkey_with_nlevel", "uuid", name="dictkey_with_nlevel_uuid_unique"
         ),
+        {"comment": "盘古字典"},
     )
     # __table_args_map__ = {
     #     "comment": "盘古字典",
@@ -312,17 +310,10 @@ class PanGuDictInfo(CommonColumnMixin, Base):
 class FieldDGRuleCache(CommonColumnMixin, Base):
     __tablename__ = "field_dg_rule_cache"
     __table_args__ = (
-        {"comment": "字段的DG规则配置缓存"},
         UniqueConstraint("uuid", name="uuid"),
         UniqueConstraint("ename", "uuid", name="ename_uuid_unique"),
+        {"comment": "字段的DG规则配置缓存"},
     )
-    # __table_args_map__ = {
-    #     "comment": "字段的DG规则配置缓存",
-    # }
-    # __table_args_array__ = [
-    #     UniqueConstraint("uuid", name="uuid"),
-    #     UniqueConstraint("ename", "uuid", name="ename_uuid_unique"),
-    # ]
     uuid = Column(
         String(length=36),
         nullable=False,
@@ -357,9 +348,9 @@ class FieldDGRuleCache(CommonColumnMixin, Base):
 class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "task_info"
     __table_args__ = (
-        {"comment": "任务信息表"},
         UniqueConstraint("task_uuid", name="task_uuid_unique"),
         Index("idx_table_en_name", "table_en_name"),
+        {"comment": "任务信息表"},
     )
     task_uuid = Column(
         String(length=36),
@@ -411,8 +402,8 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
 class EnvironmentInfo(CommonColumnMixin, Base):
     __tablename__ = "environment_info"
     __table_args__ = (
-        {"comment": "环境信息"},
         UniqueConstraint("uuid", name="uk_environment"),
+        {"comment": "环境信息"},
     )
     # __table_args_map__ = {
     #     "comment": "环境信息",
@@ -461,3 +452,7 @@ class EnvironmentInfo(CommonColumnMixin, Base):
         if info_dict.get("_sa_instance_state", None):
             info_dict.pop("_sa_instance_state")
         return info_dict
+
+
+if __name__ == "__main__":
+    print(TableMetaDataInfo.__table_args__)
