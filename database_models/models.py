@@ -7,7 +7,6 @@
 
 
 import datetime
-from typing import Any, Dict
 
 from sqlalchemy import (
     JSON,
@@ -20,7 +19,6 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
-    inspect,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base
@@ -76,24 +74,20 @@ class ToDictMixin:
     自动排除 SQLAlchemy 的 _sa_instance_state，保留所有字段。
     """
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self):
         """
-        将模型实例转换为字典，自动排除 SQLAlchemy 内部状态。
+        将 EnvironmentInfo 对象转换为字典
+
+        Returns:
+            dict: 字典表示的 EnvironmentInfo 对象
         """
-        mapper = inspect(self)
-        if not mapper:
-            return {}
-        columns = {c.key for c in mapper.columns}
-        result = {}
-        for key in columns:
-            value = getattr(self, key)
-            result[key] = value
-        # 排除 SQLAlchemy 内部状态
-        result.pop("_sa_instance_state", None)  # 更安全的删除方式
-        return result
+        info_dict = instance_dict(self)
+        if info_dict.get("_sa_instance_state", None):
+            info_dict.pop("_sa_instance_state")
+        return info_dict
 
 
-class TableMetaDataInfo(CommonColumnMixin, Base):
+class TableMetaDataInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "table_meta_data_info"
     __table_args__ = (
         UniqueConstraint("uuid", name="uk_tb_meta"),
@@ -123,29 +117,13 @@ class TableMetaDataInfo(CommonColumnMixin, Base):
     )
     source = Column(String(length=64), default="", comment="数据来源")
 
-    def to_dict(self):
-        """
-        将 TableMetaDataInfo 对象转换为字典
 
-        Returns:
-            dict: 字典表示的 TableMetaDataInfo 对象
-        """
-        info_dict = instance_dict(self)
-        if info_dict.get("_sa_instance_state", None):
-            info_dict.pop("_sa_instance_state")
-        return info_dict
-
-
-class TableExampleDataInfo(CommonColumnMixin, Base):
+class TableExampleDataInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "table_example_data_info"
     __table_args__ = (
         UniqueConstraint("uuid", name="uk_tb_example"),
         {"comment": "表样例数据信息"},
     )
-    # __table_args_map__ = {
-    #     "comment": "表样例数据信息",
-    # }
-    # __table_args_array__ = [UniqueConstraint("uuid", name="uk_tb_example")]
     uuid = Column(
         String(length=36), nullable=False, comment="数据唯一ID, md5(example_data)"
     )
@@ -157,7 +135,7 @@ class TableExampleDataInfo(CommonColumnMixin, Base):
     example_data = Column(JSON, nullable=True, comment="表样例数据")
 
 
-class RecommendPanGuFieldInfo(CommonColumnMixin, Base):
+class RecommendPanGuFieldInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "recommend_pangu_field_info"
     __table_args__ = ({"comment": "盘古字段元数据推荐"},)
 
@@ -251,20 +229,8 @@ class RecommendPanGuFieldInfo(CommonColumnMixin, Base):
     )
     example_data = Column(Text, nullable=True, comment="样例数据")
 
-    def to_dict(self):
-        """
-        将 EnvironmentInfo 对象转换为字典
 
-        Returns:
-            dict: 字典表示的 EnvironmentInfo 对象
-        """
-        info_dict = instance_dict(self)
-        if info_dict.get("_sa_instance_state", None):
-            info_dict.pop("_sa_instance_state")
-        return info_dict
-
-
-class PanGuDictInfo(CommonColumnMixin, Base):
+class PanGuDictInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "pangu_dict_info"
     __table_args__ = (
         UniqueConstraint("uuid", name="uuid"),
@@ -273,15 +239,6 @@ class PanGuDictInfo(CommonColumnMixin, Base):
         ),
         {"comment": "盘古字典"},
     )
-    # __table_args_map__ = {
-    #     "comment": "盘古字典",
-    # }
-    # __table_args_array__ = [
-    #     UniqueConstraint("uuid", name="uuid"),
-    #     UniqueConstraint(
-    #         "dictkey_with_nlevel", "uuid", name="dictkey_with_nlevel_uuid_unique"
-    #     ),
-    # ]
     uuid = Column(BigInteger, nullable=False, comment="字典的唯一编码")
     dictkey_with_nlevel = Column(
         String(length=128), nullable=False, index=True, comment="字段存储的字典key"
@@ -294,20 +251,8 @@ class PanGuDictInfo(CommonColumnMixin, Base):
     dict_id = Column(String(length=128), nullable=False, comment="字典项编码")
     dict_name = Column(Text, nullable=False, comment="字典项名称")
 
-    def to_dict(self):
-        """
-        将 EnvironmentInfo 对象转换为字典
 
-        Returns:
-            dict: 字典表示的 EnvironmentInfo 对象
-        """
-        info_dict = instance_dict(self)
-        if info_dict.get("_sa_instance_state", None):
-            info_dict.pop("_sa_instance_state")
-        return info_dict
-
-
-class FieldDGRuleCache(CommonColumnMixin, Base):
+class FieldDGRuleCache(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "field_dg_rule_cache"
     __table_args__ = (
         UniqueConstraint("uuid", name="uuid"),
@@ -331,18 +276,6 @@ class FieldDGRuleCache(CommonColumnMixin, Base):
     ttl = Column(
         Integer, nullable=False, default=86400 * 7, comment="缓存规则过期时间，默认7天"
     )
-
-    def to_dict(self):
-        """
-        将 EnvironmentInfo 对象转换为字典
-
-        Returns:
-            dict: 字典表示的 EnvironmentInfo 对象
-        """
-        info_dict = instance_dict(self)
-        if info_dict.get("_sa_instance_state", None):
-            info_dict.pop("_sa_instance_state")
-        return info_dict
 
 
 class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
@@ -399,16 +332,12 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
 #     source = Column(String(length=64), default="", comment="数据来源")
 
 
-class EnvironmentInfo(CommonColumnMixin, Base):
+class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "environment_info"
     __table_args__ = (
         UniqueConstraint("uuid", name="uk_environment"),
         {"comment": "环境信息"},
     )
-    # __table_args_map__ = {
-    #     "comment": "环境信息",
-    # }
-    # __table_args_array__ = [UniqueConstraint("uuid", name="uk_environment")]
     uuid = Column(
         String(length=36),
         nullable=False,
@@ -440,18 +369,6 @@ class EnvironmentInfo(CommonColumnMixin, Base):
     metadata_db_name = Column(
         String(length=128), nullable=True, comment="盘古数据库名称: Metadata_Dbn_dbName"
     )
-
-    def to_dict(self):
-        """
-        将 EnvironmentInfo 对象转换为字典
-
-        Returns:
-            dict: 字典表示的 EnvironmentInfo 对象
-        """
-        info_dict = instance_dict(self)
-        if info_dict.get("_sa_instance_state", None):
-            info_dict.pop("_sa_instance_state")
-        return info_dict
 
 
 if __name__ == "__main__":
