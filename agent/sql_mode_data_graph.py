@@ -61,7 +61,8 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     user_input = state.get("user_input").strip()
     human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
-        f"analyze_data_intent => user_input: {user_input} human_intent_feedback: {human_intent_feedback}"
+        f"analyze_data_intent => user_input: {user_input} "
+        f"human_intent_feedback: {human_intent_feedback}"
     )
     structured_llm = chat_llm.with_structured_output(DataGenSQLModeUserIntentSchema)
     chat_prompt = sql_mode_data_intent_prompt.format_messages(
@@ -135,9 +136,9 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     table_metadata_info = TableMetadataSchema(
         table_en_name=table_info_data.table_en_name
     )
-    table_metadata_error: list[str] = list()
-    table_dict_category_code_map: dict[str, str] = dict()
-    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = dict()
+    table_metadata_error: list[str] = []
+    table_dict_category_code_map: dict[str, str] = {}
+    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = {}
     db_handler = Database()
     for each_field in table_info_data.fields_info:
         status, message, recommend_data = query_field_recommend_info_by_ename(
@@ -285,7 +286,11 @@ if __name__ == "__main__":
     init_env()
 
     print(sql_mode_data_gen_graph.get_graph(xray=True).draw_mermaid())
-    user_input = """SQL内容(必填): select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE, NICKNAME, REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT, REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE, REGISIP_REGIONAL_CODE, PACKAGENAME, CAPTURE_TIME, ACTIONTYPE, ACTIONTIME from XY_BF_ACCOUNT
+    user_input = """SQL内容(必填): select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE,
+     NICKNAME, REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT,
+     REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE,
+     REGISIP_REGIONAL_CODE, PACKAGENAME, CAPTURE_TIME, ACTIONTYPE, ACTIONTIME
+     from XY_BF_ACCOUNT
     期望生成数据条数(必填): 100"""
     session_id = uuid.uuid4().hex
     thread = {"configurable": {"thread_id": session_id}}
@@ -293,7 +298,11 @@ if __name__ == "__main__":
         "user_input": user_input,
         "user_intent": DataGenSQLModeUserIntentSchema(
             **{
-                "sql": "select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE, NICKNAME, REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT, REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE, REGISIP_REGIONAL_CODE, PACKAGENAME, CAPTURE_TIME, ACTIONTYPE, ACTIONTIME from XY_BF_ACCOUNT",
+                "sql": """select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE, NICKNAME,
+                 REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT,
+                 REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE,
+                 REGISIP_REGIONAL_CODE, PACKAGENAME, CAPTURE_TIME, ACTIONTYPE,
+                 ACTIONTIME from XY_BF_ACCOUNT""",
                 "data_count": 100,
             }
         ),
@@ -308,15 +317,10 @@ if __name__ == "__main__":
         user_intent: DataGenSQLModeUserIntentSchema = event.get("user_intent")
         if user_intent:
             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
-        # 模拟用户意图识别的研判反馈
-        # sql_mode_data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"},
-        #                                      as_node="intent_human_feedback_node")
-        # for event in sql_mode_data_gen_graph.stream(None, thread, stream_mode="values"):
         # Review
         human_intent_feedback = event.get("human_intent_feedback")
         if human_intent_feedback:
             logger.info(f"human_intent_feedback: {human_intent_feedback}")
-
         table_info_error = event.get("table_info_error")
         if table_info_error:
             logger.info(f"table_info_error: {table_info_error}")
