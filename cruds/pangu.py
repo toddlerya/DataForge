@@ -14,7 +14,9 @@ from database_models.schema import RecommendPanGuDictSchema, RecommendPanGuField
 from utils.db import Database
 
 
-def get_all_pangu_field_stat(db_handler: Database) -> tuple[bool, str, list[dict]]:
+def get_all_pangu_field_stat(
+    db_handler: Database,
+) -> tuple[bool, str, list[dict] | None]:
     """
     获取所有盘古字段统计
     :param db_handler:
@@ -229,7 +231,7 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
 
 def pangu_dict_key_values(
     db_handler: Database, dictkey_with_nlevel: str
-) -> tuple[bool, str, dict]:
+) -> tuple[bool, str, list[dict]]:
     """
     根据字典关联ID及层级获取字典详情
     :param db_handler:
