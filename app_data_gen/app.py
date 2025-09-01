@@ -14,8 +14,7 @@ from loguru import logger
 from agent.data_graph import data_gen_graph
 from agent.state import DataGenUserIntentSchema, PydanticDataGeniusPlan
 from common.initialization import init_env, setup_logging
-from config import PROJECT_PATH, DG_PLAN_PATH
-
+from config import DG_PLAN_PATH, PROJECT_PATH
 from utils.log import LogManager, TracedLogger
 
 log_config = LogManager(
@@ -73,7 +72,7 @@ async def process_step(event, graph):
         logger.debug(f"node: {node} state: {state} ")
 
         if node == "analyze_intent":
-            logger.info(f"[process] analyze_intent")
+            logger.info("[process] analyze_intent")
             user_intent: DataGenUserIntentSchema = state.get("user_intent")
             await cl.Message(
                 author="AI",
@@ -233,15 +232,20 @@ async def process_step(event, graph):
                 "data_genius_plan_output_filesize"
             )
             data_genius_plan_output_url = state.get("data_genius_plan_output_url")
-            done_message = (
-                "DataGenius任务已完成。\n"
-                f"- **DG任务名称**: {pydantic_data_genius_plan.rule_name}\n"
-                f"- **DG运行耗时**: {data_genius_plan_run_duration}\n"
-                f"- **生成数据大小**: {data_genius_plan_output_filesize}\n"
-                f"- **数据下载地址**: {data_genius_plan_output_url}\n"
-                f"- **DG任务编辑地址**: [{data_genius_plan_task_id}]({data_genius_plan_edit_url})"
-            )
-            logger.info(done_message)
+            query_data_genius_task_error = state.get("query_data_genius_task_error")
+            if query_data_genius_task_error:
+                done_message = query_data_genius_task_error
+                logger.error(query_data_genius_task_error)
+            else:
+                done_message = (
+                    "DataGenius任务已完成。\n"
+                    f"- **DG任务名称**: {pydantic_data_genius_plan.rule_name}\n"
+                    f"- **DG运行耗时**: {data_genius_plan_run_duration}\n"
+                    f"- **生成数据大小**: {data_genius_plan_output_filesize}\n"
+                    f"- **数据下载地址**: {data_genius_plan_output_url}\n"
+                    f"- **DG任务编辑地址**: [{data_genius_plan_task_id}]({data_genius_plan_edit_url})"
+                )
+                logger.info(done_message)
             await cl.Message(author="Assistant", content=done_message).send()
 
         elif node == "END":
@@ -278,7 +282,9 @@ async def main(message: cl.Message):
         f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} current_state: {current_state}"
     )
     if not current_state.values.get("user_input"):
-        logger.info(f"初始化: session_id={cl.context.session.id} client_ip={cl.user_session.get('client_ip')}")
+        logger.info(
+            f"初始化: session_id={cl.context.session.id} client_ip={cl.user_session.get('client_ip')}"
+        )
         init_state = {
             "user_input": message.content.strip(),
             "table_metadata_error": list(),
@@ -293,6 +299,7 @@ async def main(message: cl.Message):
         await process_step(step_output, data_gen_graph)
     # 完成会话清空trace_uuid
     traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
+
 
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit
