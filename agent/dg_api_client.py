@@ -10,6 +10,7 @@ from typing import Union
 from urllib.parse import urljoin
 
 import httpx
+from langchain_core.messages import ToolMessage
 from loguru import logger
 
 from agent.dg_configs import (
@@ -47,7 +48,17 @@ def create_dg_task(
     if isinstance(user_intent, DataGenUserIntentSchema):
         table_en_name = user_intent.table_en_names[0]
     else:
-        table_metadata_info: TableMetadataSchema = state.get("table_metadata_info")
+        table_metadata_info: TableMetadataSchema | None = state.get(
+            "table_metadata_info"
+        )
+        if table_metadata_info is None:
+            error = (
+                "SQLModeDataGenState: state的table_metadata_info为None, "
+                "无法获取table_en_name"
+            )
+            logger.error(error)
+            state["error_message"].append(ToolMessage(error))
+            return state
         table_en_name = table_metadata_info.table_en_name
     logger.info(
         f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name} "
@@ -136,6 +147,7 @@ def query_dg_task_status(
     query_task_url = urljoin(DG_SERVER_BASE_URL, DG_TASK_HISTORY)
     payload = {"limit": 10}
     data_genius_headers = state["data_genius_headers"]
+    logger.info(f"data_genius_headers: {data_genius_headers}")
     with httpx.Client() as client:
         for _ in range(60):
             response = client.get(

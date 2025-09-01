@@ -6,8 +6,7 @@
 # @Project  : DataForge
 
 
-from loguru import logger
-from typing import Union, Tuple
+from typing import Tuple
 
 from database_models.models import TableExampleDataInfo
 from utils.db import Database

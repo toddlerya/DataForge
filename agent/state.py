@@ -5,25 +5,20 @@
 # @Author  :   toddlerya
 # @Desc    :   None
 
-from typing import (
-    Annotated,
-    ClassVar,
-    Dict,
-    List,
-    Set,
-    TypedDict,
-)
 from pathlib import Path
+from typing import Annotated, ClassVar, Dict, List, Optional, Set, TypedDict
 
 from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, field_validator
 
-from database_models.schema import (TableRawFieldSchema,
-                                    GenTableFieldSchema,
-                                    RecommendPanGuDictSchema,
-                                    PydanticDataGeniusRule)
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
+from database_models.schema import (
+    GenTableFieldSchema,
+    PydanticDataGeniusRule,
+    RecommendPanGuDictSchema,
+    TableRawFieldSchema,
+)
 
 
 class DataGenUserIntentSchema(BaseModel):
@@ -59,15 +54,15 @@ init_dg_category_config = DGCategoryConfig()
 
 class PydanticDataGeniusCategoryRecommendation(BaseModel):
     """
-    用于定义LLM输出的结构，包含推荐的类别、置信度分数和推荐理由。
+    用于定义LLM输出的结构, 包含推荐的类别、置信度分数和推荐理由。
     """
 
-    category: str = Field(description=f"推荐的类别名称，必须在允许的类别列表中。")
+    category: str = Field(description="推荐的类别名称，必须在允许的类别列表中。")
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
     reason: str = Field(description="推荐理由说明")
 
     # 类变量，存储允许的类别
-    _allowed_categories: ClassVar[Set[str]] = None
+    _allowed_categories: ClassVar[Optional[Set[str]]] = None
 
     @classmethod
     def get_allowed_categories(cls) -> Set[str]:
@@ -77,7 +72,9 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
             # 直接遍历字典列表，提取 category 字段
             for item in init_dg_category_config.DG_FIELD_CATEGORY_CONFIG:
                 if isinstance(item, dict) and "category" in item:
-                    all_categories.add(item["category"])
+                    category = item["category"]
+                    if isinstance(category, str):
+                        all_categories.add(item["category"])
             cls._allowed_categories = all_categories
         return cls._allowed_categories
 
@@ -92,7 +89,8 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
         allowed = cls.get_allowed_categories()
         if v not in allowed:
             raise ValueError(
-                f"category '{v}' is not in allowed categories: {', '.join(sorted(allowed))}"
+                f"category '{v}' is not in allowed categories: "
+                f"{', '.join(sorted(allowed))}"
             )
         return v
 
@@ -180,7 +178,7 @@ class SQLModeDataGenState(TypedDict):
     human_intent_feedback: str
     table_info_error: str
     table_info_data: SQLModeTableInfoSchema
-    table_metadata_info: TableMetadataSchema
+    table_metadata_info: Optional[TableMetadataSchema]
     table_metadata_error: list[str]
     DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
     table_dict_category_code_map: dict[str, str]
@@ -249,7 +247,7 @@ class DimensionTableFieldsRecommendation(BaseModel):
     material_table_en_name: str = Field(default="", description="素材表英文名称")
     material_table_cn_name: str = Field(default="", description="素材表中文名称")
     field_en_name_slice: List[str] = Field(
-        description=f"推荐的字段名称清单，必须在允许的字段列表中",
+        description="推荐的字段名称清单，必须在允许的字段列表中",
         min_length=5,
         max_length=500,
     )
@@ -290,10 +288,14 @@ class TableGenState(TypedDict):
 if __name__ == "__main__":
     # 初始验证
     try:
-        test1 = PydanticDataGeniusCategoryRecommendation(category="sports", score=90, reason="初始配置不包含 sports")
+        test1 = PydanticDataGeniusCategoryRecommendation(
+            category="sports", score=90, reason="初始配置不包含 sports"
+        )
         print(id(test1))
     except ValueError as e:
-        print("初始验证失败:", e)  # 输出: category 'sports' is not in allowed categories...
+        print(
+            "初始验证失败:", e
+        )  # 输出: category 'sports' is not in allowed categories...
 
     # 动态更新配置
     init_dg_category_config.DG_FIELD_CATEGORY_CONFIG.append({"category": "sports"})
@@ -302,9 +304,7 @@ if __name__ == "__main__":
     # 再次验证
     try:
         instance = PydanticDataGeniusCategoryRecommendation(
-            category="sports",
-            score=90,
-            reason="现在配置包含 sports"
+            category="sports", score=90, reason="现在配置包含 sports"
         )
         print(id(instance))
 

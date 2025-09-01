@@ -5,14 +5,14 @@
 # @FileName : table_metadata.py
 # @Project  : DataForge
 
-from typing import Tuple, Optional, Dict
+from typing import Tuple
 
 from database_models.models import TableMetaDataInfo
 from utils.db import Database
 
 
 def table_metadata_query_by_entity_id(
-        entity_id: str, db_handler: Database
+    entity_id: str, db_handler: Database
 ) -> Tuple[bool, str, TableMetaDataInfo | None]:
     """
     查询表元数据信息
@@ -58,7 +58,7 @@ def table_metadata_save(record: dict, db_handler: Database) -> Tuple[bool, str]:
 
 
 def table_metadata_query(
-        table_en_name: str, db_handler: Database
+    table_en_name: str, db_handler: Database
 ) -> Tuple[bool, str, TableMetaDataInfo | None]:
     """
     查询数据
@@ -70,8 +70,11 @@ def table_metadata_query(
 
     """
     try:
-        result = db_handler.session.query(TableMetaDataInfo).filter(
-            TableMetaDataInfo.table_en_name.like(table_en_name)).one_or_none()
+        result = (
+            db_handler.session.query(TableMetaDataInfo)
+            .filter(TableMetaDataInfo.table_en_name.like(table_en_name))
+            .one_or_none()
+        )
     except Exception as err:
         message = f"数据库查询异常: {err}"
         return False, message, None
@@ -87,4 +90,3 @@ if __name__ == "__main__":
     )
     print(query_status)
     print(query_message)
-    print(query_result.table_fields)
