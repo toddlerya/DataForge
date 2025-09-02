@@ -7,9 +7,6 @@
 
 import logging
 import sys
-from typing import Sequence
-
-from loguru import HandlerConfig
 
 from config import (
     CONF_DATA_PATH,
@@ -24,7 +21,7 @@ from utils.file import create_dir
 from utils.log import InterceptHandler, logger
 
 
-def setup_logging(handlers: Sequence[HandlerConfig]):
+def setup_logging(handlers):
     # intercept everything at the root logger
     logging.root.handlers = [InterceptHandler()]
     logging.root.setLevel(logging.getLevelName(ENV_LOG_LEVEL))

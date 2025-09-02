@@ -9,10 +9,10 @@ import pathlib
 import sys
 import uuid
 from contextvars import ContextVar, Token
-from typing import List, Optional, TypedDict
+from typing import Optional
 
 from fastapi import Request
-from loguru import HandlerConfig, logger
+from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
@@ -51,10 +51,6 @@ class InterceptHandler(logging.Handler):
         logger.opt(depth=depth, exception=record.exc_info).log(
             level, record.getMessage()
         )
-
-
-class LoggerConfig(TypedDict):
-    handlers: List[HandlerConfig]
 
 
 class LogManager:
@@ -97,7 +93,7 @@ class LogManager:
         log_dir = pathlib.Path(base_path).joinpath(log_path)
         log_dir.mkdir(parents=True, exist_ok=True)
 
-        self.__config: LoggerConfig = {
+        self.__config = {
             "handlers": [
                 {
                     "sink": log_dir.joinpath(log_name),
@@ -122,7 +118,7 @@ class LogManager:
         }
         logger.configure(**self.__config)  # type: ignore
 
-    def get_config(self) -> LoggerConfig:
+    def get_config(self):
         """获取logger参数"""
         return self.__config
 
