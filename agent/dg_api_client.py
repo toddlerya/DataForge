@@ -43,7 +43,7 @@ def create_dg_task(
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     user_intent = state["user_intent"]
     client_ip = state["client_ip"]
-    state["data_genius_headers"] = {"USER_PROVIDE_IP": client_ip}
+    state["data_genius_headers"] = {"SPECIFIEDIP": client_ip}
     data_genius_headers = state["data_genius_headers"]
     if isinstance(user_intent, DataGenUserIntentSchema):
         table_en_name = user_intent.table_en_names[0]
