@@ -9,7 +9,9 @@
 import json
 import uuid
 from copy import deepcopy
+from typing import Optional
 
+from langchain_core.messages import ToolMessage
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -56,7 +58,8 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
     user_input = state.get("user_input").strip()
     human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
-        f"analyze_data_intent => user_input: {user_input} human_intent_feedback: {human_intent_feedback}"
+        f"analyze_data_intent => user_input: {user_input} "
+        f"human_intent_feedback: {human_intent_feedback}"
     )
     structured_llm = chat_llm.with_structured_output(DataGenUserIntentSchema)
     chat_prompt = data_intent_prompt.format_messages(
@@ -64,8 +67,9 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
     )
     logger.trace(f"analyze_intent chat_prompt: {chat_prompt}")
     user_intent = structured_llm.invoke(chat_prompt)
-    state["user_intent"] = user_intent
-    logger.debug(f"user_intent: {user_intent}")
+    logger.info(f"user_intent: {user_intent} type: {type(user_intent)}")
+    if isinstance(user_intent, DataGenUserIntentSchema):
+        state["user_intent"] = user_intent
     return state
 
 
@@ -119,11 +123,28 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
             state["table_metadata_error"].append(f"未查询到{table_en_name}元数据!")
             raw_fields_data = [TableRawFieldSchema()]
         else:
-            raw_fields_data = [
-                TableRawFieldSchema(**ele)
-                for ele in query_result.table_fields
-                if isinstance(ele, dict)
-            ]
+            # 重要：从 ORM 对象中提取字段值，而不是直接传 ColumnElement
+            raw_fields_data = []
+            for field_dict in query_result.table_fields:
+                if not isinstance(field_dict, dict):
+                    continue
+                # table_fields 是 JSON 字段，里面存储的是 dict，不是 ORM 对象！
+                try:
+                    # 保证字段是基础类型，不是 ColumnElement
+                    raw_field = TableRawFieldSchema(
+                        en_name=field_dict.get("en_name", ""),
+                        cn_name=field_dict.get("cn_name", ""),
+                        desc=field_dict.get("desc", ""),
+                        field_type=field_dict.get("field_type", ""),
+                        is_require=int(field_dict.get("is_require", 0)),
+                        dict_key=field_dict.get("dict_key", ""),
+                        dict_name=field_dict.get("dict_name", ""),
+                        example=field_dict.get("example", ""),
+                    )
+                    raw_fields_data.append(raw_field)
+                except Exception as e:
+                    logger.warning(f"解析字段数据失败: {field_dict}, 错误: {e}")
+                    raw_fields_data.append(TableRawFieldSchema())
 
         table_metadata.raw_fields_info = raw_fields_data
 
@@ -141,12 +162,14 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
     logger.info("RAG增强字段属性信息")
     DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
     table_metadata_array = state["table_metadata_array"]
-    table_metadata: TableMetadataSchema = (
+    table_metadata: Optional[TableMetadataSchema] = (
         table_metadata_array[0] if table_metadata_array else None
     )
     if not table_metadata:
         logger.error("未查询到表元数据，无法进行字段字典RAG增强推荐")
-        state["error_message"].append("未查询到表元数据，无法进行字段字典RAG增强推荐")
+        state["error_message"].append(
+            ToolMessage("未查询到表元数据，无法进行字段字典RAG增强推荐")
+        )
         return state
     table_metadata_error: list[str] = []
     table_dictkey_slice: list[str] = []
@@ -341,7 +364,8 @@ fmdbmeta.DWD_BEH_TRANS_ENTRY：100"""
         #     logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
 
         # 模拟用户意图识别的研判反馈
-        # data_gen_graph.update_state(thread, {"human_intent_feedback": "正确"}, as_node="intent_human_feedback_node")
+        # data_gen_graph.update_state(thread,
+        # {"human_intent_feedback": "正确"}, as_node="intent_human_feedback_node")
 
         # for event in data_gen_graph.stream(None, thread, stream_mode="values"):
         # Review

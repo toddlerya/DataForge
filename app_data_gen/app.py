@@ -9,6 +9,7 @@ import asyncio
 import chainlit as cl
 import pandas as pd
 from dotenv import load_dotenv
+from langchain_core.runnables.config import RunnableConfig
 from loguru import logger
 
 from agent.data_graph import data_gen_graph
@@ -43,9 +44,12 @@ async def start_chat():
     else:
         cl.user_session.set("client_ip", "127.0.0.1")
 
-    text_content = f"""{cl.user_session.get("client_ip")}，您好！我是您的测试数据生成助手\n\n目前支持的表为盘古或数据域管理的表。\n
-请输入需要构造的表名称，期望生成的数据条数。\n
-若需字段对字段有特殊的约束条件，比如期望某些字段满足特定的固定值或枚举值，请在工具运行完成后端DG任务链接页面按照DG规则进行配置。
+    text_content = f"""{cl.user_session.get("client_ip")},
+    您好！我是您的测试数据生成助手\n
+目前支持的表为盘古或数据域管理的表。
+请输入需要构造的表名称，期望生成的数据条数。
+若需字段对字段有特殊的约束条件, 比如期望某些字段满足特定的固定值或枚举值,
+请在工具运行完成后端DG任务链接页面按照DG规则进行配置。\n
 ====输入内容示例====\n
 数据库表名称 (必填):
 massdata.ADM_REL_MOBILE
@@ -60,7 +64,7 @@ massdata.ADM_REL_MOBILE: 5
 
 async def process_step(event, graph):
     """
-    辅助函数，用于处理和显示Langgraph的每一步
+    辅助函数, 用于处理和显示Langgraph的每一步
     Args:
         graph:
         event:
@@ -81,10 +85,14 @@ async def process_step(event, graph):
             ).send()
             res = await cl.AskUserMessage(
                 author="Assistant",
-                content="上述意图识别结果是否正确？若不正确请调整输入信息再次尝试意图识别；若正确，请输入“正确“或”Y”，将开始数据生成任务。",
+                content=(
+                    "上述意图识别结果是否正确？"
+                    "若不正确请调整输入信息再次尝试意图识别; "
+                    "若正确, 请输入“正确“或”Y”, 将开始数据生成任务。"
+                ),
                 timeout=300,
             ).send()
-            if res:
+            if res and "output" in res:
                 res_text = res["output"].strip()
                 logger.info(f"human_intent_feedback: {res_text}")
                 cl.user_session.set("human_intent_feedback", res_text)
@@ -144,12 +152,6 @@ async def process_step(event, graph):
                         elements=table_metadata_elements,
                     ).send()
 
-                    # await cl.Message(
-                    #     author="AI",
-                    #     content=json.dumps(table_metadata_array, ensure_ascii=False, indent=2),
-                    #     language="python"
-                    # ).send()
-
                 await cl.Message(content="正在生成DataGenius执行计划...").send()
 
         elif node == "dg_category_recommend":
@@ -159,7 +161,7 @@ async def process_step(event, graph):
             )
             await cl.Message(
                 author="Assistant",
-                content="当前生成的DataGenius数据生成计划配置如下, 将开始数据生成任务。",
+                content="当前生成的DataGenius数据生成计划配置如下, 将开始数据生成任务",
             ).send()
             await cl.Message(
                 author="AI",
@@ -243,15 +245,24 @@ async def process_step(event, graph):
                     f"- **DG运行耗时**: {data_genius_plan_run_duration}\n"
                     f"- **生成数据大小**: {data_genius_plan_output_filesize}\n"
                     f"- **数据下载地址**: {data_genius_plan_output_url}\n"
-                    f"- **DG任务编辑地址**: [{data_genius_plan_task_id}]({data_genius_plan_edit_url})"
+                    f"- **DG任务编辑地址**: "
+                    f"[{data_genius_plan_task_id}]({data_genius_plan_edit_url})"
                 )
                 logger.info(done_message)
             await cl.Message(author="Assistant", content=done_message).send()
 
         elif node == "END":
-            elapsed_time = cl.user_session.get("end_time") - cl.user_session.get(
-                "start_time"
-            )
+            start_time = cl.user_session.get("start_time") or 0.0
+            end_time = cl.user_session.get("end_time") or 0.0
+            # 确保是 float 类型
+            if isinstance(start_time, (int, float)) and isinstance(
+                end_time, (int, float)
+            ):
+                elapsed_time = end_time - start_time
+                logger.info(f"Total execution time: {elapsed_time:.2f} seconds")
+            else:
+                logger.warning("Invalid time values in session.")
+                elapsed_time = 0.0
             cost_msg = f"{elapsed_time: .2f} 秒"
             final_message = (
                 f"本次任务运行完成，总计耗时: {cost_msg}, 如需再次使用请开启新会话."
@@ -268,9 +279,10 @@ async def main(message: cl.Message):
         cl.user_session.set("trace_token", trace_token)
 
     logger.info(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} message: {message.content}"
+        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
+        f"message: {message.content}"
     )
-    config = {
+    config: RunnableConfig = {
         "configurable": {"thread_id": cl.context.session.id},
         "recursion_limit": 50,
     }
@@ -279,15 +291,17 @@ async def main(message: cl.Message):
     current_state = data_gen_graph.get_state(config)
 
     logger.debug(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} current_state: {current_state}"
+        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
+        f"current_state: {current_state}"
     )
     if not current_state.values.get("user_input"):
         logger.info(
-            f"初始化: session_id={cl.context.session.id} client_ip={cl.user_session.get('client_ip')}"
+            f"初始化: session_id={cl.context.session.id} "
+            f"client_ip={cl.user_session.get('client_ip')}"
         )
         init_state = {
             "user_input": message.content.strip(),
-            "table_metadata_error": list(),
+            "table_metadata_error": [],
             "max_retries": 5,
             "session_id": cl.context.session.id,
             "client_ip": cl.user_session.get("client_ip"),
@@ -298,7 +312,14 @@ async def main(message: cl.Message):
     async for step_output in data_gen_graph.astream(None, config):
         await process_step(step_output, data_gen_graph)
     # 完成会话清空trace_uuid
-    traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
+    trace_token = cl.user_session.get("trace_token")
+    if trace_token is None:
+        logger.warning(
+            f"session_id={cl.context.session.id} trace_token not found, skipping reset."
+        )
+    else:
+        # 这里 Pylance 知道 trace_token 是 Token 类型，且不是 None
+        traced_logger.reset_trace_uuid(trace_token)
 
 
 if __name__ == "__main__":
