@@ -71,14 +71,15 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     )
     logger.trace(f"analyze_intent chat_prompt: {chat_prompt}")
     user_intent = structured_llm.invoke(chat_prompt)
-    state["user_intent"] = user_intent
+    if isinstance(user_intent, DataGenSQLModeUserIntentSchema):
+        state["user_intent"] = user_intent
     logger.debug(f"user_intent: {user_intent}")
     return state
 
 
-def data_intent_human_feedback_node():
+def data_intent_human_feedback_node(state: SQLModeDataGenState):
     """No-op node that should be interrupted on"""
-    pass
+    return state
 
 
 def should_data_intent_continue(state: SQLModeDataGenState):
@@ -317,8 +318,7 @@ if __name__ == "__main__":
     for event in sql_mode_data_gen_graph.stream(
         init_state, thread, stream_mode="values"
     ):
-        user_intent: DataGenSQLModeUserIntentSchema = event.get("user_intent")
-        if user_intent:
+        if user_intent := event.get("user_intent"):
             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
         # Review
         human_intent_feedback = event.get("human_intent_feedback")
@@ -328,8 +328,7 @@ if __name__ == "__main__":
         if table_info_error:
             logger.info(f"table_info_error: {table_info_error}")
 
-        table_info_data: SQLModeTableInfoSchema = event.get("table_info_data")
-        if table_info_data:
+        if table_info_data := event.get("table_info_data"):
             logger.info(f"table_info_data: {table_info_data.model_dump_json()}")
 
         table_metadata_info = event.get("table_metadata_info")

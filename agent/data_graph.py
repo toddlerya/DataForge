@@ -72,9 +72,9 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
     return state
 
 
-def data_intent_human_feedback_node():
+def data_intent_human_feedback_node(state: DataGenState):
     """No-op node that should be interrupted on"""
-    pass
+    return state
 
 
 def should_data_intent_continue(state: DataGenState):
@@ -268,7 +268,7 @@ def is_pre_heat_dg_rule_mode(state: DataGenState):
 
 data_gen_builder = StateGraph(DataGenState)
 data_gen_builder.add_node("analyze_intent", analyze_data_intent)
-data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)  # type: ignore
+data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
 data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)

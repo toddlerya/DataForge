@@ -92,9 +92,7 @@ class RecommendPanGuFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=
     is_multi_value_percentage: float = Field(
         0.0, description="是否是多值列出现次数占比"
     )
-    is_required: int | None = Field(
-        0, description="出现次数最多的是否必填 1-必填 0-非必填"
-    )
+    is_required: int = Field(0, description="出现次数最多的是否必填 1-必填 0-非必填")
     is_required_count: int = Field(0, description="是否必填出现次数")
     is_required_percentage: float = Field(0.0, description="是否必填出现次数占比")
     core_flag: str = Field("", description="出现次数最多的是否核心字段  1-核心  0-普通")

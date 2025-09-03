@@ -122,7 +122,8 @@ def recommend_dg_rule_by_llm(
             name = f"{category}_字典规则"
             category = "自定义-枚举"
             logger.debug(
-                f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}"
+                f"类别={llm_dg_field_category_recommendation.category} "
+                f"更新为字典规则: {name}"
             )
         pydantic_data_genius_rule = PydanticDataGeniusRule(
             col=col_index,
