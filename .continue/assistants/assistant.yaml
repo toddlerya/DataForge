@@ -13,18 +13,19 @@ models:
   - name: qwen3:30b-a3b-instruct-2507-q4_K_M
     provider: vllm
     model: qwen3:30b-a3b-instruct-2507-q4_K_M
-    apiKey: YOUR_API_KEY_HERE
+    apiKey: X2590
     apiBase: http://172.16.108.3:9999/v1
     roles:
       - chat
       - edit
       - apply
       - summarize
+      - autocomplete
 
   - name: QwQ-32B
     provider: vllm
     model: QwQ-32B
-    apiBase: http://ai.njsecnet.com/gateway/
+    apiBase: http://ai.njsecnet.com/gateway
     apiKey: X2590
     roles:
       - chat
