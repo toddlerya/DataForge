@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/8/11 15:05 
+# @Time     : 2025/8/11 15:05
 # @Author   : guoqun X2590
 # @FileName : dg_rule_lru.py
 # @Project  : DataForge
 
 
-from sqlalchemy import and_
-from sqlalchemy.orm import Session
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
-from utils.db import Database
 from database_models.models import FieldDGRuleCache
-from database_models.schema import FieldDGRuleCacheSchema
+from utils.db import Database
 
 
-def save_field_dg_rule(db_handler: Database, field_dg_rule_cache_data: dict) -> tuple[bool, str]:
+def save_field_dg_rule(
+    db_handler: Database, field_dg_rule_cache_data: dict
+) -> tuple[bool, str]:
     """
     存储字段的DG规则
     Args:
@@ -34,10 +33,7 @@ def save_field_dg_rule(db_handler: Database, field_dg_rule_cache_data: dict) -> 
 
 
 def query_field_dg_rule(
-        db_handler: Database,
-        ename: str,
-        cname: str = "",
-        field_type_name: str = ""
+    db_handler: Database, ename: str, cname: str = "", field_type_name: str = ""
 ) -> Tuple[bool, str, Optional[FieldDGRuleCache]]:
     """
     根据字段英文名查询字段的DG规则缓存
@@ -67,11 +63,10 @@ def query_field_dg_rule(
         return False, f"查询失败: {str(e)}", None
 
 
-if __name__ == '__main__':
-    query_status, query_message, query_result = query_field_dg_rule(db_handler=Database(),
-                                                                    ename="GROUPID",
-                                                                    cname="群号",
-                                                                    field_type_name="string")
+if __name__ == "__main__":
+    query_status, query_message, query_result = query_field_dg_rule(
+        db_handler=Database(), ename="GROUPID", cname="群号", field_type_name="string"
+    )
     print(query_status)
     print(query_message)
     print(query_result)

@@ -13,9 +13,9 @@ from langchain.prompts import (
 # 定义模板
 data_intent_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是数仓测试专家，你的任务如下\n"
-    "1. 识别出数据库表名称(可以多张表，对应table_en_names)\n"
+    "1. 识别出数据库表名称(对应table_en_name)\n"
     # "2. 期望表约束条件(每张表可以有或者没有约束条件，对应table_conditions)\n"
-    "2. 期望生成数据条数(每张表都有条数，对应table_data_count)\n"
+    "2. 期望生成数据条数(对应data_count)\n"
     "按照要求输出结构化数据。"
 )
 

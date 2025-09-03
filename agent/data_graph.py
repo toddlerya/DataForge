@@ -9,7 +9,6 @@
 import json
 import uuid
 from copy import deepcopy
-from typing import Optional
 
 from langchain_core.messages import ToolMessage
 from langchain_core.runnables.config import RunnableConfig
@@ -100,55 +99,53 @@ def should_table_raw_field_info_continue(state: DataGenState):
 
 
 def query_table_raw_field_info(state: DataGenState) -> DataGenState:
-    if "table_metadata_array" not in state:
-        state["table_metadata_array"] = []
+    if "table_metadata_info" not in state:
         state["table_metadata_error"] = []
 
-    intent_table_en_names = state.get("user_intent", {}).table_en_names
+    table_en_name = state.get("user_intent", {}).table_en_name
     # 查询知识库获取表的字段配置信息
 
-    for table_en_name in intent_table_en_names:
-        table_metadata = TableMetadataSchema(table_en_name=table_en_name)
-        query_status, query_message, query_result = table_metadata_query(
-            table_en_name=table_en_name, db_handler=Database()
+    table_metadata = TableMetadataSchema(table_en_name=table_en_name)
+    query_status, query_message, query_result = table_metadata_query(
+        table_en_name=table_en_name, db_handler=Database()
+    )
+    if query_status is False:
+        logger.error(f"查询{table_en_name}元数据异常: {query_result}")
+        state["table_metadata_error"].append(
+            f"查询{table_en_name}元数据异常: {query_message}"
         )
-        if query_status is False:
-            logger.error(f"查询{table_en_name}元数据异常: {query_result}")
-            state["table_metadata_error"].append(
-                f"查询{table_en_name}元数据异常: {query_message}"
-            )
-            raw_fields_data = [TableRawFieldSchema()]
-        elif query_result is None:
-            logger.error(f"未查询到{table_en_name}元数据!")
-            state["table_metadata_error"].append(f"未查询到{table_en_name}元数据!")
-            raw_fields_data = [TableRawFieldSchema()]
-        else:
-            # 重要：从 ORM 对象中提取字段值，而不是直接传 ColumnElement
-            raw_fields_data = []
-            for field_dict in query_result.table_fields:
-                if not isinstance(field_dict, dict):
-                    continue
-                # table_fields 是 JSON 字段，里面存储的是 dict，不是 ORM 对象！
-                try:
-                    # 保证字段是基础类型，不是 ColumnElement
-                    raw_field = TableRawFieldSchema(
-                        en_name=field_dict.get("en_name", ""),
-                        cn_name=field_dict.get("cn_name", ""),
-                        desc=field_dict.get("desc", ""),
-                        field_type=field_dict.get("field_type", ""),
-                        is_require=int(field_dict.get("is_require", 0)),
-                        dict_key=field_dict.get("dict_key", ""),
-                        dict_name=field_dict.get("dict_name", ""),
-                        example=field_dict.get("example", ""),
-                    )
-                    raw_fields_data.append(raw_field)
-                except Exception as e:
-                    logger.warning(f"解析字段数据失败: {field_dict}, 错误: {e}")
-                    raw_fields_data.append(TableRawFieldSchema())
+        raw_fields_data = [TableRawFieldSchema()]
+    elif query_result is None:
+        logger.error(f"未查询到{table_en_name}元数据!")
+        state["table_metadata_error"].append(f"未查询到{table_en_name}元数据!")
+        raw_fields_data = [TableRawFieldSchema()]
+    else:
+        # 重要：从 ORM 对象中提取字段值，而不是直接传 ColumnElement
+        raw_fields_data = []
+        for field_dict in query_result.table_fields:
+            if not isinstance(field_dict, dict):
+                continue
+            # table_fields 是 JSON 字段，里面存储的是 dict，不是 ORM 对象！
+            try:
+                # 保证字段是基础类型，不是 ColumnElement
+                raw_field = TableRawFieldSchema(
+                    en_name=field_dict.get("en_name", ""),
+                    cn_name=field_dict.get("cn_name", ""),
+                    desc=field_dict.get("desc", ""),
+                    field_type=field_dict.get("field_type", ""),
+                    is_require=int(field_dict.get("is_require", 0)),
+                    dict_key=field_dict.get("dict_key", ""),
+                    dict_name=field_dict.get("dict_name", ""),
+                    example=field_dict.get("example", ""),
+                )
+                raw_fields_data.append(raw_field)
+            except Exception as e:
+                logger.warning(f"解析字段数据失败: {field_dict}, 错误: {e}")
+                raw_fields_data.append(TableRawFieldSchema())
 
-        table_metadata.raw_fields_info = raw_fields_data
+    table_metadata.raw_fields_info = raw_fields_data
 
-        state["table_metadata_array"].append(table_metadata)
+    state["table_metadata_info"] = table_metadata
     return state
 
 
@@ -161,22 +158,18 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
     global dict_result
     logger.info("RAG增强字段属性信息")
     DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
-    table_metadata_array = state["table_metadata_array"]
-    table_metadata: Optional[TableMetadataSchema] = (
-        table_metadata_array[0] if table_metadata_array else None
-    )
+    table_metadata = state["table_metadata_info"]
     if not table_metadata:
         logger.error("未查询到表元数据，无法进行字段字典RAG增强推荐")
         state["error_message"].append(
             ToolMessage("未查询到表元数据，无法进行字段字典RAG增强推荐")
         )
         return state
-    table_metadata_error: list[str] = []
     table_dictkey_slice: list[str] = []
     table_dict_category_code_map: dict[str, str] = {}
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = {}
     db_handler = Database()
-    for index, each_field in enumerate(table_metadata.raw_fields_info):
+    for _, each_field in enumerate(table_metadata.raw_fields_info):
         if each_field.dict_key:
             # 数据域页面获取的表元数据没有dict_name，只有dict_key，
             # 且dict_key是没有nlevel的，需要补上, 默认2
@@ -218,8 +211,7 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
             # 补充字典类别名称
             each_field.dict_name = category
             each_field.dict_key = one_dict.dictkey_with_nlevel
-    state["table_metadata_array"][0] = table_metadata
-    state["table_metadata_error"] = table_metadata_error
+    state["table_metadata_info"] = table_metadata
     state["table_dict_category_code_map"] = table_dict_category_code_map
     state["table_dictkey_map"] = table_dictkey_map
     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
@@ -241,22 +233,20 @@ def save_dg_plan2json(state: DataGenState):
     """
     logger.info("存储DataGenius任务规则")
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
-    table_metadata_array = state.get("table_metadata_array")
+    table_metadata = state.get("table_metadata_info")
     if pydantic_data_genius_plan:
         data = pydantic_data_genius_plan.model_dump()
         save_json_path = DG_PLAN_PATH.joinpath(
             f"{pydantic_data_genius_plan.rule_name}.json"
         ).absolute()
         save_dict2jl(json_data=data, save_path=str(save_json_path))
-    if table_metadata_array:
-        table_metadata_array_data = [ele.model_dump() for ele in table_metadata_array]
+    if table_metadata:
+        table_metadata_data = table_metadata.model_dump()
         table_metadata_json_path = DG_PLAN_PATH.joinpath(
             f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
         )
 
-        save_dict2jl(
-            json_data=table_metadata_array_data, save_path=table_metadata_json_path
-        )
+        save_dict2jl(json_data=table_metadata_data, save_path=table_metadata_json_path)
     return state
 
 

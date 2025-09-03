@@ -22,15 +22,8 @@ from database_models.schema import (
 
 
 class DataGenUserIntentSchema(BaseModel):
-    table_en_names: List[str] = Field(..., description="表英文名称, 不可为空")
-    # table_conditions: Dict[str, str] = Field(
-    #     {},
-    #     description="表字段的约束条件，key为表名，value为条件表达式字符串",
-    # )
-    table_data_count: Dict[str, int] = Field(
-        ...,
-        description="表期望生成的数据条数，key为表名，value为正整数",
-    )
+    table_en_name: str = Field(..., description="表英文名称, 不可为空")
+    data_count: int = Field(..., ge=1, description="期望数据条数")
 
 
 class TableMetadataSchema(BaseModel):
@@ -129,7 +122,7 @@ class DataGenState(TypedDict):
     client_ip: str
     user_intent: DataGenUserIntentSchema
     human_intent_feedback: str
-    table_metadata_array: list[TableMetadataSchema]
+    table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
     DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
     table_dict_category_code_map: dict[str, str]
@@ -178,7 +171,7 @@ class SQLModeDataGenState(TypedDict):
     human_intent_feedback: str
     table_info_error: str
     table_info_data: SQLModeTableInfoSchema
-    table_metadata_info: Optional[TableMetadataSchema]
+    table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
     DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
     table_dict_category_code_map: dict[str, str]

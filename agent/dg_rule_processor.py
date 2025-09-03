@@ -1,42 +1,40 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/8/11 15:53 
+# @Time     : 2025/8/11 15:53
 # @Author   : guoqun X2590
 # @FileName : dg_rule_processor.py
 # @Project  : DataForge
 
-import uuid
-from typing import Union, Optional
+from typing import Optional, Union
 
-from config import DG_PLAN_CONFIG_PREFIX
-from cruds.dg_rule_cache import query_field_dg_rule, save_field_dg_rule
-from database_models.schema import RecommendPanGuDictSchema
-from agent.prompt import dg_category_prompt
+from agent.dg_configs import DG_STORAGE_PATH
 from agent.dg_rule_extend import force_update_dg_rule
+from agent.llm import chat_llm
+from agent.prompt import dg_category_prompt
 from agent.state import (
     DataGenState,
+    DataGenUserIntentSchema,
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
     PydanticDataGeniusRule,
-    DataGenSQLModeUserIntentSchema,
     SQLModeDataGenState,
-    DataGenUserIntentSchema,
     TableMetadataSchema,
     TableRawFieldSchema,
 )
-from agent.dg_configs import (
-    DG_STORAGE_PATH
-)
-from agent.llm import chat_llm
+from config import DG_PLAN_CONFIG_PREFIX
+from cruds.dg_rule_cache import query_field_dg_rule, save_field_dg_rule
+from database_models.schema import RecommendPanGuDictSchema
 from utils.db import Database
-from utils.log import logger
 from utils.file import get_md5
+from utils.log import logger
 
 
-def cache_dg_rule(db_handler: Database,
-                  field_info: TableRawFieldSchema,
-                  pydantic_data_genius_rule: PydanticDataGeniusRule,
-                  ttl: int = 86400 * 7):
+def cache_dg_rule(
+    db_handler: Database,
+    field_info: TableRawFieldSchema,
+    pydantic_data_genius_rule: PydanticDataGeniusRule,
+    ttl: int = 86400 * 7,
+):
     """
     缓存DG规则到数据库
     Args:
@@ -47,10 +45,13 @@ def cache_dg_rule(db_handler: Database,
     Returns:
 
     """
-    _, rule_uuid = get_md5(f"{field_info.en_name}{field_info.cn_name}{field_info.desc}{field_info.field_type}")
+    _, rule_uuid = get_md5(
+        f"{field_info.en_name}{field_info.cn_name}{field_info.desc}{field_info.field_type}"
+    )
     logger.trace(
         f"存储DG规则到缓存, rule_uuid: {rule_uuid} "
-        f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}")
+        f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
+    )
     field_dg_rule_cache_data = {
         "uuid": rule_uuid,
         "ename": field_info.en_name,
@@ -59,27 +60,31 @@ def cache_dg_rule(db_handler: Database,
         "field_type_name": field_info.field_type,
         "dg_rule": pydantic_data_genius_rule.model_dump(),
         "example_data": field_info.example,
-        "ttl": ttl
+        "ttl": ttl,
     }
-    save_status, save_message = save_field_dg_rule(db_handler=db_handler,
-                                                   field_dg_rule_cache_data=field_dg_rule_cache_data)
+    save_status, save_message = save_field_dg_rule(
+        db_handler=db_handler, field_dg_rule_cache_data=field_dg_rule_cache_data
+    )
     if save_status is False:
-        logger.error(f"存储DG字段规则缓存异常! "
-                     f"field_dg_rule_cache_data: {field_dg_rule_cache_data} "
-                     f"ERROR: {save_message}")
+        logger.error(
+            f"存储DG字段规则缓存异常! "
+            f"field_dg_rule_cache_data: {field_dg_rule_cache_data} "
+            f"ERROR: {save_message}"
+        )
         db_handler.session.rollback()
     else:
         db_handler.session.flush()
         db_handler.session.commit()
 
 
-def recommend_dg_rule_by_llm(structured_llm,
-                             col_index: int,
-                             field_info: TableRawFieldSchema,
-                             DG_FIELD_CATEGORY_CONFIG: list[dict],
-                             table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]],
-                             last_error_message: str
-                             ) -> tuple[bool, str, Optional[PydanticDataGeniusRule]]:
+def recommend_dg_rule_by_llm(
+    structured_llm,
+    col_index: int,
+    field_info: TableRawFieldSchema,
+    DG_FIELD_CATEGORY_CONFIG: list[dict],
+    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]],
+    last_error_message: str,
+) -> tuple[bool, str, Optional[PydanticDataGeniusRule]]:
     chat_prompt = dg_category_prompt.format_messages(
         cn_name=field_info.cn_name,
         en_name=field_info.en_name,
@@ -116,7 +121,9 @@ def recommend_dg_rule_by_llm(structured_llm,
             args = {"choices": choices}
             name = f"{category}_字典规则"
             category = "自定义-枚举"
-            logger.debug(f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}")
+            logger.debug(
+                f"类别={llm_dg_field_category_recommendation.category} 更新为字典规则: {name}"
+            )
         pydantic_data_genius_rule = PydanticDataGeniusRule(
             col=col_index,
             category=category,
@@ -124,9 +131,9 @@ def recommend_dg_rule_by_llm(structured_llm,
             ename=field_info.en_name,
             cname=field_info.cn_name,
             preview=f"score: {llm_dg_field_category_recommendation.score}, "
-                    f"reason: {llm_dg_field_category_recommendation.reason}",
+            f"reason: {llm_dg_field_category_recommendation.reason}",
             value=field_info.example,
-            args=args
+            args=args,
         )
         logger.trace(
             f"pydantic_data_genius_rule: {pydantic_data_genius_rule.model_dump_json()}"
@@ -134,8 +141,9 @@ def recommend_dg_rule_by_llm(structured_llm,
         return True, "", pydantic_data_genius_rule
 
 
-def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
-                      ) -> Union[SQLModeDataGenState, DataGenState]:
+def dg_rule_processor(
+    state: Union[SQLModeDataGenState, DataGenState],
+) -> Union[SQLModeDataGenState, DataGenState]:
     """
     DataGenius字段分类缓存和推荐处理器
     Args:
@@ -152,20 +160,17 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
     session_id = state["session_id"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     logger.info(
-        f"DG_FIELD_CATEGORY_CONFIG category slice: {[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}")
+        f"DG_FIELD_CATEGORY_CONFIG category slice: {[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}"
+    )
     table_dictkey_map = state.get("table_dictkey_map")
 
-
     if isinstance(user_intent, DataGenUserIntentSchema):
-        table_en_name = user_intent.table_en_names[0]
-        table_metadata: TableMetadataSchema = state.get("table_metadata_array", [])[0]
+        table_en_name = user_intent.table_en_name
+        table_metadata: TableMetadataSchema = state["table_metadata_info"]
     else:
         table_metadata = state.get("table_metadata_info")
         table_en_name = table_metadata.table_en_name
-    if isinstance(user_intent, DataGenSQLModeUserIntentSchema):
-        row_count = user_intent.data_count or 1000
-    else:
-        row_count = user_intent.table_data_count.get(table_en_name, 1000)
+    row_count = user_intent.data_count or 1000
     if not table_metadata:
         logger.error("未查询到表元数据，无法进行数据字段分类推荐")
         state["error_message"].append("未查询到表元数据，无法进行数据字段分类推荐")
@@ -195,13 +200,17 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
             break
         field_info = table_metadata.raw_fields_info[field_index]
         # 优先查询缓存的DG规则
-        query_status, query_message, query_result = query_field_dg_rule(db_handler=db_handler,
-                                                                        ename=field_info.en_name,
-                                                                        cname=field_info.cn_name,
-                                                                        field_type_name=field_info.field_type)
+        query_status, query_message, query_result = query_field_dg_rule(
+            db_handler=db_handler,
+            ename=field_info.en_name,
+            cname=field_info.cn_name,
+            field_type_name=field_info.field_type,
+        )
         # 命中缓存，直接使用缓存的DG规则
         if query_status and query_result:
-            logger.info(f"字段 {field_info.en_name} 命中DG规则缓存 cache_result: {query_result.to_dict()}")
+            logger.info(
+                f"字段 {field_info.en_name} 命中DG规则缓存 cache_result: {query_result.to_dict()}"
+            )
             cached_dg_rule = PydanticDataGeniusRule(**query_result.dg_rule)
             # 更新字段的DG规则配置
             cached_dg_rule.col = col_index
@@ -217,23 +226,29 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
         # 无法命中缓存则继续LLM推荐，有重试机制
         logger.info(f"字段{field_info.en_name}未命中缓存，触发LLM推荐")
         for retry_count in range(max_retries + 1):
-            recommend_status, last_error_message, pydantic_data_genius_rule = recommend_dg_rule_by_llm(
-                structured_llm=structured_llm,
-                col_index=col_index,
-                field_info=field_info,
-                DG_FIELD_CATEGORY_CONFIG=DG_FIELD_CATEGORY_CONFIG,
-                table_dictkey_map=table_dictkey_map,
-                last_error_message=last_error_message
+            recommend_status, last_error_message, pydantic_data_genius_rule = (
+                recommend_dg_rule_by_llm(
+                    structured_llm=structured_llm,
+                    col_index=col_index,
+                    field_info=field_info,
+                    DG_FIELD_CATEGORY_CONFIG=DG_FIELD_CATEGORY_CONFIG,
+                    table_dictkey_map=table_dictkey_map,
+                    last_error_message=last_error_message,
+                )
             )
             # 推荐异常，重试
             if recommend_status is False:
-                logger.warning(f"推荐异常, 重试第{retry_count}次... field_info: {field_info.model_dump_json()}")
+                logger.warning(
+                    f"推荐异常, 重试第{retry_count}次... field_info: {field_info.model_dump_json()}"
+                )
                 # LLM推荐重试达到最大次数，给默认DG规则
                 if retry_count >= max_retries:
-                    llm_dg_field_category_recommendation = PydanticDataGeniusCategoryRecommendation(
-                        category="数字串",
-                        score=0,
-                        reason="未能识别字段类型, 填充数字串分类",
+                    llm_dg_field_category_recommendation = (
+                        PydanticDataGeniusCategoryRecommendation(
+                            category="数字串",
+                            score=0,
+                            reason="未能识别字段类型, 填充数字串分类",
+                        )
                     )
                     logger.warning(
                         f"已达到最大推荐重试次数 {max_retries}，自动填充默认DataGenius分类推荐"
@@ -257,18 +272,22 @@ def dg_rule_processor(state: Union[SQLModeDataGenState, DataGenState]
                     # 清空错误信息
                     last_error_message = ""
                     # 存储当前推荐的字段DG规则到缓存中
-                    cache_dg_rule(db_handler=db_handler,
-                                  field_info=field_info,
-                                  pydantic_data_genius_rule=pydantic_data_genius_rule,
-                                  ttl=86400 * 3)
+                    cache_dg_rule(
+                        db_handler=db_handler,
+                        field_info=field_info,
+                        pydantic_data_genius_rule=pydantic_data_genius_rule,
+                        ttl=86400 * 3,
+                    )
                     break
             else:
                 rules.append(pydantic_data_genius_rule)
                 field_index += 1
                 # 存储当前推荐的字段DG规则到缓存中
-                cache_dg_rule(db_handler=db_handler,
-                              field_info=field_info,
-                              pydantic_data_genius_rule=pydantic_data_genius_rule)
+                cache_dg_rule(
+                    db_handler=db_handler,
+                    field_info=field_info,
+                    pydantic_data_genius_rule=pydantic_data_genius_rule,
+                )
                 break
     rule_uuid = session_id
     # 检查特例规则进行更新

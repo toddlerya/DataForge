@@ -19,12 +19,7 @@ from agent.dg_configs import (
     DG_SERVER_BASE_URL,
     DG_TASK_HISTORY,
 )
-from agent.state import (
-    DataGenState,
-    DataGenUserIntentSchema,
-    SQLModeDataGenState,
-    TableMetadataSchema,
-)
+from agent.state import DataGenState, SQLModeDataGenState, TableMetadataSchema
 from config import DG_PAYLOAD_PATH
 from utils.file import save_dict2jl
 
@@ -41,25 +36,16 @@ def create_dg_task(
 
     """
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
-    user_intent = state["user_intent"]
     client_ip = state["client_ip"]
     state["data_genius_headers"] = {"SPECIFIEDIP": client_ip}
     data_genius_headers = state["data_genius_headers"]
-    if isinstance(user_intent, DataGenUserIntentSchema):
-        table_en_name = user_intent.table_en_names[0]
-    else:
-        table_metadata_info: TableMetadataSchema | None = state.get(
-            "table_metadata_info"
-        )
-        if table_metadata_info is None:
-            error = (
-                "SQLModeDataGenState: state的table_metadata_info为None, "
-                "无法获取table_en_name"
-            )
-            logger.error(error)
-            state["error_message"].append(ToolMessage(error))
-            return state
-        table_en_name = table_metadata_info.table_en_name
+    table_metadata_info: TableMetadataSchema | None = state.get("table_metadata_info")
+    if table_metadata_info is None:
+        error = "state的table_metadata_info为None, 无法获取table_en_name"
+        logger.error(error)
+        state["error_message"].append(ToolMessage(error))
+        return state
+    table_en_name = table_metadata_info.table_en_name
     logger.info(
         f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name} "
         f"data_genius_headers: {data_genius_headers}"
@@ -197,4 +183,20 @@ def query_dg_task_status(
                         state["data_genius_plan_edit_url"] = data_genius_plan_edit_url
                         return state
             time.sleep(2)
+    return state
+
+
+def save_task_info2db(
+    state: Union[SQLModeDataGenState, DataGenState],
+) -> Union[SQLModeDataGenState, DataGenState]:
+    """存储任务信息到数据库
+
+    Args:
+        state (Union[SQLModeDataGenState, DataGenState]): _description_
+
+    Returns:
+        Union[SQLModeDataGenState, DataGenState]: _description_
+    """
+    logger.info("存储任务信息到数据库")
+
     return state

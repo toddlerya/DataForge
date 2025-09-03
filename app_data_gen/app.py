@@ -51,10 +51,8 @@ async def start_chat():
 若需字段对字段有特殊的约束条件, 比如期望某些字段满足特定的固定值或枚举值,
 请在工具运行完成后端DG任务链接页面按照DG规则进行配置。\n
 ====输入内容示例====\n
-数据库表名称 (必填):
-massdata.ADM_REL_MOBILE
-期望生成数据条数 (必填):
-massdata.ADM_REL_MOBILE: 5
+数据库表名称 (必填): massdata.ADM_REL_MOBILE
+期望生成数据条数 (必填): 5
 """
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(
@@ -74,7 +72,6 @@ async def process_step(event, graph):
     """
     for node, state in event.items():
         logger.debug(f"node: {node} state: {state} ")
-
         if node == "analyze_intent":
             logger.info("[process] analyze_intent")
             user_intent: DataGenUserIntentSchema = state.get("user_intent")
@@ -103,57 +100,52 @@ async def process_step(event, graph):
                 )
                 start_time = asyncio.get_event_loop().time()
                 cl.user_session.set("start_time", start_time)
-
                 await cl.Message(content="正在获取表元数据信息...").send()
-
         elif node == "query_table_raw_field_info":
             logger.info("[process] query_table_raw_field_info")
             end_time = asyncio.get_event_loop().time()
             cl.user_session.set("end_time", end_time)
             await cl.Message(content="已获取表元数据信息...").send()
-            table_metadata_array = state.get("table_metadata_array")
+            table_metadata = state.get("table_metadata_info")
             table_metadata_error = state.get("table_metadata_error")
             if table_metadata_error:
                 logger.error(f"table_metadata_error: {table_metadata_error}")
                 await cl.Message(content=table_metadata_error).send()
-            elif len(table_metadata_array) >= 1:
-                for table_metadata in table_metadata_array:
-                    df = pd.DataFrame(
-                        [ele.model_dump() for ele in table_metadata.raw_fields_info]
-                    )[
-                        [
-                            "cn_name",
-                            "en_name",
-                            "desc",
-                            "field_type",
-                            "dict_key",
-                            "example",
-                        ]
-                    ].rename(
-                        columns={
-                            "cn_name": "中文名称",
-                            "en_name": "英文名称",
-                            "desc": "描述",
-                            "field_type": "字段类型",
-                            "dict_key": "字典",
-                            "example": "样例数据",
-                        }
-                    )
-                    table_metadata_elements = [
-                        cl.Dataframe(
-                            data=df,
-                            display="side",
-                            name=f"{table_metadata.table_en_name}表字段信息",
-                        )
+            else:
+                df = pd.DataFrame(
+                    [ele.model_dump() for ele in table_metadata.raw_fields_info]
+                )[
+                    [
+                        "cn_name",
+                        "en_name",
+                        "desc",
+                        "field_type",
+                        "dict_key",
+                        "example",
                     ]
-                    await cl.Message(
-                        author="Database",
-                        content=f"{table_metadata.table_en_name}表字段信息",
-                        elements=table_metadata_elements,
-                    ).send()
-
+                ].rename(
+                    columns={
+                        "cn_name": "中文名称",
+                        "en_name": "英文名称",
+                        "desc": "描述",
+                        "field_type": "字段类型",
+                        "dict_key": "字典",
+                        "example": "样例数据",
+                    }
+                )
+                table_metadata_elements = [
+                    cl.Dataframe(
+                        data=df,
+                        display="side",
+                        name=f"{table_metadata.table_en_name}表字段信息",
+                    )
+                ]
+                await cl.Message(
+                    author="Database",
+                    content=f"{table_metadata.table_en_name}表字段信息",
+                    elements=table_metadata_elements,
+                ).send()
                 await cl.Message(content="正在生成DataGenius执行计划...").send()
-
         elif node == "dg_category_recommend":
             logger.info("[process] dg_category_recommend")
             pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
