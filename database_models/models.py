@@ -235,7 +235,7 @@ class PanGuDictInfo(CommonColumnMixin, ToDictMixin, Base):
     __table_args__ = (
         UniqueConstraint("uuid", name="uuid"),
         UniqueConstraint(
-            "dictkey_with_nlevel", "uuid", name="dictkey_with_nlevel_uuid_unique"
+            "uuid", "dictkey_with_nlevel", name="dictkey_with_nlevel_uuid_unique"
         ),
         {"comment": "盘古字典"},
     )
@@ -281,7 +281,9 @@ class FieldDGRuleCache(CommonColumnMixin, ToDictMixin, Base):
 class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "task_info"
     __table_args__ = (
-        UniqueConstraint("task_uuid", name="task_uuid_unique"),
+        UniqueConstraint(
+            "task_uuid", "table_en_name", name="task_uuid_table_en_name_unique"
+        ),
         Index("idx_table_en_name", "table_en_name"),
         {"comment": "任务信息表"},
     )
@@ -290,21 +292,23 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
         nullable=False,
         comment="任务唯一ID, 与session_uuid, trace_uuid一致",
     )
-    table_en_name = Column(
-        String(length=128), nullable=False, default="", comment="表英文名称"
-    )
+    table_en_name = Column(String(length=128), nullable=False, comment="表英文名称")
     data_row_count = Column(Integer, default=0, comment="任务生成的数据条数")
-    source = Column(String(length=64), default="", comment="数据来源")
+    mode = Column(
+        Integer, default=0, comment="任务模式[0:未知 1: 元数据模式 2: SQL解析模式]"
+    )
     client_ip = Column(String(length=15), default="127.0.0.1", comment="客户端IP")
     task_payload = Column(JSONB, default=None, comment="创建任务请求的请求体JSON")
     rule_name = Column(String(length=56), default="", comment="任务规则名称")
     task_rule = Column(JSON, default=None, comment="任务规则配置JSON")
-    dg_task_name = Column(String(length=128), default="", comment="DG的任务名称")
-    dg_task_status = Column(Integer, default=-1, comment="0正常,1异常,-1未知")
+    dg_task_status = Column(
+        Integer, default=-1, comment="DG任务状态: 0正常,1异常,-1未知"
+    )
+    dg_task_message = Column(Text, default="", comment="DG任务状态信息")
     dg_task_id = Column(String(length=36), default="", comment="DG的任务ID")
     dg_task_edit_url = Column(Text, default="", comment="DG任务的编辑URL")
     dg_task_download_url = Column(Text, default="", comment="DG任务结果的下载URL")
-    dg_task_duration = Column(Integer, default=-1, comment="DG任务耗时")
+    dg_task_duration = Column(String(length=56), default="", comment="DG任务耗时")
     user_modified_rules = Column(JSON, default=None, comment="用户修改的字段规则")
 
 

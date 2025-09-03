@@ -1,8 +1,8 @@
-"""add task_info
+"""add_task_info
 
-Revision ID: 65867bfc7c10
+Revision ID: eab9537dc686
 Revises: 3d386a87109d
-Create Date: 2025-09-01 14:18:38.099370
+Create Date: 2025-09-03 15:32:40.324086
 
 """
 
@@ -11,7 +11,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "65867bfc7c10"
+revision = "eab9537dc686"
 down_revision = "3d386a87109d"
 branch_labels = None
 depends_on = None
@@ -33,7 +33,12 @@ def upgrade() -> None:
         sa.Column(
             "data_row_count", sa.Integer(), nullable=True, comment="任务生成的数据条数"
         ),
-        sa.Column("source", sa.String(length=64), nullable=True, comment="数据来源"),
+        sa.Column(
+            "mode",
+            sa.Integer(),
+            nullable=True,
+            comment="任务模式[0:未知 1: 元数据模式 2: SQL解析模式]",
+        ),
         sa.Column("client_ip", sa.String(length=15), nullable=True, comment="客户端IP"),
         sa.Column(
             "task_payload",
@@ -46,10 +51,13 @@ def upgrade() -> None:
         ),
         sa.Column("task_rule", sa.JSON(), nullable=True, comment="任务规则配置JSON"),
         sa.Column(
-            "dg_task_name", sa.String(length=128), nullable=True, comment="DG的任务名称"
+            "dg_task_status",
+            sa.Integer(),
+            nullable=True,
+            comment="DG任务状态: 0正常,1异常,-1未知",
         ),
         sa.Column(
-            "dg_task_status", sa.Integer(), nullable=True, comment="0正常,1异常,-1未知"
+            "dg_task_message", sa.Text(), nullable=True, comment="DG任务状态信息"
         ),
         sa.Column(
             "dg_task_id", sa.String(length=36), nullable=True, comment="DG的任务ID"
@@ -64,7 +72,10 @@ def upgrade() -> None:
             comment="DG任务结果的下载URL",
         ),
         sa.Column(
-            "dg_task_duration", sa.Integer(), nullable=True, comment="DG任务耗时"
+            "dg_task_duration",
+            sa.String(length=56),
+            nullable=True,
+            comment="DG任务耗时",
         ),
         sa.Column(
             "user_modified_rules",
@@ -79,7 +90,9 @@ def upgrade() -> None:
         sa.Column("create_time", sa.DateTime(), nullable=False, comment="创建时间"),
         sa.Column("update_time", sa.DateTime(), nullable=False, comment="更新时间"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("task_uuid", name="task_uuid_unique"),
+        sa.UniqueConstraint(
+            "task_uuid", "table_en_name", name="task_uuid_table_en_name_unique"
+        ),
         comment="任务信息表",
     )
     op.create_index("idx_table_en_name", "task_info", ["table_en_name"], unique=False)

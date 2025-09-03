@@ -16,7 +16,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from agent.dg_api_client import create_dg_task, query_dg_task_status
+from agent.dg_api_client import create_dg_task, query_dg_task_status, save_task_info2db
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from agent.dg_rule_processor import dg_rule_processor
 from agent.llm import chat_llm
@@ -275,6 +275,7 @@ data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
 data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 data_gen_builder.add_node("create_dg_task", create_dg_task)
 data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
+data_gen_builder.add_node("save_task_info2db", save_task_info2db)
 
 data_gen_builder.add_conditional_edges(
     START, detect_input_type, ["query_table_raw_field_info", "analyze_intent"]
@@ -296,7 +297,8 @@ data_gen_builder.add_conditional_edges(
 )
 data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
-data_gen_builder.add_edge("query_dg_task_status", END)
+data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
+data_gen_builder.add_edge("save_task_info2db", END)
 
 memory = MemorySaver()
 data_gen_graph = data_gen_builder.compile(

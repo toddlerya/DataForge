@@ -15,7 +15,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
-from agent.dg_api_client import create_dg_task, query_dg_task_status
+from agent.dg_api_client import create_dg_task, query_dg_task_status, save_task_info2db
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from agent.dg_rule_processor import dg_rule_processor
 from agent.llm import chat_llm
@@ -248,6 +248,7 @@ sql_mode_data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
 sql_mode_data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 sql_mode_data_gen_builder.add_node("create_dg_task", create_dg_task)
 sql_mode_data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
+sql_mode_data_gen_builder.add_node("save_task_info2db", save_task_info2db)
 
 sql_mode_data_gen_builder.add_conditional_edges(
     START, detect_input_type, ["sql_parse_to_table_info", "analyze_intent"]
@@ -265,7 +266,8 @@ sql_mode_data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_reco
 sql_mode_data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
 sql_mode_data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
 sql_mode_data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
-sql_mode_data_gen_builder.add_edge("query_dg_task_status", END)
+sql_mode_data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
+sql_mode_data_gen_builder.add_edge("save_task_info2db", END)
 
 memory = MemorySaver()
 sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(

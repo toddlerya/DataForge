@@ -26,10 +26,10 @@ class Database:
     @logger.catch(reraise=True)
     def __init__(
         self,
-        url: str = None,
-        echo: bool = None,
-        auto_flush: bool = None,
-        auto_commit: bool = None,
+        url: str = SQLALCHEMY_URL,
+        echo: bool = SQLALCHEMY_ECHO,
+        auto_flush: bool = SQLALCHEMY_AUTO_FLUSH,
+        auto_commit: bool = SQLALCHEMY_AUTO_COMMIT,
     ):
         if ENV_DB_MODE == "POSTGRESQL":
             self.db = PostgreSQLDB(
@@ -40,10 +40,26 @@ class Database:
                 url=url, echo=echo, auto_flush=auto_flush, auto_commit=auto_commit
             )
         else:
-            self.db = SQLiteDB(
-                url=url, echo=echo, auto_flush=auto_flush, auto_commit=auto_commit
-            )
+            self.db = SQLiteDB(url=url, auto_flush=auto_flush, auto_commit=auto_commit)
         self.session = self.db.session
+
+    # 支持 with 语句
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            # 1. 关闭session (重要: scoped_session需要remove)
+            self.session.remove()
+        except Exception as err:
+            logger.warning(f"Failed to remove session: {err}")
+
+        try:
+            # 2. 关闭 engine (仅关闭连接池，不强制关闭所有连接)
+            if hasattr(self.db, "__engine"):
+                self.db.__engine.dispose()
+        except Exception as err:
+            logger.warning(f"Failed to dispose engine: {err}")
 
     def insert_or_update(self, model_name, **kwargs):
         """
@@ -64,10 +80,9 @@ class SQLiteDB:
     @logger.catch(reraise=True)
     def __init__(
         self,
-        url: str = None,
-        echo: bool = None,
-        auto_flush: bool = None,
-        auto_commit: bool = None,
+        url: str = "",
+        auto_flush: bool = False,
+        auto_commit: bool = True,
     ):
         """
         初始化sqlalchemy数据库对象化
@@ -78,19 +93,10 @@ class SQLiteDB:
             auto_flush (bool, optional): 是否自动flush. Defaults to None.
             auto_commit (bool, optional): 是否自动commit. Defaults to None.
         """
-        if not url:
-            url = SQLALCHEMY_URL
-        if not echo:
-            echo = SQLALCHEMY_ECHO
-        if not auto_flush:
-            auto_flush = SQLALCHEMY_AUTO_FLUSH
-        if not auto_commit:
-            auto_commit = SQLALCHEMY_AUTO_COMMIT
         # 启用Sqlite的WAL模式
         # QueuePool limit of size 20 overflow 10 reached, connection time out, timeout 30.00
         self.__engine = create_engine(
             url=url,
-            # echo=echo,
             future=True,
             pool_size=30,
             max_overflow=60,
@@ -128,10 +134,10 @@ class MySQLDB:
     @logger.catch(reraise=True)
     def __init__(
         self,
-        url: str = None,
-        echo: bool = None,
-        auto_flush: bool = None,
-        auto_commit: bool = None,
+        url: str = "",
+        echo: bool = False,
+        auto_flush: bool = False,
+        auto_commit: bool = True,
     ):
         """
         初始化sqlalchemy数据库对象化
@@ -142,15 +148,6 @@ class MySQLDB:
             auto_flush (bool, optional): 是否自动flush. Defaults to None.
             auto_commit (bool, optional): 是否自动commit. Defaults to None.
         """
-        if not url:
-            url = SQLALCHEMY_URL
-        if not echo:
-            echo = SQLALCHEMY_ECHO
-        if not auto_flush:
-            auto_flush = SQLALCHEMY_AUTO_FLUSH
-        if not auto_commit:
-            auto_commit = SQLALCHEMY_AUTO_COMMIT
-
         self.__engine = create_engine(url=url, echo=echo, future=True)
         session_factory = sessionmaker(
             bind=self.__engine, autoflush=auto_flush, autocommit=auto_commit
@@ -178,10 +175,10 @@ class PostgreSQLDB:
     @logger.catch(reraise=True)
     def __init__(
         self,
-        url: str = None,
-        echo: bool = None,
-        auto_flush: bool = None,
-        auto_commit: bool = None,
+        url: str = "",
+        echo: bool = False,
+        auto_flush: bool = False,
+        auto_commit: bool = True,
     ):
         """
         初始化sqlalchemy数据库对象化
@@ -192,14 +189,6 @@ class PostgreSQLDB:
             auto_flush (bool, optional): 是否自动flush. Defaults to None.
             auto_commit (bool, optional): 是否自动commit. Defaults to None.
         """
-        if not url:
-            url = SQLALCHEMY_URL
-        if not echo:
-            echo = SQLALCHEMY_ECHO
-        if not auto_flush:
-            auto_flush = SQLALCHEMY_AUTO_FLUSH
-        if not auto_commit:
-            auto_commit = SQLALCHEMY_AUTO_COMMIT
         self.__engine = create_engine(
             url=url, echo=echo, future=True
         ).execution_options(isolation_level="AUTOCOMMIT")
@@ -221,7 +210,7 @@ class PostgreSQLDB:
         if not kwargs:
             return
         # 找出所有的唯一键约束条件
-        index_elements = list()
+        index_elements = []
         model_dict = getattr(model_name, "__table__").__dict__
         for key, value in model_dict.items():
             if key == "constraints" or key == "indexes":

@@ -18,6 +18,7 @@ from database_models.schema import (
     PydanticDataGeniusRule,
     RecommendPanGuDictSchema,
     TableRawFieldSchema,
+    TaskDataSchema,
 )
 
 
@@ -115,12 +116,12 @@ class PydanticDataGeniusPlan(BaseModel):
     cols: int = Field(1, gt=0, description="需要生成的列数")
 
 
-class DataGenState(TypedDict):
+# 基类：公共字段
+class DataGenBaseState(TypedDict):
     messages: Annotated[List[AnyMessage], add_messages]
     user_input: str
     session_id: str
     client_ip: str
-    user_intent: DataGenUserIntentSchema
     human_intent_feedback: str
     table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
@@ -139,7 +140,13 @@ class DataGenState(TypedDict):
     data_genius_plan_edit_url: str
     error_message: Annotated[List[AnyMessage], add_messages]
     max_retries: int
+    task_data: TaskDataSchema
+
+
+class DataGenState(DataGenBaseState):
+    user_intent: DataGenUserIntentSchema
     pre_heat_mode: bool
+    metadata_gen: str
 
 
 class DataGenSQLModeUserIntentSchema(BaseModel):
@@ -162,32 +169,11 @@ class SQLModeTableInfoSchema(BaseModel):
     )
 
 
-class SQLModeDataGenState(TypedDict):
-    messages: Annotated[List[AnyMessage], add_messages]
-    user_input: str
-    session_id: str
-    client_ip: str
+class SQLModeDataGenState(DataGenBaseState):
     user_intent: DataGenSQLModeUserIntentSchema
-    human_intent_feedback: str
     table_info_error: str
     table_info_data: SQLModeTableInfoSchema
-    table_metadata_info: TableMetadataSchema
-    table_metadata_error: list[str]
-    DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
-    table_dict_category_code_map: dict[str, str]
-    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
-    pydantic_data_genius_plan: PydanticDataGeniusPlan
-    data_genius_headers: dict
-    data_genius_task_id: str
-    create_data_genius_task_error: str
-    query_data_genius_task_error: str
-    data_genius_plan_task_id: str
-    data_genius_plan_run_duration: str
-    data_genius_plan_output_url: str
-    data_genius_plan_output_filesize: str
-    data_genius_plan_edit_url: str
-    error_message: Annotated[List[AnyMessage], add_messages]
-    max_retries: int
+    sql_gen: str
 
 
 class TableGenUserIntentSchema(BaseModel):

@@ -21,6 +21,9 @@ from agent.dg_configs import (
 )
 from agent.state import DataGenState, SQLModeDataGenState, TableMetadataSchema
 from config import DG_PAYLOAD_PATH
+from cruds.task import save_task_info
+from database_models.schema import TaskDataSchema
+from utils.db import Database
 from utils.file import save_dict2jl
 
 
@@ -114,6 +117,16 @@ def create_dg_task(
             state["create_data_genius_task_error"] = (
                 f"创建任务异常{create_task_url}, error: {info}"
             )
+    task_data = TaskDataSchema(
+        task_uuid=state["session_id"],
+        table_en_name=table_en_name,
+        data_row_count=pydantic_data_genius_plan.rows,
+        client_ip=client_ip,
+        task_payload=payload,
+        rule_name=pydantic_data_genius_plan.rule_name,
+        task_rule=pydantic_data_genius_plan_dict["rules"],
+    )
+    state["task_data"] = task_data
     return state
 
 
@@ -134,6 +147,7 @@ def query_dg_task_status(
     payload = {"limit": 10}
     data_genius_headers = state["data_genius_headers"]
     logger.info(f"data_genius_headers: {data_genius_headers}")
+    task_data = state["task_data"]
     with httpx.Client() as client:
         for _ in range(60):
             response = client.get(
@@ -146,6 +160,8 @@ def query_dg_task_status(
                 state["query_data_genius_task_error"] = (
                     f"请求{query_task_url}异常, status_code: {response.status_code}"
                 )
+                task_data.dg_task_status = 1
+                state["task_data"] = task_data
                 return state
             resp_json = response.json()
             for result in resp_json.get("results", [{}]):
@@ -181,8 +197,28 @@ def query_dg_task_status(
                         state["data_genius_plan_output_url"] = output_url
                         state["data_genius_plan_output_filesize"] = output_filesize
                         state["data_genius_plan_edit_url"] = data_genius_plan_edit_url
+                        # 更新任务信息
+                        task_data.dg_task_status = 0
+                        task_data.dg_task_message = "成功"
+                        task_data.dg_task_id = task_id
+                        task_data.dg_task_edit_url = data_genius_plan_edit_url
+                        task_data.dg_task_download_url = output_url
+                        task_data.dg_task_duration = duration
+                        state["task_data"] = task_data
+                        return state
+                    elif result.get("status_name") == "执行中":
+                        continue
+                    else:
+                        # DG任务结果不是成功
+                        task_data.dg_task_status = 1
+                        task_data.dg_task_message = result.get("status_name")
+                        state["task_data"] = task_data
                         return state
             time.sleep(2)
+        # 等到超时了，dg也没给结果
+        task_data.dg_task_status = 1
+        state["task_data"] = task_data
+        return state
     return state
 
 
@@ -198,5 +234,21 @@ def save_task_info2db(
         Union[SQLModeDataGenState, DataGenState]: _description_
     """
     logger.info("存储任务信息到数据库")
-
+    task_data = state["task_data"]
+    if hasattr(DataGenState, "metadata_gen"):
+        mode = 1
+    elif hasattr(SQLModeDataGenState, "sql_gen"):
+        mode = 2
+    else:
+        mode = 0
+    task_data.mode = mode
+    db_handler = Database()
+    save_status, save_message = save_task_info(
+        db_handler=db_handler, task_info_data=task_data.model_dump()
+    )
+    if save_status is False:
+        logger.error(save_message)
+    else:
+        db_handler.session.commit()
+    db_handler.session.close
     return state
