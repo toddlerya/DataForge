@@ -16,6 +16,7 @@ class TaskDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     )
     table_en_name: str = Field(default="", description="表英文名称")
     data_row_count: int = Field(default=0, description="任务生成的数据条数")
+    user_intent: dict = Field(default={}, description="用户意图")
     mode: int = Field(
         default=0, description="任务模式[0:未知 1: 元数据模式 2: SQL解析模式]"
     )

@@ -69,6 +69,7 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
     logger.info(f"user_intent: {user_intent} type: {type(user_intent)}")
     if isinstance(user_intent, DataGenUserIntentSchema):
         state["user_intent"] = user_intent
+    state["mode"] = 1
     return state
 
 

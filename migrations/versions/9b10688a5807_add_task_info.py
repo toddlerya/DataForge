@@ -1,8 +1,8 @@
 """add_task_info
 
-Revision ID: eab9537dc686
+Revision ID: 9b10688a5807
 Revises: 3d386a87109d
-Create Date: 2025-09-03 15:32:40.324086
+Create Date: 2025-09-03 16:55:23.857282
 
 """
 
@@ -11,7 +11,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "eab9537dc686"
+revision = "9b10688a5807"
 down_revision = "3d386a87109d"
 branch_labels = None
 depends_on = None
@@ -33,6 +33,7 @@ def upgrade() -> None:
         sa.Column(
             "data_row_count", sa.Integer(), nullable=True, comment="任务生成的数据条数"
         ),
+        sa.Column("user_intent", sa.JSON(), nullable=True, comment="用户意图"),
         sa.Column(
             "mode",
             sa.Integer(),

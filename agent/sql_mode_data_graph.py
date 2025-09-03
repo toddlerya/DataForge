@@ -74,6 +74,7 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     if isinstance(user_intent, DataGenSQLModeUserIntentSchema):
         state["user_intent"] = user_intent
     logger.debug(f"user_intent: {user_intent}")
+    state["mode"] = 2
     return state
 
 

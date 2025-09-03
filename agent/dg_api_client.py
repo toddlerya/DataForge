@@ -121,6 +121,7 @@ def create_dg_task(
         task_uuid=state["session_id"],
         table_en_name=table_en_name,
         data_row_count=pydantic_data_genius_plan.rows,
+        user_intent=state["user_intent"].model_dump(),
         client_ip=client_ip,
         task_payload=payload,
         rule_name=pydantic_data_genius_plan.rule_name,
@@ -235,12 +236,8 @@ def save_task_info2db(
     """
     logger.info("存储任务信息到数据库")
     task_data = state["task_data"]
-    if hasattr(DataGenState, "metadata_gen"):
-        mode = 1
-    elif hasattr(SQLModeDataGenState, "sql_gen"):
-        mode = 2
-    else:
-        mode = 0
+    mode = state["mode"]
+    logger.info(f"gen mode: {mode}")
     task_data.mode = mode
     db_handler = Database()
     save_status, save_message = save_task_info(

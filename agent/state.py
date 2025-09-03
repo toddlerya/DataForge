@@ -6,7 +6,7 @@
 # @Desc    :   None
 
 from pathlib import Path
-from typing import Annotated, ClassVar, Dict, List, Optional, Set, TypedDict
+from typing import Annotated, ClassVar, Dict, List, Literal, Optional, Set, TypedDict
 
 from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
@@ -146,7 +146,7 @@ class DataGenBaseState(TypedDict):
 class DataGenState(DataGenBaseState):
     user_intent: DataGenUserIntentSchema
     pre_heat_mode: bool
-    metadata_gen: str
+    mode: Literal[1]
 
 
 class DataGenSQLModeUserIntentSchema(BaseModel):
@@ -173,7 +173,7 @@ class SQLModeDataGenState(DataGenBaseState):
     user_intent: DataGenSQLModeUserIntentSchema
     table_info_error: str
     table_info_data: SQLModeTableInfoSchema
-    sql_gen: str
+    mode: Literal[2]
 
 
 class TableGenUserIntentSchema(BaseModel):
@@ -292,3 +292,6 @@ if __name__ == "__main__":
         print("验证成功:", instance.category)  # 输出: sports
     except ValueError as e:
         print("验证失败:", e)
+
+    print(hasattr(DataGenState, "metadata_gen"))
+    print("metadata_gen" in DataGenState.__annotations__)
