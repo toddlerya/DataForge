@@ -38,8 +38,13 @@ def query_sql(
 
 
 if __name__ == "__main__":
+    import time
+
     sql = "SELECT * FROM recommend_pangu_field_info WHERE dictkey IS NOT null limit 10;"
-    status, msg, data = query_sql(sql_text=sql, max_count=5, db=Database())
-    print(status)
-    print(msg)
-    print(data)
+    with Database() as db_handler:
+        status, msg, data = query_sql(sql_text=sql, max_count=5, db=db_handler)
+        print(status)
+        print(msg)
+        print(data)
+
+    time.sleep(30)

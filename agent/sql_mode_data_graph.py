@@ -207,6 +207,7 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     init_dg_category_config.DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
     # 如果已经生成过实例了，需要清空缓存更新
     PydanticDataGeniusCategoryRecommendation.reset_allowed_categories()
+    db_handler.session.close()
     return state
 
 

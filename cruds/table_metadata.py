@@ -90,3 +90,4 @@ if __name__ == "__main__":
     )
     print(query_status)
     print(query_message)
+    inner_db_handler.session.close()

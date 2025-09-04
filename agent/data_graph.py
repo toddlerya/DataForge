@@ -107,8 +107,9 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     # 查询知识库获取表的字段配置信息
 
     table_metadata = TableMetadataSchema(table_en_name=table_en_name)
+    db_handler = Database()
     query_status, query_message, query_result = table_metadata_query(
-        table_en_name=table_en_name, db_handler=Database()
+        table_en_name=table_en_name, db_handler=db_handler
     )
     if query_status is False:
         logger.error(f"查询{table_en_name}元数据异常: {query_result}")
@@ -147,6 +148,7 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     table_metadata.raw_fields_info = raw_fields_data
 
     state["table_metadata_info"] = table_metadata
+    db_handler.session.close()
     return state
 
 

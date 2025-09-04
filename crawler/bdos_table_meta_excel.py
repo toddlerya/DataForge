@@ -1,33 +1,35 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/7/29 17:46 
+# @Time     : 2025/7/29 17:46
 # @Author   : guoqun X2590
 # @FileName : bdos_table_meta_excel.py
 # @Project  : DataForge
 
-import re
 import pathlib
+import re
 import warnings
 
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string
 
-from utils.file import find_all_files
-from utils.log import logger
+from cruds.table_metadata import table_metadata_save
+from database_models.schema import TableMetaDataSchema, TableRawFieldSchema
 from database_models.sys_enum import MetaDataSource
-from database_models.schema import (
-    TableMetaDataSchema,
-    TableRawFieldSchema
-)
 from utils.db import Database
-from utils.file import get_md5
-from cruds.table_metadata import table_metadata_save, table_metadata_query_by_entity_id
+from utils.file import find_all_files, get_md5
+from utils.log import logger
 
 
 class BDOSTableMetaExcelLoad:
-    def __init__(self, bdos_table_meta_excel_dir_path: str, inner_db: Database, ):
+    def __init__(
+        self,
+        bdos_table_meta_excel_dir_path: str,
+        inner_db: Database,
+    ):
         # 忽略 openpyxl 的样式警告
-        warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl.styles.stylesheet")
+        warnings.filterwarnings(
+            "ignore", category=UserWarning, module="openpyxl.styles.stylesheet"
+        )
         self.bdos_table_meta_excel_dir_path = bdos_table_meta_excel_dir_path
         self.inner_db = inner_db
 
@@ -36,8 +38,12 @@ class BDOSTableMetaExcelLoad:
         查找所有BDOS资源表excel路径
         :return:
         """
-        logger.info(f"查找所有BDOS数据资源表excel, 查找目录: {self.bdos_table_meta_excel_dir_path}")
-        all_excel_path = [ele for ele in find_all_files(goal_path=self.bdos_table_meta_excel_dir_path)]
+        logger.info(
+            f"查找所有BDOS数据资源表excel, 查找目录: {self.bdos_table_meta_excel_dir_path}"
+        )
+        all_excel_path = [
+            ele for ele in find_all_files(goal_path=self.bdos_table_meta_excel_dir_path)
+        ]
         logger.info(f"找到BDOS数据资源表excel数量: {len(all_excel_path)}")
         return all_excel_path
 
@@ -66,9 +72,9 @@ class BDOSTableMetaExcelLoad:
                 # 检查列索引是否在范围内（避免越界）
                 if idx < len(row):
                     value = row[idx]
-                    row_data[col] = str(value) if value is not None else ''
+                    row_data[col] = str(value) if value is not None else ""
                 else:
-                    row_data[col] = ''  # 列不存在时回填空字符串
+                    row_data[col] = ""  # 列不存在时回填空字符串
             # row_data
             # {'B': 'MD_ID', 'C': '标识ID', 'E': '', 'J': 'STRING', 'K': '否'}
             table_raw_field = TableRawFieldSchema(
@@ -78,13 +84,13 @@ class BDOSTableMetaExcelLoad:
                 field_type=row_data["J"],
                 is_require=0 if row_data["K"] == "否" else 1,
                 dict_key=row_data["E"],
-                dict_name=""
+                dict_name="",
             )
             table_fields.append(table_raw_field)
         table_resource_sheet = wb["资源"]
         table_ename_cell_value = table_resource_sheet["A2"].value.strip()
         # 没有bdos数据库前缀要追加
-        pattern = r'^' + re.escape('bdos') + r'\.\w+'
+        pattern = r"^" + re.escape("bdos") + r"\.\w+"
         if bool(re.match(pattern, table_ename_cell_value, re.IGNORECASE)) is False:
             table_ename_cell_value = f"bdos.{table_ename_cell_value}"
         table_cname_cell_value = table_resource_sheet["B2"].value.strip()
@@ -95,7 +101,7 @@ class BDOSTableMetaExcelLoad:
             description=description_cell_value,
             table_fields=table_fields,
             position_type="FMDB",
-            source=MetaDataSource.bdos
+            source=MetaDataSource.bdos,
         )
         status, tb_meta_uuid = get_md5(
             f"{bdos_table_metadata.table_en_name}"
@@ -128,9 +134,11 @@ class BDOSTableMetaExcelLoad:
                 logger.info(f"入库: {item_excel_path.name}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    db_handler = Database()
     obj = BDOSTableMetaExcelLoad(
         bdos_table_meta_excel_dir_path=r"F:\GITLAB\DataForge\input_data\bdos_table_meta_data",
-        inner_db=Database()
+        inner_db=db_handler,
     )
     obj.run()
+    db_handler.session.close()

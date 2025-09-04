@@ -10,37 +10,36 @@ import random
 import re
 from typing import List, Tuple
 
-from loguru import logger
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_core.messages import FunctionMessage
 from langgraph.graph import END, START, StateGraph
+from loguru import logger
 
-from config import GEN_TABLE_MODELS_DATA_PATH, GEN_TABLE_MODELS_TEMP_PATH
 from agent.llm import chat_llm
 from agent.prompt import (
-    table_intent_prompt,
-    table_mapping_dimension_prompt,
     table_ename_translate_prompt,
     table_fields_fill_prompt,
+    table_intent_prompt,
+    table_mapping_dimension_prompt,
 )
 from agent.state import (
-    TableGenState,
-    StructuredTranslateTableEnameSchema,
-    StructuredDimensionMappingSchema,
-    TableGenUserIntentSchema,
-    GenSourceTableMetadataSchema,
     DimensionTableFieldsRecommendation,
     DimensionTableFillFieldResult,
+    GenSourceTableMetadataSchema,
+    StructuredDimensionMappingSchema,
+    StructuredTranslateTableEnameSchema,
+    TableGenState,
+    TableGenUserIntentSchema,
 )
-from database_models.schema import GenTableFieldSchema
+from config import GEN_TABLE_MODELS_DATA_PATH, GEN_TABLE_MODELS_TEMP_PATH
 from cruds.advanced_query import sliding_window_query
 from database_models.models import TableMetaDataInfo
+from database_models.schema import GenTableFieldSchema
 from utils.db import Database
-from utils.file import save_dict2jl, targz_archive, create_dir
+from utils.file import create_dir, save_dict2jl, targz_archive
 
 
 def analyze_table_intent(state: TableGenState) -> TableGenState:
-    logger.info(f"[+] 用户意图分析节点")
+    logger.info("[+] 用户意图分析节点")
     table_user_input = state.get("user_input").strip()
     table_human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
@@ -90,19 +89,20 @@ def material_table_group_sliding_window_strategy(state: TableGenState):
         )
         pass
 
-    logger.info(f"[+] 元数据表作为素材分组策略，当前策略为滑动窗口拼接数据")
-    material_table_groups = sliding_window_query(
-        db_handler=Database(),
-        model_class=TableMetaDataInfo,
-        fields=["table_en_name", "table_cn_name", "description", "table_fields"],
-        # 滑动窗口参数增加随机性
-        window_size=random.randint(10, 20),
-        step_size=random.randint(5, 10),
-        filters={"source": ["盘古", "数据域"]},
-        # callback=print_cb
-    )
-    logger.debug(f"material_table_groups count: {len(material_table_groups)}")
-    state["material_table_groups"] = material_table_groups
+    logger.info("[+] 元数据表作为素材分组策略，当前策略为滑动窗口拼接数据")
+    with Database() as db_handler:
+        material_table_groups = sliding_window_query(
+            db_handler=db_handler,
+            model_class=TableMetaDataInfo,
+            fields=["table_en_name", "table_cn_name", "description", "table_fields"],
+            # 滑动窗口参数增加随机性
+            window_size=random.randint(10, 20),
+            step_size=random.randint(5, 10),
+            filters={"source": ["盘古", "数据域"]},
+            # callback=print_cb
+        )
+        logger.debug(f"material_table_groups count: {len(material_table_groups)}")
+        state["material_table_groups"] = material_table_groups
     return state
 
 
@@ -164,7 +164,7 @@ def material_tables_mapping_dimension_table(state: TableGenState):
                 reference_table_en_name_slice.append(table_en_name)
         return reference_table_metadata_slice, reference_table_en_name_slice
 
-    logger.info(f"[+] 素材表输入LLM映射出一组特征表节点")
+    logger.info("[+] 素材表输入LLM映射出一组特征表节点")
     material_table_groups: list[list[dict]] = state.get("material_table_groups")
     # TODO: material_table_groups增加个洗牌策略，让每次生成的表更有随机性
     user_intent: TableGenUserIntentSchema = state["user_intent"]
@@ -259,7 +259,7 @@ def translate_table_name(state: TableGenState):
     Returns:
 
     """
-    logger.info(f"[+] 将生成的table_ename为中文的情况翻译为英文节点")
+    logger.info("[+] 将生成的table_ename为中文的情况翻译为英文节点")
     mapping_dimension_table_info_slice = state.get("mapping_dimension_table_info_slice")
     if mapping_dimension_table_info_slice:
         for index, mapping_dimension_table_info in enumerate(
@@ -569,7 +569,6 @@ table_gen_graph = table_gen_builder.compile(
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
-
     from utils.log import LogManager
 
     log_config = LogManager(

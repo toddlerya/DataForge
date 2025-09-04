@@ -49,8 +49,11 @@ class Database:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
+            self.session.close()
+            logger.info("sessoin closed")
             # 1. 关闭session (重要: scoped_session需要remove)
             self.session.remove()
+            logger.info("scoped_session removed")
         except Exception as err:
             logger.warning(f"Failed to remove session: {err}")
 
@@ -58,6 +61,7 @@ class Database:
             # 2. 关闭 engine (仅关闭连接池，不强制关闭所有连接)
             if hasattr(self.db, "__engine"):
                 self.db.__engine.dispose()
+                logger.info("engine disposed")
         except Exception as err:
             logger.warning(f"Failed to dispose engine: {err}")
 

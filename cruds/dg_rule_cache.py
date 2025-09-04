@@ -64,9 +64,11 @@ def query_field_dg_rule(
 
 
 if __name__ == "__main__":
+    db_handler = Database()
     query_status, query_message, query_result = query_field_dg_rule(
-        db_handler=Database(), ename="GROUPID", cname="群号", field_type_name="string"
+        db_handler=db_handler, ename="GROUPID", cname="群号", field_type_name="string"
     )
     print(query_status)
     print(query_message)
     print(query_result)
+    db_handler.session.close()

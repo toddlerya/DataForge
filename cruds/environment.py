@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2024/11/21 15:10 
+# @Time     : 2024/11/21 15:10
 # @Author   : guoqun X2590
 # @FileName : environment.py
 # @Project  : HETUTaskChecker
 
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy import desc
 
-from utils.db import Database
 from database_models.models import EnvironmentInfo
+from utils.db import Database
 from utils.log import logger
 
 
@@ -32,7 +31,9 @@ def save_environment_info(environment_data: dict, db: Database) -> tuple[bool, s
         return True, "ok"
 
 
-def query_environment_info_by_apollo_ip(apollo_web_ip: str, db: Database) -> tuple[bool, str, EnvironmentInfo]:
+def query_environment_info_by_apollo_ip(
+    apollo_web_ip: str, db: Database
+) -> tuple[bool, str, EnvironmentInfo]:
     """
     根据阿波罗IP获取对应的环境配置信息
     :param apollo_web_ip:
@@ -40,9 +41,15 @@ def query_environment_info_by_apollo_ip(apollo_web_ip: str, db: Database) -> tup
     :return:
     """
     try:
-        logger.trace(f"query_environment_info_by_apollo_ip(apollo_web_ip={apollo_web_ip})")
-        data = db.session.query(EnvironmentInfo).filter(
-            EnvironmentInfo.apollo_web_ip == apollo_web_ip).order_by(desc(EnvironmentInfo.create_time)).first()
+        logger.trace(
+            f"query_environment_info_by_apollo_ip(apollo_web_ip={apollo_web_ip})"
+        )
+        data = (
+            db.session.query(EnvironmentInfo)
+            .filter(EnvironmentInfo.apollo_web_ip == apollo_web_ip)
+            .order_by(desc(EnvironmentInfo.create_time))
+            .first()
+        )
     except Exception as err:
         message = f"根据阿波罗IP获取对应的环境配置信息失败! apollo_web_ip={apollo_web_ip} ERROR: {err}"
         return False, message, EnvironmentInfo()
@@ -50,8 +57,12 @@ def query_environment_info_by_apollo_ip(apollo_web_ip: str, db: Database) -> tup
         return True, "ok", data
 
 
-if __name__ == '__main__':
-    s, m, r = query_environment_info_by_apollo_ip(apollo_web_ip="172.21.4.30", db=Database())
+if __name__ == "__main__":
+    db_handler = Database()
+    s, m, r = query_environment_info_by_apollo_ip(
+        apollo_web_ip="172.21.4.30", db=db_handler
+    )
     print(s)
     print(m)
     print(r.to_dict())
+    db_handler.session.close()

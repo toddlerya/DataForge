@@ -6,8 +6,7 @@
 # @Project  : DataForge
 
 
-from typing import Tuple, Optional, Dict, List
-
+from typing import Dict, List, Optional
 
 from utils.db import Database
 
@@ -105,10 +104,12 @@ if __name__ == "__main__":
         print(f"当前窗口: {window_index} 当前偏移量: {offset} 当前数据: {windows_data}")
         pass
 
+    db_handler = Database()
     all_results = sliding_window_query(
-        db_handler=Database(),
+        db_handler=db_handler,
         model_class=TableMetaDataInfo,
         fields=["table_en_name", "table_cn_name", "description"],
         # filters={"source": "盘古"},
         callback=print_cb,
     )
+    db_handler.session.close()

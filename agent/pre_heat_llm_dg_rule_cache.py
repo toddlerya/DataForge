@@ -13,7 +13,7 @@ from config import PRESET_FIXED_PANGU_DG_RULE_PATH
 from cruds.dynamic_query import query_sql
 from utils.db import Database
 from utils.file import load_yaml_from_file
-from utils.log import TracedLogger, logger
+from utils.log import logger
 
 
 def preset_fixed_dg_rule(db_handler: Database):
@@ -82,7 +82,7 @@ def run_data_graph_preheat():
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
-    from utils.log import LogManager
+    from utils.log import LogManager, TracedLogger
 
     log_config = LogManager(
         base_path=str(PROJECT_PATH.absolute()),
@@ -91,16 +91,15 @@ if __name__ == "__main__":
         file_log_level="TRACE",
     )
     setup_logging(log_config.get_config().get("handlers"))
+
     init_env()
-    # run_data_graph_preheat()
-    # preset_fixed_dg_rule(db_handler=Database())
+
     session_id = uuid.uuid4().hex
 
-    trace_logger = TracedLogger()
-    token = trace_logger.set_trace_uuid(session_id)
-    trace_logger.info("测试trace--1")
-    trace_logger.info("测试trace--2")
-    trace_logger.reset_trace_uuid(token)
-    trace_logger.info("测试trace--reset")
-    token = trace_logger.set_trace_uuid(uuid.uuid4().hex)
-    trace_logger.info("测试trace--3")
+    traced_logger = TracedLogger()
+    # 如果没有初始化trace_uuid则初始化trace_token
+    token = traced_logger.set_trace_uuid(session_id)
+
+    run_data_graph_preheat()
+
+    traced_logger.reset_trace_uuid(token)

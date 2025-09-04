@@ -304,4 +304,5 @@ def dg_rule_processor(
         cols=len(table_metadata.raw_fields_info),
     )
     state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
+    db_handler.session.close()
     return state

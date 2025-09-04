@@ -8,44 +8,40 @@
 import json
 
 import requests
-from loguru import logger
-
 import urllib3
+from loguru import logger
 from urllib3.exceptions import InsecureRequestWarning
 
 from config import (
-    pangu_data_resource_dir_url,
+    pangu_cookie,
     pangu_data_inner_resource_dir_url,
-    pangu_entity_list_url,
+    pangu_data_resource_dir_url,
     pangu_data_sample_query_url,
     pangu_entity_detail_url,
-    pangu_cookie,
+    pangu_entity_list_url,
 )
-from database_models.schema import (
-    TableMetaDataSchema,
-    TableExampleSchema,
-)
+from crawler.common import fill_one_example2model, table_metadata_verify2model
+from cruds.table_example import table_example_save
+from cruds.table_metadata import table_metadata_query_by_entity_id, table_metadata_save
+from database_models.schema import TableExampleSchema, TableMetaDataSchema
 from database_models.sys_enum import MetaDataSource
 from utils.db import Database
 from utils.file import get_md5
-from cruds.table_metadata import table_metadata_save, table_metadata_query_by_entity_id
-from cruds.table_example import table_example_save
-from crawler.common import table_metadata_verify2model, fill_one_example2model
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class PanGuCrawler:
     def __init__(
-            self,
-            inner_db: Database,
-            resource_url: str,
-            pangu_data_inner_resource_dir_url: str,
-            entity_list_url: str,
-            detail_url: str,
-            query_url: str,
-            cookie: str,
-            resource_count: int = 2000,
+        self,
+        inner_db: Database,
+        resource_url: str,
+        pangu_data_inner_resource_dir_url: str,
+        entity_list_url: str,
+        detail_url: str,
+        query_url: str,
+        cookie: str,
+        resource_count: int = 2000,
     ):
         self.resource_url = resource_url
         self.pangu_data_inner_resource_dir_url = pangu_data_inner_resource_dir_url
@@ -85,7 +81,10 @@ class PanGuCrawler:
                 "type": 2,
             }
             resp = requests.post(
-                url=self.pangu_data_inner_resource_dir_url, headers=self.bdp_headers, json=payload, verify=False
+                url=self.pangu_data_inner_resource_dir_url,
+                headers=self.bdp_headers,
+                json=payload,
+                verify=False,
             )
             if resp.status_code != 200:
                 logger.error(resp.raise_for_status())
@@ -99,7 +98,9 @@ class PanGuCrawler:
                 data = resp_json.get("data", {})
                 records_total = data.get("recordsTotal", 200)
                 resources = data.get("data", [])
-                self.template_id_slice.extend([ele.get('TEMPLATE_ID', -1) for ele in resources])
+                self.template_id_slice.extend(
+                    [ele.get("TEMPLATE_ID", -1) for ele in resources]
+                )
 
                 # 计算下一页的页码
                 page_no += 1
@@ -143,7 +144,9 @@ class PanGuCrawler:
             logger.info(
                 f"盘古数据资源目录获取到{total_records}个资源, 实际{len(resources)}个资源"
             )
-            self.template_id_slice.extend([ele.get('templateId', -1) for ele in resources])
+            self.template_id_slice.extend(
+                [ele.get("templateId", -1) for ele in resources]
+            )
         except Exception as err:
             logger.error(err)
 
@@ -226,11 +229,15 @@ class PanGuCrawler:
                 table_metadata_model = table_metadata_verify2model(
                     table_metadata_fields=field_info_list, source=MetaDataSource.pangu
                 )
-                table_metadata_model.table_en_name = f"{data_source_name}.{base_table_en_name}"
+                table_metadata_model.table_en_name = (
+                    f"{data_source_name}.{base_table_en_name}"
+                )
                 table_metadata_model.table_cn_name = entity_info.get("name", "")
                 table_metadata_model.description = entity_info.get("description", "")
                 table_metadata_model.position_type = entity_info.get("positionName", "")
-                table_metadata_model.storage_type = __get_storage_type_value(entity_extends=entity_extends_value)
+                table_metadata_model.storage_type = __get_storage_type_value(
+                    entity_extends=entity_extends_value
+                )
                 table_metadata_model.area_name = entity_info.get("areaName", "")
                 table_metadata_model.source = MetaDataSource.pangu
                 status, tb_meta_uuid = get_md5(
@@ -254,7 +261,7 @@ class PanGuCrawler:
             return None
 
     def crawl_sample(
-            self, table_en_name: str, entity_id: int, type_value: str = 2, limit: int = 10
+        self, table_en_name: str, entity_id: int, type_value: str = 2, limit: int = 10
     ) -> list[dict]:
         """
         抓取样例数据
@@ -277,7 +284,7 @@ class PanGuCrawler:
                 timeout=60,
                 verify=False,
             )
-        except Exception as err:
+        except Exception:
             logger.error(f"请求url={self.query_url} payload={payload} 超时")
         else:
             if resp.status_code != 200:
@@ -329,9 +336,12 @@ class PanGuCrawler:
             logger.info(f"采集实例元数据入库中: entity_id={entity_id}")
             each_table_metadata_model = self.crawl_entity_detail(entity_id=entity_id)
             # 采集表的样例数据
-            if not each_table_metadata_model.table_en_name.startswith("massdata") and \
-                    not each_table_metadata_model.table_en_name.startswith("fmdbmeta"):
-                logger.warning(f"不是massdata或fmdbmeta库的表，跳过: {each_table_metadata_model.table_en_name}")
+            if not each_table_metadata_model.table_en_name.startswith(
+                "massdata"
+            ) and not each_table_metadata_model.table_en_name.startswith("fmdbmeta"):
+                logger.warning(
+                    f"不是massdata或fmdbmeta库的表，跳过: {each_table_metadata_model.table_en_name}"
+                )
                 continue
             example_data = self.crawl_sample(
                 table_en_name=each_table_metadata_model.table_en_name,
@@ -377,8 +387,9 @@ class PanGuCrawler:
 
 
 if __name__ == "__main__":
+    db_handler = Database()
     pgc = PanGuCrawler(
-        inner_db=Database(),
+        inner_db=db_handler,
         resource_url=pangu_data_resource_dir_url,
         pangu_data_inner_resource_dir_url=pangu_data_inner_resource_dir_url,
         entity_list_url=pangu_entity_list_url,
@@ -387,3 +398,4 @@ if __name__ == "__main__":
         cookie=pangu_cookie,
     )
     pgc.run()
+    db_handler.session.close()

@@ -418,12 +418,13 @@ if __name__ == "__main__":
     #             break
     # else:
     #     print(m)
-
+    db_handler = Database()
     print(
         query_field_recommend_info_by_ename(
-            db_handler=Database(), field_en_name="RELE_DIRECTION_TYPE"
+            db_handler=db_handler, field_en_name="RELE_DIRECTION_TYPE"
         )
     )
+    db_handler.session.close()
     # s,m,d=(query_dict_items_info_by_dictkey(db_handler=Database(),
     # dictkey_with_nlevel="FHWACODE_0098:2"))
     # print(s)
