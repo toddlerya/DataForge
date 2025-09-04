@@ -37,6 +37,7 @@ class TaskDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     )
     dg_task_duration: str = Field(default="", description="DG任务耗时")
     user_modified_rules: dict = Field(default={}, description="用户修改的字段规则")
+    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
 class RecommendPanGuFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
@@ -104,6 +105,7 @@ class RecommendPanGuFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=
     core_flag_count: int = Field(0, description="是否核心字段出现次数")
     core_flag_percentage: float = Field(0.0, description="是否核心字段出现次数占比")
     example_data: str | None = Field("", description="样例数据")
+    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
 class RecommendPanGuDictSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
@@ -114,6 +116,7 @@ class RecommendPanGuDictSchema(BaseModel, extra="forbid", str_strip_whitespace=T
     dict_level: int = Field(..., description="字典层级")
     dict_id: str = Field(..., description="字典项编码")
     dict_name: str = Field(..., description="字典项名称")
+    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
 class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
@@ -146,6 +149,7 @@ class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     area_code: str = Field("", description="地市来源编码")
     area_name: str = Field("", description="来源地市名称")
     source: str = Field("", description="数据来源")
+    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
 class TableExampleSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
@@ -154,6 +158,7 @@ class TableExampleSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
         ..., description="表的唯一ID: md5(table_en_name+source+area_code+area_name)"
     )
     example_data: dict = Field(..., description="样例数据")
+    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
 class PydanticDataGeniusRule(BaseModel):

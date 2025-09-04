@@ -5,30 +5,24 @@
 # @FileName : data_scope_crawler.py
 # @Project  : DataForge
 import json
-from typing import List, Dict
-import requests
-from loguru import logger
 
+import requests
 import urllib3
+from loguru import logger
 from urllib3.exceptions import InsecureRequestWarning
 
 from config import (
     data_scope_cookie,
-    data_scope_resource_url,
     data_scope_resource_detail_url,
+    data_scope_resource_url,
 )
-from database_models.schema import (
-    TableRawFieldSchema,
-    TableMetaDataSchema,
-    TableExampleSchema,
-)
+from crawler.common import fill_one_example2model, table_metadata_verify2model
+from cruds.table_example import table_example_save
+from cruds.table_metadata import table_metadata_save
+from database_models.schema import TableExampleSchema, TableMetaDataSchema
 from database_models.sys_enum import MetaDataSource
-from database_models.models import TableMetaDataInfo
 from utils.db import Database
 from utils.file import get_md5
-from cruds.table_metadata import table_metadata_save
-from cruds.table_example import table_example_save
-from crawler.common import table_metadata_verify2model, fill_one_example2model
 
 urllib3.disable_warnings(InsecureRequestWarning)
 

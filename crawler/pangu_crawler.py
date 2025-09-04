@@ -243,8 +243,7 @@ class PanGuCrawler:
                 status, tb_meta_uuid = get_md5(
                     f"{table_metadata_model.table_en_name}"
                     f"{table_metadata_model.source}"
-                    f"{table_metadata_model.area_code}"
-                    f"{table_metadata_model.area_name}"
+                    f"{table_metadata_model.env_uuid}"
                 )
                 if status is False:
                     logger.error(

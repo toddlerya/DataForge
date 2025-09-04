@@ -27,25 +27,6 @@ from sqlalchemy.orm.attributes import instance_dict
 Base = declarative_base()
 
 
-# @declarative_mixin
-# class CommonTableArgsMixin:
-#     """
-#     公共表参数基础类
-#     """
-
-#     @declared_attr
-#     def __table_args__(cls):
-#         args = []
-#         __args_map__ = {}
-#         if cls.__dict__.get("__table_args_map__"):
-#             __args_map__.update(cls.__table_args_map__)
-#         if cls.__dict__.get("__table_args_array__"):
-#             args.extend(cls.__table_args_array__)
-#         args.append(__args_map__)
-#         return tuple(args)
-
-
-# @declarative_mixin
 class CommonColumnMixin:
     """
     公共字段基础类
@@ -87,6 +68,48 @@ class ToDictMixin:
         return info_dict
 
 
+class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
+    __tablename__ = "environment_info"
+    __table_args__ = (
+        UniqueConstraint("uuid", name="uk_environment"),
+        {"comment": "版本环境信息"},
+    )
+    uuid = Column(
+        String(length=72),
+        nullable=False,
+        comment=(
+            "环境唯一ID, "
+            "md5(apollo_web_ip+pangu_web_ip+vmodel_web_ip+metadata_db_ip+vmodel_db_ip)"
+        ),
+    )
+    env_name = Column(
+        String(length=64), nullable=False, default="未知", comment="环境信息"
+    )
+    apollo_web_ip = Column(String(length=64), nullable=True, comment="阿波罗界面IP")
+    pangu_web_ip = Column(
+        String(length=128), nullable=True, comment="盘古界面IP: pangu_web_ip"
+    )
+    metadata_db_ip = Column(
+        String(length=64), nullable=True, comment="盘古元数据库IP: Metadata_Dbn_ip"
+    )
+    metadata_db_port = Column(
+        Integer, nullable=True, comment="盘古元数据库端口: Metadata_Dbn_dbPort"
+    )
+    metadata_db_user = Column(
+        String(length=128),
+        nullable=True,
+        comment="盘古元数据库用户名: Metadata_Dbn_dbUser",
+    )
+    metadata_db_password = Column(
+        String(length=128),
+        nullable=True,
+        comment="盘古元数据库密码: Metadata_Dbn_dbPassword",
+    )
+    metadata_db_name = Column(
+        String(length=128), nullable=True, comment="盘古数据库名称: Metadata_Dbn_dbName"
+    )
+
+
 class TableMetaDataInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "table_meta_data_info"
     __table_args__ = (
@@ -95,9 +118,9 @@ class TableMetaDataInfo(CommonColumnMixin, ToDictMixin, Base):
     )
 
     uuid = Column(
-        String(length=36),
+        String(length=72),
         nullable=False,
-        comment="表唯一ID, md5(table_en_name+source+area_code+area_name)",
+        comment="表唯一ID, md5(table_en_name+source+env_uuid)",
     )
     table_en_name = Column(
         String(length=128), nullable=False, default="", comment="表英文名称"
@@ -116,6 +139,11 @@ class TableMetaDataInfo(CommonColumnMixin, ToDictMixin, Base):
         String(length=64), nullable=True, default="", comment="来源地市名称"
     )
     source = Column(String(length=64), default="", comment="数据来源")
+    env_uuid = Column(
+        String(length=72),
+        nullable=True,
+        comment="环境UUID, 用于区分表元数据和字典等的版本",
+    )
 
 
 class TableExampleDataInfo(CommonColumnMixin, ToDictMixin, Base):
@@ -125,14 +153,19 @@ class TableExampleDataInfo(CommonColumnMixin, ToDictMixin, Base):
         {"comment": "表样例数据信息"},
     )
     uuid = Column(
-        String(length=36), nullable=False, comment="数据唯一ID, md5(example_data)"
+        String(length=72), nullable=False, comment="数据唯一ID, md5(example_data)"
     )
     table_uuid = Column(
-        String(length=36),
+        String(length=72),
         nullable=False,
         comment="表唯一ID，md5(table_en_name+source+area_code+area_name)",
     )
     example_data = Column(JSON, nullable=True, comment="表样例数据")
+    env_uuid = Column(
+        String(length=72),
+        nullable=True,
+        comment="环境UUID, 用于区分表元数据和字典等的版本",
+    )
 
 
 class RecommendPanGuFieldInfo(CommonColumnMixin, ToDictMixin, Base):
@@ -228,6 +261,11 @@ class RecommendPanGuFieldInfo(CommonColumnMixin, ToDictMixin, Base):
         Float, default=0.0, comment="是否核心字段出现次数占比"
     )
     example_data = Column(Text, nullable=True, comment="样例数据")
+    env_uuid = Column(
+        String(length=72),
+        nullable=True,
+        comment="环境UUID, 用于区分表元数据和字典等的版本",
+    )
 
 
 class PanGuDictInfo(CommonColumnMixin, ToDictMixin, Base):
@@ -241,7 +279,7 @@ class PanGuDictInfo(CommonColumnMixin, ToDictMixin, Base):
     )
     uuid = Column(BigInteger, nullable=False, comment="字典的唯一编码")
     dictkey_with_nlevel = Column(
-        String(length=128), nullable=False, index=True, comment="字段存储的字典key"
+        String(length=128), nullable=False, comment="字段存储的字典key"
     )
     dict_category_code = Column(
         String(length=128), nullable=False, comment="字典类别key"
@@ -250,6 +288,11 @@ class PanGuDictInfo(CommonColumnMixin, ToDictMixin, Base):
     dict_level = Column(Integer, nullable=False, comment="字典层级")
     dict_id = Column(String(length=128), nullable=False, comment="字典项编码")
     dict_name = Column(Text, nullable=False, comment="字典项名称")
+    env_uuid = Column(
+        String(length=72),
+        nullable=True,
+        comment="环境UUID, 用于区分表元数据和字典等的版本",
+    )
 
 
 class FieldDGRuleCache(CommonColumnMixin, ToDictMixin, Base):
@@ -260,7 +303,7 @@ class FieldDGRuleCache(CommonColumnMixin, ToDictMixin, Base):
         {"comment": "字段的DG规则配置缓存"},
     )
     uuid = Column(
-        String(length=36),
+        String(length=72),
         nullable=False,
         comment="规则唯一ID, md5(ename+cname+description+field_type_name)",
     )
@@ -276,6 +319,11 @@ class FieldDGRuleCache(CommonColumnMixin, ToDictMixin, Base):
     ttl = Column(
         Integer, nullable=False, default=86400 * 7, comment="缓存规则过期时间，默认7天"
     )
+    env_uuid = Column(
+        String(length=72),
+        nullable=True,
+        comment="环境UUID, 用于区分表元数据和字典等的版本",
+    )
 
 
 class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
@@ -288,7 +336,7 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
         {"comment": "任务信息表"},
     )
     task_uuid = Column(
-        String(length=36),
+        String(length=72),
         nullable=False,
         comment="任务唯一ID, 与session_uuid, trace_uuid一致",
     )
@@ -311,6 +359,11 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
     dg_task_rule_data_preview = Column(JSON, default=None, comment="DG规则的预览数据")
     dg_task_duration = Column(String(length=56), default="", comment="DG任务耗时")
     user_modified_rules = Column(JSON, default=None, comment="用户修改的字段规则")
+    env_uuid = Column(
+        String(length=72),
+        nullable=True,
+        comment="环境UUID, 用于区分表元数据和字典等的版本",
+    )
 
 
 # class AIGenTableFieldInfo(CommonColumnMixin, ToDictMixin, Base):
@@ -335,45 +388,6 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
 #     position_type = Column(String(length=128), default="", comment="数据库类型")
 #     table_fields = Column(JSON, nullable=False, comment="表字段信息")
 #     source = Column(String(length=64), default="", comment="数据来源")
-
-
-class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
-    __tablename__ = "environment_info"
-    __table_args__ = (
-        UniqueConstraint("uuid", name="uk_environment"),
-        {"comment": "环境信息"},
-    )
-    uuid = Column(
-        String(length=36),
-        nullable=False,
-        comment="环境唯一ID, md5(apollo_web_ip+pangu_web_ip+vmodel_web_ip+metadata_db_ip+vmodel_db_ip)",  # noqa: E501
-    )
-    env_name = Column(
-        String(length=32), nullable=False, default="未知", comment="环境信息"
-    )
-    apollo_web_ip = Column(String(length=64), nullable=True, comment="阿波罗界面IP")
-    pangu_web_ip = Column(
-        String(length=128), nullable=True, comment="盘古界面IP: pangu_web_ip"
-    )
-    metadata_db_ip = Column(
-        String(length=64), nullable=True, comment="盘古元数据库IP: Metadata_Dbn_ip"
-    )
-    metadata_db_port = Column(
-        Integer, nullable=True, comment="盘古元数据库端口: Metadata_Dbn_dbPort"
-    )
-    metadata_db_user = Column(
-        String(length=128),
-        nullable=True,
-        comment="盘古元数据库用户名: Metadata_Dbn_dbUser",
-    )
-    metadata_db_password = Column(
-        String(length=128),
-        nullable=True,
-        comment="盘古元数据库密码: Metadata_Dbn_dbPassword",
-    )
-    metadata_db_name = Column(
-        String(length=128), nullable=True, comment="盘古数据库名称: Metadata_Dbn_dbName"
-    )
 
 
 if __name__ == "__main__":
