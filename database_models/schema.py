@@ -5,7 +5,7 @@
 # @FileName : schemas.py
 # @Project  : DataForge
 
-from typing import Dict
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -23,14 +23,18 @@ class TaskDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     client_ip: str = Field(default="127.0.0.1", description="客户端IP")
     task_payload: dict = Field(default={}, description="创建任务请求的请求体JSON")
     rule_name: str = Field(default="", description="任务规则名称")
-    task_rule: list[dict] = Field(default=[{}], description="任务规则配置JSON")
+    task_rule: list[dict[str, Any]] = Field(
+        default=[{}], description="任务规则配置JSON"
+    )
     dg_task_status: int = Field(
         default=-1, description="DG任务状态: 0正常,1异常,-1未知"
     )
     dg_task_message: str = Field(default="", description="DG任务状态信息")
     dg_task_id: str = Field(default="", description="DG的任务ID")
     dg_task_edit_url: str = Field(default="", description="DG任务的编辑URL")
-    dg_task_download_url: str = Field(default="", description="DG任务结果的下载URL")
+    dg_task_rule_data_preview: list[dict] = Field(
+        default=[{}], description="DG规则的预览数据"
+    )
     dg_task_duration: str = Field(default="", description="DG任务耗时")
     user_modified_rules: dict = Field(default={}, description="用户修改的字段规则")
 
@@ -169,7 +173,7 @@ class PydanticDataGeniusRule(BaseModel):
     cname: str = Field("", description="字段中文名称")
     preview: str = Field("", description="字段示例数据预览")
     value: str | int | float | list | dict = Field("", description="字段示例数据值")
-    args: Dict[str, str | list] = Field(
+    args: dict[str, str | list] = Field(
         default_factory=dict, description="规则参数字典，包含生成数据所需的参数。"
     )
 

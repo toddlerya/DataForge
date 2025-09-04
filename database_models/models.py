@@ -308,7 +308,7 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
     dg_task_message = Column(Text, default="", comment="DG任务状态信息")
     dg_task_id = Column(String(length=36), default="", comment="DG的任务ID")
     dg_task_edit_url = Column(Text, default="", comment="DG任务的编辑URL")
-    dg_task_download_url = Column(Text, default="", comment="DG任务结果的下载URL")
+    dg_task_rule_data_preview = Column(JSON, default=None, comment="DG规则的预览数据")
     dg_task_duration = Column(String(length=56), default="", comment="DG任务耗时")
     user_modified_rules = Column(JSON, default=None, comment="用户修改的字段规则")
 

@@ -6,7 +6,7 @@
 # @Project  : DataForge
 
 import time
-from typing import Union
+from typing import Any, Union
 from urllib.parse import urljoin
 
 import httpx
@@ -16,6 +16,7 @@ from loguru import logger
 from agent.dg_configs import (
     DG_GENERATE_TASK_URL,
     DG_NEW_TASK,
+    DG_RULE_PREVIEW,
     DG_SERVER_BASE_URL,
     DG_TASK_HISTORY,
 )
@@ -25,6 +26,40 @@ from cruds.task import save_task_info
 from database_models.schema import TaskDataSchema
 from utils.db import Database
 from utils.file import save_dict2jl
+
+
+def dg_rule_data_preview(
+    rule_data: list[dict[str, Any]],
+) -> tuple[bool, str, list[dict[str, Any]]]:
+    """
+    调用DG的规则预览接口查看规则的预览数据
+
+    Args:
+        rule_data (list[dict[str, Any]]): _description_
+
+    Returns:
+        tuple[bool, str, list[dict[str, Any]]]: _description_
+    """
+    logger.info("获取DG规则预览数据")
+    rule_preview_url = urljoin(DG_SERVER_BASE_URL, DG_RULE_PREVIEW)
+    message = "ok"
+    data = [{}]
+    with httpx.Client() as client:
+        response = client.post(rule_preview_url, json=rule_data)
+    if response.status_code != 200:
+        message = f"请求{rule_preview_url}异常, status_code: {response.status_code}"
+        return False, message, data
+    try:
+        resp_json = response.json()
+    except Exception as err:
+        message = f"获取{rule_preview_url}响应体异常, ERROR: {err}"
+        return False, message, data
+    if flag := resp_json.get("flag") is True:
+        data = resp_json.get("data", data)
+    else:
+        message = f"接口{rule_preview_url}响应体flag为{flag}, 异常请DG检查"
+
+    return flag, message, data
 
 
 def create_dg_task(
@@ -38,6 +73,7 @@ def create_dg_task(
     Returns:
 
     """
+    logger.info("创建DG任务")
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
     client_ip = state["client_ip"]
     state["data_genius_headers"] = {"SPECIFIEDIP": client_ip}
@@ -203,7 +239,16 @@ def query_dg_task_status(
                         task_data.dg_task_message = "成功"
                         task_data.dg_task_id = task_id
                         task_data.dg_task_edit_url = data_genius_plan_edit_url
-                        task_data.dg_task_download_url = output_url
+
+                        # TODO: 调用 DG的genius/get-preview接口，
+                        # 获取响应的data结果作为预览数据
+                        get_preview_status, get_preview_message, preview_data = (
+                            dg_rule_data_preview(rule_data=task_data.task_rule)
+                        )
+                        if get_preview_status:
+                            task_data.dg_task_rule_data_preview = preview_data
+                        else:
+                            logger.error(get_preview_message)
                         task_data.dg_task_duration = duration
                         state["task_data"] = task_data
                         return state

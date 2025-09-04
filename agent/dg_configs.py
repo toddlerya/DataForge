@@ -10,6 +10,8 @@ DG_NEW_TASK = "genius/page/new-task/"
 
 DG_CATEGORY = "genius/data-category/"
 
+DG_RULE_PREVIEW = "genius/get-preview/"
+
 DG_STORAGE_PATH = "/storec/storea/projects/geniusWeb/espresso/media/genius"
 
 DG_FIELD_CATEGORY_CONFIG = [
@@ -215,8 +217,6 @@ DG_FIELD_CATEGORY_RAW_CONFIG = {
 }
 
 if __name__ == "__main__":
-    import json
-
     # category_slices = []
     #
     # for category, items in DG_FIELD_CATEGORY_CONFIG.items():
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     # print(f"Total categories: {len(category_slices)}")
     # print(category_slices)
 
-    print([item.get('category') for item in DG_FIELD_CATEGORY_CONFIG])
+    print([item.get("category") for item in DG_FIELD_CATEGORY_CONFIG])
     # print(json.dumps(category_slices, ensure_ascii=False, indent=2))
     # with open("dg_field_category_config.json", "w", encoding="utf-8") as f:
     #     json.dump(DG_FIELD_CATEGORY_CONFIG, f, ensure_ascii=False, indent=2)
