@@ -7,11 +7,11 @@
 
 
 import shutil
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import requests
 
-from config import HEADERS, PROXIES
+from config import HEADERS
 from utils.log import logger
 
 
@@ -23,16 +23,16 @@ def slash_join(*parts):
 
 
 def http_cli(
-        session: requests.sessions,
-        method: str,
-        url: str,
-        payload=None,
-        payload_type: str = "",
-        files: Union[dict, tuple, list] = None,
-        timeout: int = 60,
-        stream: bool = False,
-        verify: bool = False,
-) -> Tuple[bool, str, requests.Response]:
+    session: requests.Session,
+    method: str,
+    url: str,
+    payload=None,
+    payload_type: str = "",
+    files: Optional[Union[dict, tuple, list]] = None,
+    timeout: int = 60,
+    stream: bool = False,
+    verify: bool = False,
+) -> Tuple[bool, str, Optional[requests.Response]]:
     """
     HTTP 客户端
     Args:
@@ -60,7 +60,7 @@ def http_cli(
             payload_type: payload,
             "files": files,
             "timeout": timeout,
-            "proxies": PROXIES,
+            "proxies": None,
             "headers": HEADERS,
             "stream": stream,
             "verify": verify,
@@ -71,7 +71,7 @@ def http_cli(
             "url": url,
             "files": files,
             "timeout": timeout,
-            "proxies": PROXIES,
+            "proxies": None,
             "headers": HEADERS,
             "stream": stream,
             "verify": verify,
@@ -84,11 +84,17 @@ def http_cli(
     else:
         if resp.status_code != 200:
             if resp.status_code == 422:
-                message = f"HTTP请求失败: HTTP_STATUS_CODE: {resp.status_code}, METHOD: {method}, URL: {url}, " \
-                          f"PAYLOAD: {payload} RESPONSE: {resp.json()}"
+                message = (
+                    f"HTTP请求失败: HTTP_STATUS_CODE: {resp.status_code}, "
+                    f"METHOD: {method}, URL: {url}, "
+                    f"PAYLOAD: {payload} RESPONSE: {resp.json()}"
+                )
             else:
-                message = f"HTTP请求失败: HTTP_STATUS_CODE: {resp.status_code}, METHOD: {method}, URL: {url}, " \
-                          f"PAYLOAD: {payload}"
+                message = (
+                    f"HTTP请求失败: HTTP_STATUS_CODE: {resp.status_code}, "
+                    f"METHOD: {method}, URL: {url}, "
+                    f"PAYLOAD: {payload}"
+                )
             status = False
             logger.error(message)
     return status, message, resp
@@ -132,7 +138,9 @@ def resp2file(resp: requests.Response, save_file_path: str) -> Tuple[bool, str]:
             resp.raw.decode_content = True
             shutil.copyfileobj(resp.raw, f)
     except Exception as err:
-        message = f"存储响应体为文件失败: SAVE_FILE_PATH: {save_file_path}, ERROR: {err}"
+        message = (
+            f"存储响应体为文件失败: SAVE_FILE_PATH: {save_file_path}, ERROR: {err}"
+        )
         status = False
         logger.error(message)
     return status, message
