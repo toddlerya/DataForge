@@ -77,15 +77,18 @@ class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
     uuid = Column(
         String(length=72),
         nullable=False,
-        comment=(
-            "环境唯一ID, "
-            "md5(apollo_web_ip+pangu_web_ip+vmodel_web_ip+metadata_db_ip+vmodel_db_ip)"
-        ),
+        comment=("环境唯一ID, md5(除env_name的所有字段)"),
     )
     env_name = Column(
         String(length=64), nullable=False, default="未知", comment="环境信息"
     )
     apollo_web_ip = Column(String(length=64), nullable=True, comment="阿波罗界面IP")
+    local_city_code = Column(
+        String(length=6), nullable=True, comment="地市编码: LOCAL_CITYCODE"
+    )
+    bdp_web_ip = Column(
+        String(length=128), nullable=True, comment="BDPWeb角色IP: BDPWeb_ip"
+    )
     pangu_web_ip = Column(
         String(length=128), nullable=True, comment="盘古界面IP: pangu_web_ip"
     )
@@ -107,6 +110,14 @@ class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
     )
     metadata_db_name = Column(
         String(length=128), nullable=True, comment="盘古数据库名称: Metadata_Dbn_dbName"
+    )
+    tre_domain_data_bdp_web_ip = Column(
+        String(length=128), nullable=True, comment="数据域单独的bdp web ip"
+    )
+    tre_domain_data_ip = Column(
+        String(length=128),
+        nullable=True,
+        comment="数据域管理系统的IP: TRE_DOMAIN_DATA_ip",
     )
 
 

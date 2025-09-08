@@ -13,11 +13,37 @@ ENV_LOG_LEVEL = os.getenv("LOG_LEVEL", default="INFO")
 ENV_SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", default=0)
 ENV_HOST = os.getenv("SERVER_HOST", default="0.0.0.0")
 ENV_PORT = os.getenv("SERVER_PORT", default=25702)
+APOLLO_ENV_NAME = os.getenv("APOLLO_ENV_NAME", "测试部D环境")
 test_d_env = "172.21.4.30"
 ENV_APOLLO_IP = os.getenv("APOLLO_WEB_IP", default=test_d_env)
 ENV_APOLLO_WEB_PORT = int(os.getenv("APOLLO_WEB_PORT", default=8070))
+DATA_SCOPE_BDP_IP = os.getenv("DATA_SCOPE_BDP_IP", "172.16.29.12")
+TRE_DOMAIN_DATA_IP = os.getenv("TRE_DOMAIN_DATA_IP", "172.17.63.12")
 DEFAULT_DATA_EXPIRED_DAY = 15
 ENV_DATA_EXPIRED_DAY = os.getenv("DATA_EXPIRED_DAY", DEFAULT_DATA_EXPIRED_DAY)
+
+# 阿波罗配置 Polaris.Polaris.public
+# 盘古元数据库配置 jdbc:postgresql://172.21.4.32:5432/metadata20250421
+# Metadata_Dbn_ip
+METADATA_DB_IP = os.getenv("METADATA_DB_IP", "172.21.4.32")
+# Metadata_Dbn_dbPort
+METADATA_DB_PORT = os.getenv("METADATA_DB_PORT", 5432)
+# Metadata_Dbn_dbUser
+METADATA_DB_USER = os.getenv("METADATA_DB_USER", "metadata20250116")
+# Metadata_Dbn_dbPassword
+METADATA_DB_PASSWORD = os.getenv("METADATA_DB_PASSWORD", "metadata_20250116")
+# Metadata_Dbn_dbName
+METADATA_DB_NAME = os.getenv("METADATA_DB_NAME", "metadata20250421")
+# 盘古界面配置 pangu_web_ip
+PANGU_WEB_IP = os.getenv("PANGU_WEB_IP", "172.16.113.100")
+# LABELS
+POLARIS_LABEL = os.getenv("POLARIS_LABEL", "Polaris")
+
+# BDP App Info
+PANGU_APP_ID = os.getenv("PANGU_APP_ID", "pangu")
+TRE_DOMAIN_DATA_APP_ID = os.getenv("TRE_DOMAIN_DATA_APP_ID", "offsite")
+
+
 try:
     ENV_DATA_EXPIRED_DAY = int(ENV_DATA_EXPIRED_DAY)
 except ValueError as _:
@@ -27,26 +53,8 @@ except ValueError as _:
     )
     ENV_DATA_EXPIRED_DAY = DEFAULT_DATA_EXPIRED_DAY
 
-SERVER_PORT = 20211
 
 PROJECT_PATH = pathlib.Path(__file__).parent
-
-TTH_BASE_API = "http://TTHServer:20235/api/tth"
-TTH_TOOL_TASK_STATUS_API = "/tool/task/status"
-TTH_TOOL_TASK_RESULT_SUMMARY_API = "/tool/task/result/summary"
-TTH_TOOL_TASK_RESULT_SUMMARY_FILE_API = "/tool/task/result/summary/file"
-TTH_TOOL_TASK_RESULT_RECORD_API = "/tool/task/result/record"
-TTH_TOOL_TASK_RESULT_RECORD_FILE_API = "/tool/task/result/record/file"
-TTH_TOOL_TASK_CASE_STATUS_API = "/tool/task/case/status"
-TTH_TOOL_TASK_CASE_RECORD_API = "/tool/task/case/record"
-TTH_REGISTRY_API = "/tool/registry"
-
-PANGU_API_STATUS = "/app/api/job_status/"
-PANGU_API_DATA_SIZE = "/app/api/data_size"
-PANGU_API_KINSHIP_INFO = "/app/api/kinship_info"
-PANGU_API_JOB_INFO = "/app/api/job_info"
-PANGU_WAIT_SECONDS = 60 * 30
-
 SAVE_DATA_PATH = PROJECT_PATH.joinpath("data").absolute()
 DG_PLAN_PATH = SAVE_DATA_PATH.joinpath("dg_plan").absolute()
 DG_PAYLOAD_PATH = SAVE_DATA_PATH.joinpath("dg_payload").absolute()
@@ -75,52 +83,14 @@ NB_MASS_NO_NAMESPACE = "nb_mass"
 
 TASK_TIMEOUT = 60 * 60 * 2
 
-# LABELS
-POLARIS_LABEL = "Polaris"
 
 PANGU_TASK_API_PORT = 11019
 
-# 阿波罗配置 Polaris.Polaris.public
-# 盘古元数据库配置 jdbc:postgresql://172.21.4.32:5432/metadata20250421
-# Metadata_Dbn_ip
-METADATA_DB_IP = "172.21.4.32"
-# Metadata_Dbn_dbPort
-METADATA_DB_PORT = 5432
-# Metadata_Dbn_dbUser
-METADATA_DB_USER = "metadata20250116"
-# Metadata_Dbn_dbPassword
-METADATA_DB_PASSWORD = "metadata_20250116"
-# Metadata_Dbn_dbName
-METADATA_DB_NAME = "metadata20250421"
-
-# 盘古界面配置 pangu_web_ip
-PANGU_WEB_IP = "172.16.113.100"
-# 淘沙界面配置 Vmodel_ip
-VMODEL_WEB_IP = "172.16.113.93"
-# 淘沙业务库配置
-# VmodelPgDbn_ip
-VMODEL_DB_IP = "172.16.104.78"
-# VmodelPgDbn_dbPort
-VMODEL_DB_PORT = 5432
-# VmodelPgDbn_dbUser
-VMODEL_DB_USER = "cdas"
-# VmodelPgDbn_dbPassword
-VMODEL_DB_PASSWORD = "Cdas@123456"
-# VmodelPgDbn_dbName
-VMODEL_DB_NAME = "cdas"
 
 print(
     f"当前运行日志级别: {ENV_LOG_LEVEL} "
     f"数据默认保留{ENV_DATA_EXPIRED_DAY}天, {__file__}"
 )
-
-# ENV_DB_MODE = "SQLITE"
-# DIALECT = "sqlite"
-# CHARSET = "UTF8"
-# DB_NAME = "data_forge"
-# DB_FILE = DB_NAME + ".db"
-# DATABASE_FILE_PATH = DATABASE_PATH.joinpath(DB_FILE)
-# SQLALCHEMY_URL = f"{DIALECT}:///{DATABASE_FILE_PATH}?mode=WAL&charset={CHARSET}"
 
 
 ENV_DB_MODE = "POSTGRESQL"
