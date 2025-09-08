@@ -149,7 +149,7 @@ class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     area_code: str = Field("", description="地市来源编码")
     area_name: str = Field("", description="来源地市名称")
     source: str = Field("", description="数据来源")
-    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
+    # env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
 class TableExampleSchema(BaseModel, extra="forbid", str_strip_whitespace=True):

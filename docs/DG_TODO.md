@@ -16,8 +16,10 @@ AI 创建的任务，然后用户对这个任务进行了修改，新建了任�
 
 ## 规则数据预览接口需要改造
 
-http://172.17.55.30/genius/get-preview/ 现在是个 form 表单，改成 json/application请求
+http://172.17.55.30/genius/get-preview/ 现在是个 form 表单，改成 json/application 请求
 
-## 仅在DG新建任务记录同步
+## 仅在 DG 新建任务记录同步
 
-DG创建的任务信息没有统计到这里
+DG 创建的任务信息没有统计到这里
+
+## 支持类似 PG、MYSQL 这种库的字段长度 比如 varchar(30)生成的数据符合长度要求

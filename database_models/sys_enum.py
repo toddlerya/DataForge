@@ -12,3 +12,4 @@ class MetaDataSource(str, Enum):
     data_scope = "数据域"
     pangu = "盘古"
     bdos = "BDOS"
+    intelligence_analysis_assistant = "深度搜索预警"

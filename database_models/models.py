@@ -52,7 +52,7 @@ class CommonColumnMixin:
 class ToDictMixin:
     """
     通用的 to_dict 混入类，为所有继承它的模型提供 to_dict 方法。
-    自动排除 SQLAlchemy 的 _sa_instance_state，保留所有字段。
+    自动排除 SQLAlchemy 的 _sa_instance_state, 保留所有字段。
     """
 
     def to_dict(self):
@@ -392,3 +392,4 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
 
 if __name__ == "__main__":
     print(TableMetaDataInfo.__table_args__)
+    print(type(Base))
