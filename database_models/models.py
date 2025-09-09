@@ -119,6 +119,7 @@ class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
         nullable=True,
         comment="数据域管理系统的IP: TRE_DOMAIN_DATA_ip",
     )
+    other_configs = Column(JSONB, nullable=True, comment="其他配置信息")
 
 
 class TableMetaDataInfo(CommonColumnMixin, ToDictMixin, Base):

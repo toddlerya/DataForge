@@ -12,14 +12,6 @@ import urllib3
 from loguru import logger
 from urllib3.exceptions import InsecureRequestWarning
 
-from config import (
-    pangu_cookie,
-    pangu_data_inner_resource_dir_url,
-    pangu_data_resource_dir_url,
-    pangu_data_sample_query_url,
-    pangu_entity_detail_url,
-    pangu_entity_list_url,
-)
 from crawler.common import fill_one_example2model, table_metadata_verify2model
 from cruds.table_example import table_example_save
 from cruds.table_metadata import table_metadata_query_by_entity_id, table_metadata_save
@@ -29,6 +21,54 @@ from utils.db import Database
 from utils.file import get_md5
 
 urllib3.disable_warnings(InsecureRequestWarning)
+
+
+# 盘古配置
+pangu_ip_port = "172.21.4.42:11018"
+# 数据资产-数据资源目录
+pangu_data_resource_dir_url = (
+    f"https://{pangu_ip_port}/catalog/catalog/res/searchResourceManage"
+)
+# 数据资产-设置中心-资源管理(内部)
+pangu_data_inner_resource_dir_url = (
+    f"https://{pangu_ip_port}/catalog/catalog/data/getResourcePage"
+)
+pangu_entity_list_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntityList"
+pangu_entity_detail_url = (
+    f"https://{pangu_ip_port}/catalog/catalog/query/getEntityDetail"
+)
+pangu_data_sample_query_url = (
+    f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
+)
+
+pangu_cookie = (
+    "contextPath=/catalog; JSESSIONID=212D9047AF5D54880D245EE23D92C371; "
+    "contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; "
+    "JSESSIONID=8CE476D6DFFC4A1DEEEC90D89199E76D; "
+    "userToken=fc661ef848c8490ca04f65f94bbd4d03; "
+    "appToken=d3ec1cb3323440f7976b28f487ba6425; "
+    "loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D"
+)
+
+pangu_field_type_map = {
+    -1: "string",
+    1: "string",
+    2: "int",
+    3: "byte",
+    4: "long",
+    5: "short",
+    6: "double",
+    7: "decimal",
+    9: "date",
+    10: "timestamp",
+    11: "binary",
+    18: "float",
+    20: "array",
+    21: "array<string>",
+    22: "array<int>",
+    23: "array<long>",
+    24: "array<float>",
+}
 
 
 class PanGuCrawler:
@@ -54,6 +94,15 @@ class PanGuCrawler:
         self.template_id_slice: list[int] = []
         self.entity_elements: list[dict] = []
         self.inner_db = inner_db
+
+    def sync_env_data(self, env_name: str):
+        """同步环境配置信息
+
+        Args:
+            env_name (str): _description_
+        """
+        self.inner_db.
+
 
     def crawl_inner_resource(self):
         """

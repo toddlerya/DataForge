@@ -11,7 +11,7 @@ import requests
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 
-from config import ENV_APOLLO_IP, ENV_APOLLO_WEB_PORT, HEADERS
+from config import APOLLO_WEB_IP, APOLLO_WEB_PORT, HEADERS
 from utils.http import slash_join
 from utils.log import logger
 
@@ -19,8 +19,8 @@ from utils.log import logger
 class Apollo:
     def __init__(
         self,
-        ip: str = ENV_APOLLO_IP,
-        port: int = ENV_APOLLO_WEB_PORT,
+        ip: str = APOLLO_WEB_IP,
+        port: int = APOLLO_WEB_PORT,
         app_id: str = "Polaris",
         name_space: str = "Polaris.public",
     ):
@@ -78,7 +78,8 @@ class Apollo:
             if resp_data.get("status", "") != "OLD":
                 message = (
                     f"不应出现此情况: [POST] URL: {self.APOLLO_CREATE_APP_URL} "
-                    f"HEADERS: {headers} PAYLOAD: {self.APOLLO_CREATE_APP_PAYLOAD} RESPONSE: {resp_data}"
+                    f"HEADERS: {headers} PAYLOAD: {self.APOLLO_CREATE_APP_PAYLOAD} "
+                    f"RESPONSE: {resp_data}"
                 )
                 return False, message
             else:
@@ -132,8 +133,8 @@ class Apollo:
             return True, "ok", value_array
         else:
             message = (
-                f"[响应体没有items]不应出现此情况: [GET] URL: {self.APOLLO_FETCH_URL} HEADERS: {headers} "
-                f"RESPONSE: {resp_data}"
+                f"[响应体没有items]不应出现此情况: [GET] URL: {self.APOLLO_FETCH_URL} "
+                f"HEADERS: {headers} RESPONSE: {resp_data}"
             )
             return False, message, value_array
 
@@ -159,13 +160,15 @@ class Apollo:
         else:
             if resp.status_code != 200:
                 logger.error(
-                    f"获取Apollo的{key}的配置值失败, HTTP_STATUS_CODE: {resp.status_code}"
+                    f"获取Apollo的{key}的配置值失败, "
+                    f"HTTP_STATUS_CODE: {resp.status_code}"
                 )
                 return False, ""
             resp_data = resp.json()
             if resp_data.get("key", "") != key:
                 logger.warning(
-                    f"不应出现此情况: [GET] URL: {url} HEADERS: {headers} RESPONSE: {resp_data}"
+                    f"不应出现此情况: [GET] URL: {url} HEADERS: {headers} "
+                    f"RESPONSE: {resp_data}"
                 )
             value = resp_data.get("value", "未获取到value")
             return True, value

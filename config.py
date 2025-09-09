@@ -13,16 +13,20 @@ ENV_LOG_LEVEL = os.getenv("LOG_LEVEL", default="INFO")
 ENV_SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", default=0)
 ENV_HOST = os.getenv("SERVER_HOST", default="0.0.0.0")
 ENV_PORT = os.getenv("SERVER_PORT", default=25702)
+
 APOLLO_ENV_NAME = os.getenv("APOLLO_ENV_NAME", "测试部D环境")
-test_d_env = "172.21.4.30"
-ENV_APOLLO_IP = os.getenv("APOLLO_WEB_IP", default=test_d_env)
-ENV_APOLLO_WEB_PORT = int(os.getenv("APOLLO_WEB_PORT", default=8070))
-DATA_SCOPE_BDP_IP = os.getenv("DATA_SCOPE_BDP_IP", "172.16.29.12")
+APOLLO_WEB_IP = os.getenv("APOLLO_WEB_IP", default="172.21.4.30")
+APOLLO_WEB_PORT = int(os.getenv("APOLLO_WEB_PORT", default=8070))
+TRE_DOMAIN_DATA_BDP_IP = os.getenv("TRE_DOMAIN_DATA_BDP_IP", "172.16.29.12")
 TRE_DOMAIN_DATA_IP = os.getenv("TRE_DOMAIN_DATA_IP", "172.17.63.12")
 DEFAULT_DATA_EXPIRED_DAY = 15
 ENV_DATA_EXPIRED_DAY = os.getenv("DATA_EXPIRED_DAY", DEFAULT_DATA_EXPIRED_DAY)
 
 # 阿波罗配置 Polaris.Polaris.public
+BDP_WEB_IP = os.getenv("BDP_WEB_IP", "172.21.4.33")
+LOCAL_CITYCODE = os.getenv("LOCAL_CITYCODE", "320100")
+# 盘古界面配置 pangu_web_ip
+PANGU_WEB_IP = os.getenv("PANGU_WEB_IP", "172.16.113.100")
 # 盘古元数据库配置 jdbc:postgresql://172.21.4.32:5432/metadata20250421
 # Metadata_Dbn_ip
 METADATA_DB_IP = os.getenv("METADATA_DB_IP", "172.21.4.32")
@@ -34,11 +38,6 @@ METADATA_DB_USER = os.getenv("METADATA_DB_USER", "metadata20250116")
 METADATA_DB_PASSWORD = os.getenv("METADATA_DB_PASSWORD", "metadata_20250116")
 # Metadata_Dbn_dbName
 METADATA_DB_NAME = os.getenv("METADATA_DB_NAME", "metadata20250421")
-# 盘古界面配置 pangu_web_ip
-PANGU_WEB_IP = os.getenv("PANGU_WEB_IP", "172.16.113.100")
-# LABELS
-POLARIS_LABEL = os.getenv("POLARIS_LABEL", "Polaris")
-
 # BDP App Info
 PANGU_APP_ID = os.getenv("PANGU_APP_ID", "pangu")
 TRE_DOMAIN_DATA_APP_ID = os.getenv("TRE_DOMAIN_DATA_APP_ID", "offsite")
@@ -82,9 +81,6 @@ TAOSHA_NAMESPACE = "taosha"
 NB_MASS_NO_NAMESPACE = "nb_mass"
 
 TASK_TIMEOUT = 60 * 60 * 2
-
-
-PANGU_TASK_API_PORT = 11019
 
 
 print(
@@ -133,53 +129,6 @@ data_scope_cookie = (
     "topoptid=offsite; userToken=e52cd971b6b34d6cb2392f509afb28e3; "
     "appToken=dd9da97d36d247d18c60cf73327b4c7c"
 )
-
-# 盘古配置
-pangu_ip_port = "172.21.4.42:11018"
-# 数据资产-数据资源目录
-pangu_data_resource_dir_url = (
-    f"https://{pangu_ip_port}/catalog/catalog/res/searchResourceManage"
-)
-# 数据资产-设置中心-资源管理(内部)
-pangu_data_inner_resource_dir_url = (
-    f"https://{pangu_ip_port}/catalog/catalog/data/getResourcePage"
-)
-pangu_entity_list_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntityList"
-pangu_entity_detail_url = (
-    f"https://{pangu_ip_port}/catalog/catalog/query/getEntityDetail"
-)
-pangu_data_sample_query_url = (
-    f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
-)
-
-pangu_cookie = (
-    "contextPath=/catalog; JSESSIONID=212D9047AF5D54880D245EE23D92C371; "
-    "contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; "
-    "JSESSIONID=8CE476D6DFFC4A1DEEEC90D89199E76D; "
-    "userToken=fc661ef848c8490ca04f65f94bbd4d03; "
-    "appToken=d3ec1cb3323440f7976b28f487ba6425; "
-    "loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D"
-)
-
-pangu_field_type_map = {
-    -1: "string",
-    1: "string",
-    2: "int",
-    3: "byte",
-    4: "long",
-    5: "short",
-    6: "double",
-    7: "decimal",
-    9: "date",
-    10: "timestamp",
-    11: "binary",
-    18: "float",
-    20: "array",
-    21: "array<string>",
-    22: "array<int>",
-    23: "array<long>",
-    24: "array<float>",
-}
 
 DG_PLAN_CONFIG_PREFIX = "dg_task_plan_"
 SQL_MODE_DG_PLAN_CONFIG_PREFIX = "sql_dg_task_plan_"
