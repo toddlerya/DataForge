@@ -944,7 +944,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="guOFScwehbqAZZKThWlF" name="第 3 页">
-    <mxGraphModel dx="1366" dy="813" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+    <mxGraphModel dx="1434" dy="854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1603,10 +1603,10 @@
           <mxGeometry x="1290" y="110" width="210" height="60" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-89" value="BDOS构造测试数据" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffff88;strokeColor=#36393d;" vertex="1" parent="1">
-          <mxGeometry x="1640" y="110" width="210" height="60" as="geometry" />
+          <mxGeometry x="1600" y="110" width="210" height="60" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-90" value="独立业务构造测试数据" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
-          <mxGeometry x="2010" y="110" width="210" height="60" as="geometry" />
+          <mxGeometry x="2180" y="110" width="210" height="60" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-91" value="SQL 模式，调用API&lt;div&gt;&lt;br&gt;&lt;div&gt;已打通流程&lt;/div&gt;&lt;/div&gt;&lt;div&gt;数据域数据依赖人工更新&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
           <mxGeometry x="635" y="190" width="150" height="60" as="geometry" />
@@ -1618,10 +1618,10 @@
           <mxGeometry x="1300" y="190" width="170" height="60" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-94" value="元数据模式，使用Chat&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;导入元数据excel依赖后台手工运行&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
-          <mxGeometry x="1640" y="180" width="220" height="80" as="geometry" />
+          <mxGeometry x="1600" y="180" width="220" height="80" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-95" value="元数据模式，使用Chat&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;提取MySQL、PG库表信息依赖人工&lt;/div&gt;&lt;div&gt;查询后，使用BDOS元数据excel模板导入&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
-          <mxGeometry x="2000" y="190" width="230" height="70" as="geometry" />
+          <mxGeometry x="2170" y="190" width="230" height="70" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-103" value="DataGenius服务" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#cce5ff;strokeColor=#36393d;dashed=1;fontStyle=1;fontSize=21;" vertex="1" parent="1">
           <mxGeometry x="2440" y="550" width="390" height="30" as="geometry" />
@@ -1686,6 +1686,12 @@
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-112" value="人工修正DG规则信息" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
           <mxGeometry x="2190" y="1650.63" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-117" value="仿真测试环境数据扩充" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffff88;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="110" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-118" value="元数据模式 API 或 Chat&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;盘古元数据更新依赖人工更新&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="1900" y="180" width="220" height="80" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
