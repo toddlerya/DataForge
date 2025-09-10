@@ -105,6 +105,7 @@ class LogManager:
                     "enqueue": enqueue,
                     "encoding": log_encode,
                     "filter": TraceFilter(),
+                    # "catch": True,
                 },
                 {
                     "sink": sys.stdout,
@@ -113,6 +114,7 @@ class LogManager:
                     "level": console_log_level,
                     "enqueue": enqueue,
                     "filter": TraceFilter(),
+                    # "catch": True,
                 },
             ]
         }

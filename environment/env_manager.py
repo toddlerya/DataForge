@@ -8,6 +8,7 @@ from typing import Optional
 
 from apollo.apollo import Apollo
 from database_models.schema import EnvironmentOtherConfig
+from utils.log import logger
 
 
 class EnvironmentManager:
@@ -17,6 +18,7 @@ class EnvironmentManager:
         self._tre_domain_data_bdp_web_ip: str = ""
         self._other_configs: Optional[EnvironmentOtherConfig] = None
 
+    @logger.catch
     def register(self):
         """注册环境配置"""
         if not self._env_name:
@@ -26,7 +28,13 @@ class EnvironmentManager:
         if self._apollo_web_ip:
             # 采集apollo信息
             apollo = Apollo(ip=self._apollo_web_ip)
-            apollo.fetch_and_format_all_config()
+            apollo_status, apollo_message, apollo_result = (
+                apollo.fetch_and_format_all_config()
+            )
+            if apollo_status is False:
+                logger.error(apollo_message)
+                raise Exception(apollo_message)
+            result_array = apollo_result.get("config_list")
 
     def remove(self, env_name: str):
         """移除环境配置"""
