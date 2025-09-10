@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   db:
     image: postgres:14.2
@@ -15,9 +13,9 @@ services:
       - ./postgresql/data:/var/lib/postgresql/data
       - ./postgresql/conf/postgresql.conf:/etc/postgresql/postgresql.conf
     command:
-      - 'postgres'
-      - '-c'
-      - 'config_file=/etc/postgresql/postgresql.conf'
+      - "postgres"
+      - "-c"
+      - "config_file=/etc/postgresql/postgresql.conf"
     environment:
       POSTGRES_DB: data_forge
       # 请务必修改密码
@@ -175,7 +173,6 @@ services:
       - DATA_EXPIRED_DAY=30
       - INNER_DB_HOST=DataForgeDB
 
-
   fmdb_insert_sql_gen_chat:
     image: llm_server_py313_env:1.0.0
     container_name: FMDBInsertSQLGenApp
@@ -231,10 +228,6 @@ services:
 #    environment:
 #      - TZ=Asia/Shanghai
 
-
-
 networks:
   harbor_net:
     external: true
-
-
