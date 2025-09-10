@@ -92,7 +92,7 @@ print(
 ENV_DB_MODE = "POSTGRESQL"
 DIALECT = "postgresql"
 DRIVER = "psycopg2"
-DB_HOST = os.getenv("INNER_DB_HOST", "172.16.150.178")
+DB_HOST = os.getenv("INNER_DB_HOST", "172.16.108.3")
 DB_PORT = 5432
 DB_USERNAME = "data_forge"
 DB_PASSWORD = "data_forge_2590"
