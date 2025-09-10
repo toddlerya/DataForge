@@ -101,8 +101,7 @@ class PanGuCrawler:
         Args:
             env_name (str): _description_
         """
-        self.inner_db.
-
+        pass
 
     def crawl_inner_resource(self):
         """

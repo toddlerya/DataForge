@@ -13,3 +13,10 @@ class MetaDataSource(str, Enum):
     pangu = "盘古"
     bdos = "BDOS"
     intelligence_analysis_assistant = "深度搜索预警"
+
+
+class EnvironmentStatus(str, Enum):
+    enable = "启用"
+    disable = "禁用"
+    remove = "废弃"
+    new = "新建"

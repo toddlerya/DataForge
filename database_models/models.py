@@ -13,6 +13,7 @@ from sqlalchemy import (
     BigInteger,
     Column,
     DateTime,
+    Enum,
     Float,
     Index,
     Integer,
@@ -23,6 +24,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm.attributes import instance_dict
+
+from database_models.sys_enum import EnvironmentStatus
 
 Base = declarative_base()
 
@@ -120,6 +123,12 @@ class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
         comment="数据域管理系统的IP: TRE_DOMAIN_DATA_ip",
     )
     other_configs = Column(JSONB, nullable=True, comment="其他配置信息")
+    status = Column(
+        Enum(EnvironmentStatus),
+        nullable=False,
+        default=EnvironmentStatus.new,
+        comment="状态位",
+    )
 
 
 class TableMetaDataInfo(CommonColumnMixin, ToDictMixin, Base):

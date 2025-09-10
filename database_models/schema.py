@@ -5,12 +5,41 @@
 # @FileName : schemas.py
 # @Project  : DataForge
 
-from typing import Any
+from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class TaskDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+class RelationalDatabaseConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    host: str = Field(default="", description="主机")
+    port: int = Field(default=0, description="端口")
+    database: str = Field(default="", description="数据库")
+    username: str = Field(default="", description="用户名")
+    password: str = Field(default="", description="密码")
+    charset: str = Field(default="utf-8", description="字符集编码")
+
+
+class EnvironmentOtherConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    postgresql: Optional[RelationalDatabaseConfig] = Field(
+        None, description="PG库连接配置"
+    )
+    mysql: Optional[RelationalDatabaseConfig] = Field(None, description="MySQL连接配置")
+    # oracel: Optional[RelationalDatabaseConfig] = Field(
+    #     None, description="Oracle连接配置"
+    # )
+    # sqlserver: Optional[RelationalDatabaseConfig] = Field(
+    #     None, description="SQLServer连接配置"
+    # )
+    tsml: Optional[dict] = Field(None, description="tsml文件信息")
+
+
+class TaskDataSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     task_uuid: str = Field(
         default="", description="任务唯一ID, 与session_uuid, trace_uuid一致"
     )
@@ -40,7 +69,9 @@ class TaskDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
-class RecommendPanGuFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+class RecommendPanGuFieldSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     ename: str = Field(..., description="字段英文名称")
     cname: str = Field(..., description="字段出现次数最多的中文名称")
     cname_count: int = Field(0, description="该字段在所有表中的总数")
@@ -108,7 +139,9 @@ class RecommendPanGuFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=
     env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
-class RecommendPanGuDictSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+class RecommendPanGuDictSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     uuid: int = Field(..., description="字典的唯一编码")
     dictkey_with_nlevel: str = Field(..., description="字段存储的字典key")
     dict_category_code: str = Field(..., description="字典类别key")
@@ -119,7 +152,9 @@ class RecommendPanGuDictSchema(BaseModel, extra="forbid", str_strip_whitespace=T
     env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
-class TableRawFieldSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+class TableRawFieldSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     en_name: str = Field(default="", description="字段英文名称")
     cn_name: str = Field(default="", description="字段中文名称")
     desc: str = Field(default="", description="字段描述")
@@ -135,7 +170,9 @@ class GenTableFieldSchema(TableRawFieldSchema):
     source_table_cn_name: str = Field(default="", description="来源表中文名")
 
 
-class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+class TableMetaDataSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     uuid: str = Field(
         default="",
         description="表的唯一ID: md5(table_en_name+source+area_code+area_name)",
@@ -152,7 +189,9 @@ class TableMetaDataSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
     # env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
 
 
-class TableExampleSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+class TableExampleSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     uuid: str = Field(..., description="数据唯一ID, md5(example_data)")
     table_uuid: str = Field(
         ..., description="表的唯一ID: md5(table_en_name+source+area_code+area_name)"
@@ -163,6 +202,8 @@ class TableExampleSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
 
 class PydanticDataGeniusRule(BaseModel):
     """DataGenius 输出的规则 Pydantic模型"""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     col: int = Field(
         default=1,
@@ -183,7 +224,9 @@ class PydanticDataGeniusRule(BaseModel):
     )
 
 
-class FieldDGRuleCacheSchema(BaseModel, extra="forbid", str_strip_whitespace=True):
+class FieldDGRuleCacheSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     uuid: str = Field(
         ..., description="规则唯一ID, md5(ename+cname+description+field_type_name)"
     )

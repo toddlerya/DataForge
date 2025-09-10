@@ -10,7 +10,7 @@ from typing import Annotated, ClassVar, Dict, List, Literal, Optional, Set, Type
 
 from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
 from database_models.schema import (
@@ -23,11 +23,13 @@ from database_models.schema import (
 
 
 class DataGenUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_en_name: str = Field(..., description="表英文名称, 不可为空")
     data_count: int = Field(..., ge=1, description="期望数据条数")
 
 
 class TableMetadataSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_en_name: str = Field(
         description="表英文名称", alias="table_en_name", default=""
     )
@@ -50,6 +52,8 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
     """
     用于定义LLM输出的结构, 包含推荐的类别、置信度分数和推荐理由。
     """
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     category: str = Field(description="推荐的类别名称，必须在允许的类别列表中。")
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
@@ -91,6 +95,8 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
 
 class PydanticDataGeniusPlan(BaseModel):
     """DataGenius 输出的计划 Pydantic模型"""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     rule_name: str = Field(
         default="DataGenius规则配置名称json文件名",
@@ -150,17 +156,20 @@ class DataGenState(DataGenBaseState):
 
 
 class DataGenSQLModeUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     sql: str = Field(..., min_length=15, description="SQL内容")
     data_count: int = Field(..., ge=1, description="期望数据条数")
 
 
 class SQLModeFieldSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     en_name: str = Field(..., min_length=1, description="字段英文名称")
     alias_name: str = Field("", description="字段别名")
     comment: str = Field("", description="字段注释")
 
 
 class SQLModeTableInfoSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_en_name: str = Field(
         description="表英文名称", alias="table_en_name", default=""
     )
@@ -177,6 +186,7 @@ class SQLModeDataGenState(DataGenBaseState):
 
 
 class TableGenUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     categories: List[str] = Field(
         ..., description="期望生成的表类别, 例如: 人员属性,上网行为,位置轨迹等"
     )
@@ -188,6 +198,7 @@ class TableGenUserIntentSchema(BaseModel):
 
 
 class GenSourceTableMetadataSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_en_name: str = Field(description="表英文名称", default="")
     table_cn_name: str = Field(description="表中文名称", default="")
     source_fields_info: List[GenTableFieldSchema] = Field(
@@ -196,6 +207,7 @@ class GenSourceTableMetadataSchema(BaseModel):
 
 
 class StructuredDimensionMappingSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     recommend_category: str = Field(..., description="LLM推荐的表类别")
     recommend_dimension_table_en_name: str = Field(
         ..., description="LLM推荐的特征表英文名称"
@@ -217,12 +229,14 @@ class StructuredDimensionMappingSchema(BaseModel):
 
 
 class StructuredTranslateTableEnameSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_ename: str = Field(
         ..., description="表英文名称", pattern="^[A-Z][A-Z_]+[A-Z]$"
     )
 
 
 class DimensionTableFieldsRecommendation(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     material_table_en_name: str = Field(default="", description="素材表英文名称")
     material_table_cn_name: str = Field(default="", description="素材表中文名称")
     field_en_name_slice: List[str] = Field(
@@ -236,6 +250,7 @@ class DimensionTableFieldsRecommendation(BaseModel):
 
 
 class DimensionTableFillFieldResult(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     recommend_category: str = Field(..., description="LLM推荐的表类别")
     dimension_table_en_name: str = Field(..., description="特征表英文名")
     dimension_table_cn_name: str = Field(..., description="特征表中文名")
