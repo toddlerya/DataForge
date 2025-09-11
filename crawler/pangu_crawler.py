@@ -12,88 +12,40 @@ import urllib3
 from loguru import logger
 from urllib3.exceptions import InsecureRequestWarning
 
+from bdp.bdp_token_create import create_bdp_token
 from crawler.common import fill_one_example2model, table_metadata_verify2model
+from cruds.environment import query_environment_info_by_env_name
 from cruds.table_example import table_example_save
 from cruds.table_metadata import table_metadata_query_by_entity_id, table_metadata_save
 from database_models.schema import TableExampleSchema, TableMetaDataSchema
 from database_models.sys_enum import MetaDataSource
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 from utils.file import get_md5
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
 
-# 盘古配置
-pangu_ip_port = "172.21.4.42:11018"
-# 数据资产-数据资源目录
-pangu_data_resource_dir_url = (
-    f"https://{pangu_ip_port}/catalog/catalog/res/searchResourceManage"
-)
-# 数据资产-设置中心-资源管理(内部)
-pangu_data_inner_resource_dir_url = (
-    f"https://{pangu_ip_port}/catalog/catalog/data/getResourcePage"
-)
-pangu_entity_list_url = f"https://{pangu_ip_port}/catalog/catalog/query/getEntityList"
-pangu_entity_detail_url = (
-    f"https://{pangu_ip_port}/catalog/catalog/query/getEntityDetail"
-)
-pangu_data_sample_query_url = (
-    f"https://{pangu_ip_port}/catalog/catalog/query/getDataBySql"
-)
-
-pangu_cookie = (
-    "contextPath=/catalog; JSESSIONID=212D9047AF5D54880D245EE23D92C371; "
-    "contextPath=/; citycode=330100; appId=pangu; topoptid=pangu; "
-    "JSESSIONID=8CE476D6DFFC4A1DEEEC90D89199E76D; "
-    "userToken=fc661ef848c8490ca04f65f94bbd4d03; "
-    "appToken=d3ec1cb3323440f7976b28f487ba6425; "
-    "loginIp=10.0.23.57; loginMac=A4-BB-6D-43-BE-0D"
-)
-
-pangu_field_type_map = {
-    -1: "string",
-    1: "string",
-    2: "int",
-    3: "byte",
-    4: "long",
-    5: "short",
-    6: "double",
-    7: "decimal",
-    9: "date",
-    10: "timestamp",
-    11: "binary",
-    18: "float",
-    20: "array",
-    21: "array<string>",
-    22: "array<int>",
-    23: "array<long>",
-    24: "array<float>",
-}
-
-
 class PanGuCrawler:
     def __init__(
         self,
-        inner_db: Database,
-        resource_url: str,
-        pangu_data_inner_resource_dir_url: str,
-        entity_list_url: str,
-        detail_url: str,
-        query_url: str,
-        cookie: str,
+        inner_db_manager: DatabaseManager,
         resource_count: int = 2000,
+        pangu_web_ip_port: str = "",
     ):
-        self.resource_url = resource_url
-        self.pangu_data_inner_resource_dir_url = pangu_data_inner_resource_dir_url
-        self.entity_list_url = entity_list_url
-        self.detail_url = detail_url
-        self.query_url = query_url
+        self.inner_db_manager = inner_db_manager
+        self.bdp_ip: str = ""
+        self.local_city_code: str = ""
+        self.pangu_web_ip_port = pangu_web_ip_port
+        self.resource_url: str = ""
+        self.pangu_data_inner_resource_dir_url: str = ""
+        self.entity_list_url: str = ""
+        self.detail_url: str = ""
+        self.query_url: str = ""
         self.resource_count = resource_count
-        self.bdp_headers = {"Cookie": cookie}
+        self.bdp_headers = {"Cookie": ""}
         self.resource_elements: list[dict] = []
         self.template_id_slice: list[int] = []
         self.entity_elements: list[dict] = []
-        self.inner_db = inner_db
 
     def sync_env_data(self, env_name: str):
         """同步环境配置信息
@@ -101,7 +53,59 @@ class PanGuCrawler:
         Args:
             env_name (str): _description_
         """
-        pass
+        status, message, result = query_environment_info_by_env_name(
+            env_name=env_name, db_manager=self.inner_db_manager
+        )
+        if status is False:
+            logger.error(f"同步环境配置信息异常: {message}")
+            raise Exception(message)
+        self.pangu_web_ip_port = f"{result.pangu_web_ip}:11018"
+        self.bdp_ip = str(result.bdp_web_ip)
+        self.local_city_code = str(result.local_city_code)
+        logger.debug(
+            f"pangu_web_ip_port: {self.pangu_web_ip_port} "
+            f"bdp_ip: {self.bdp_ip} "
+            f"local_city_code: {self.local_city_code} "
+        )
+
+    def auth(self):
+        """登录BDP认证"""
+        app_id = "pangu"
+        message, data = create_bdp_token(bdp_ip=self.bdp_ip, app_id=app_id)
+        if message != "ok":
+            logger.error(f"PanGuWeb BDP认证异常: {message}")
+            raise Exception(message)
+        logger.debug(f"bdp token data: {json.dumps(data)}")
+        self.pangu_cookie = (
+            "contextPath=/catalog; JSESSIONID=212D9047AF5D54880D245EE23D92C371; "
+            f"contextPath=/; citycode={self.local_city_code}; appId={app_id}; "
+            f"topoptid={app_id}; JSESSIONID=8CE476D6DFFC4A1DEEEC90D89199E76D; "
+            f"userToken={data.get('userToken')}; "
+            f"appToken={data.get('appToken')}; "
+            "loginIp=1.1.1.1; loginMac=A4-BB-6D-43-BE-0D"
+        )
+        logger.debug(f"pangu_cookie: {self.pangu_cookie}")
+        self.bdp_headers = {"Cookie": self.pangu_cookie}
+
+    def set_pangu_url_config(self):
+        # 盘古配置
+        # 数据资产-数据资源目录
+        self.resource_url = (
+            f"https://{self.pangu_web_ip_port}/catalog/catalog/res/searchResourceManage"
+        )
+        # 数据资产-设置中心-资源管理(内部)
+        self.pangu_data_inner_resource_dir_url = (
+            f"https://{self.pangu_web_ip_port}/catalog/catalog/data/getResourcePage"
+        )
+        self.entity_list_url = (
+            f"https://{self.pangu_web_ip_port}/catalog/catalog/query/getEntityList"
+        )
+        self.detail_url = (
+            f"https://{self.pangu_web_ip_port}/catalog/catalog/query/getEntityDetail"
+        )
+        self.query_url = (
+            f"https://{self.pangu_web_ip_port}/catalog/catalog/query/getDataBySql"
+        )
 
     def crawl_inner_resource(self):
         """
@@ -136,12 +140,13 @@ class PanGuCrawler:
             )
             if resp.status_code != 200:
                 logger.error(resp.raise_for_status())
-                raise resp.raise_for_status()
+                resp.raise_for_status()
             try:
                 resp_json = resp.json()
                 if resp_json.get("status") != 200:
                     logger.error(
-                        f"数据资产-设置中心-资源管理(内部)获取异常: resp_json.status={resp_json.get('status')}"
+                        "数据资产-设置中心-资源管理(内部)获取异常: "
+                        f"resp_json.status={resp_json.get('status')}"
                     )
                 data = resp_json.get("data", {})
                 records_total = data.get("recordsTotal", 200)
@@ -156,7 +161,8 @@ class PanGuCrawler:
                 # 如果当前页已经大于等于最大页数，就退出循环
                 if page_no > page_no_max:
                     logger.info(
-                        f"盘古内部数据资源目录获取到{records_total}个资源, 实际{len(self.template_id_slice)}个资源"
+                        f"盘古内部数据资源目录获取到{records_total}个资源, "
+                        f"实际{len(self.template_id_slice)}个资源"
                     )
                     break
             except Exception as err:
@@ -179,7 +185,7 @@ class PanGuCrawler:
         )
         if resp.status_code != 200:
             logger.error(resp.raise_for_status())
-            raise resp.raise_for_status()
+            resp.raise_for_status()
         try:
             resp_json = resp.json()
             if resp_json.get("status") != 200:
@@ -217,7 +223,7 @@ class PanGuCrawler:
         )
         if resp.status_code != 200:
             logger.error(resp.raise_for_status())
-            raise resp.raise_for_status()
+            resp.raise_for_status()
         try:
             resp_json = resp.json()
             if resp_json.get("status") != 200:
@@ -256,7 +262,7 @@ class PanGuCrawler:
         )
         if resp.status_code != 200:
             logger.error(resp.raise_for_status())
-            raise resp.raise_for_status()
+            resp.raise_for_status()
         try:
             resp_json = resp.json()
             if resp_json.get("status") != 200:
@@ -291,7 +297,7 @@ class PanGuCrawler:
                 status, tb_meta_uuid = get_md5(
                     f"{table_metadata_model.table_en_name}"
                     f"{table_metadata_model.source}"
-                    f"{table_metadata_model.env_uuid}"
+                    f"{table_metadata_model.env_name}"
                 )
                 if status is False:
                     logger.error(
@@ -355,7 +361,10 @@ class PanGuCrawler:
         finally:
             return data
 
-    def run(self, overwrite: bool = False):
+    def run(self, env_name: str, overwrite: bool = False):
+        self.sync_env_data(env_name=env_name)
+        self.auth()
+        self.set_pangu_url_config()
         self.crawl_inner_resource()
         self.crawl_resource()
         # template_id_slice 去重
@@ -371,23 +380,27 @@ class PanGuCrawler:
             if not overwrite:
                 query_status, query_msg, entity_data = (
                     table_metadata_query_by_entity_id(
-                        entity_id=entity_id, db_handler=self.inner_db
+                        entity_id=entity_id, db_manager=self.inner_db_manager
                     )
                 )
                 if query_status and entity_data:
                     # 数据已存在则跳过
                     logger.warning(
-                        f"数据已存在，跳过: entity_id={entity_id} table_en_name={entity_data.table_en_name}"
+                        f"数据已存在，跳过: entity_id={entity_id} "
+                        f"table_en_name={entity_data.table_en_name}"
                     )
                     continue
             logger.info(f"采集实例元数据入库中: entity_id={entity_id}")
             each_table_metadata_model = self.crawl_entity_detail(entity_id=entity_id)
+            if each_table_metadata_model is None:
+                continue
             # 采集表的样例数据
             if not each_table_metadata_model.table_en_name.startswith(
                 "massdata"
             ) and not each_table_metadata_model.table_en_name.startswith("fmdbmeta"):
                 logger.warning(
-                    f"不是massdata或fmdbmeta库的表，跳过: {each_table_metadata_model.table_en_name}"
+                    "不是massdata或fmdbmeta库的表, 跳过: "
+                    f"{each_table_metadata_model.table_en_name}"
                 )
                 continue
             example_data = self.crawl_sample(
@@ -396,7 +409,8 @@ class PanGuCrawler:
                 limit=10,
             )
             logger.debug(
-                f"entity_id={entity_id} table_en_name={each_table_metadata_model.table_en_name} "
+                f"entity_id={entity_id} "
+                f"table_en_name={each_table_metadata_model.table_en_name} "
                 f"获取到样例数据{len(example_data)}条"
             )
             # 填充样例数据
@@ -407,11 +421,12 @@ class PanGuCrawler:
             each_table_metadata_record = each_table_metadata_model.model_dump()
             each_table_metadata_record.update({"remark": entity_id})
             save_status, save_message = table_metadata_save(
-                record=each_table_metadata_record, db_handler=self.inner_db
+                record=each_table_metadata_record, db_manager=self.inner_db_manager
             )
             if save_status is False:
                 logger.error(
-                    f"盘古元数据信息入库异常: {each_table_metadata_record} ERROR: {save_message}"
+                    f"盘古元数据信息入库异常: {each_table_metadata_record} "
+                    f"ERROR: {save_message}"
                 )
             for ex_data in example_data:
                 data_uuid_md5_status, data_uuid = get_md5(json.dumps(ex_data))
@@ -421,9 +436,10 @@ class PanGuCrawler:
                     uuid=data_uuid,
                     table_uuid=each_table_metadata_model.uuid,
                     example_data=ex_data,
+                    env_name=env_name,
                 )
                 save_ex_status, save_ex_message = table_example_save(
-                    record=example_data.model_dump(), db_handler=self.inner_db
+                    record=example_data.model_dump(), db_manager=self.inner_db_manager
                 )
                 if save_ex_status is False:
                     logger.error(
@@ -434,15 +450,22 @@ class PanGuCrawler:
 
 
 if __name__ == "__main__":
-    db_handler = Database()
-    pgc = PanGuCrawler(
-        inner_db=db_handler,
-        resource_url=pangu_data_resource_dir_url,
-        pangu_data_inner_resource_dir_url=pangu_data_inner_resource_dir_url,
-        entity_list_url=pangu_entity_list_url,
-        detail_url=pangu_entity_detail_url,
-        query_url=pangu_data_sample_query_url,
-        cookie=pangu_cookie,
+    from loguru import logger
+
+    from common.initialization import setup_logging
+    from config import PROJECT_PATH
+    from utils.log import LogManager
+
+    log_config = LogManager(
+        base_path=str(PROJECT_PATH.absolute()),
+        log_path="logs",
+        log_name="debug.log",
+        file_log_level="TRACE",
+        console_log_level="DEBUG",
     )
-    pgc.run()
-    db_handler.session.close()
+    setup_logging(log_config.get_config().get("handlers"))
+
+    db_manager = DatabaseManager()
+    pgc = PanGuCrawler(inner_db_manager=db_manager)
+    pgc.run(env_name="测试部仿真测试环境")
+    db_manager.close()

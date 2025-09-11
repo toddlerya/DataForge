@@ -207,7 +207,7 @@ class TableMetaDataSchema(BaseModel):
     area_code: str = Field("", description="地市来源编码")
     area_name: str = Field("", description="来源地市名称")
     source: str = Field("", description="数据来源")
-    # env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
+    env_name: str = Field("", description="环境名称")
 
 
 class TableExampleSchema(BaseModel):
@@ -218,7 +218,7 @@ class TableExampleSchema(BaseModel):
         ..., description="表的唯一ID: md5(table_en_name+source+area_code+area_name)"
     )
     example_data: dict = Field(..., description="样例数据")
-    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
+    env_name: str = Field("", description="环境名称")
 
 
 class PydanticDataGeniusRule(BaseModel):

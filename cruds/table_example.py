@@ -9,25 +9,27 @@
 from typing import Tuple
 
 from database_models.models import TableExampleDataInfo
-from utils.db import Database
+from utils.db_manager import DatabaseManager, GenericUpsert
 
 
-def table_example_save(record: dict, db_handler: Database) -> Tuple[bool, str]:
+def table_example_save(record: dict, db_manager: DatabaseManager) -> Tuple[bool, str]:
     """
     存储数据
     Args:
         record:
-        db_handler:
+        db_manager:
 
     Returns:
 
     """
     try:
-        db_handler.insert_or_update(TableExampleDataInfo, **record)
+        GenericUpsert(db=db_manager.db).smart_insert_or_update_single(
+            session=db_manager.get_session(),
+            model_class=TableExampleDataInfo,
+            data=record,
+        )
     except Exception as err:
-        db_handler.session.rollback()
         message = f"数据库写操作异常: {err}"
         return False, message
     else:
-        db_handler.session.commit()
         return True, "ok"

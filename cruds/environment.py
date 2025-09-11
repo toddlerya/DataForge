@@ -5,11 +5,10 @@
 # @FileName : environment.py
 # @Project  : HETUTaskChecker
 
-from sqlalchemy import desc, update
+from sqlalchemy import update
 
 from database_models.models import EnvironmentInfo
 from database_models.sys_enum import EnvironmentStatus
-from utils.db import Database
 from utils.db_manager import DatabaseManager, GenericUpsert
 from utils.log import logger
 
@@ -68,29 +67,26 @@ def change_env_status(
     return True, "ok"
 
 
-def query_environment_info_by_apollo_ip(
-    apollo_web_ip: str, db: Database
+def query_environment_info_by_env_name(
+    env_name: str, db_manager: DatabaseManager
 ) -> tuple[bool, str, EnvironmentInfo]:
     """
-    根据阿波罗IP获取对应的环境配置信息
+    根据环境名称获取对应的环境配置信息
     :param apollo_web_ip:
     :param db:
     :return:
     """
     try:
-        logger.trace(
-            f"query_environment_info_by_apollo_ip(apollo_web_ip={apollo_web_ip})"
-        )
+        logger.trace(f"query_environment_info_by_env_name(env_name={env_name})")
         data = (
-            db.session.query(EnvironmentInfo)
-            .filter(EnvironmentInfo.apollo_web_ip == apollo_web_ip)
-            .order_by(desc(EnvironmentInfo.create_time))
-            .first()
+            db_manager.get_session()
+            .query(EnvironmentInfo)
+            .filter(EnvironmentInfo.env_name == env_name)
+            .one_or_none()
         )
     except Exception as err:
         message = (
-            "根据阿波罗IP获取对应的环境配置信息失败! "
-            f"apollo_web_ip={apollo_web_ip} ERROR: {err}"
+            f"根据环境名称获取对应的环境配置信息失败! env_name={env_name} ERROR: {err}"
         )
         return False, message, EnvironmentInfo()
     else:
@@ -98,11 +94,11 @@ def query_environment_info_by_apollo_ip(
 
 
 if __name__ == "__main__":
-    db_handler = Database()
-    s, m, r = query_environment_info_by_apollo_ip(
-        apollo_web_ip="172.21.4.30", db=db_handler
+    db_manager = DatabaseManager()
+    s, m, r = query_environment_info_by_env_name(
+        env_name="测试部仿真测试环境", db_manager=db_manager
     )
     print(s)
     print(m)
     print(r.to_dict())
-    db_handler.session.close()
+    db_manager.close()

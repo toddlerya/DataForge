@@ -2,7 +2,7 @@
 # coding: utf-8
 # @Time     : 2025/09/10 10:44
 # @Author   : guoqun X2590
-# @Desc     : 环境配置注册器
+# @Desc     : 环境配置管理器
 
 import json
 import pathlib
@@ -57,8 +57,8 @@ def load_all_env_config_from_yaml(
             env_manager.enable()
         elif each_env_data.status is EnvironmentStatus.disable:
             env_manager.disable()
-        elif each_env_data.status is EnvironmentStatus.remove:
-            env_manager.remove()
+        elif each_env_data.status is EnvironmentStatus.retired:
+            env_manager.retired()
         # 重置对象配置值
         env_manager.reset()
 
@@ -148,13 +148,14 @@ class EnvironmentManager:
                     f"other_configs={self.other_configs.model_dump_json()}"
                 )
 
-    def remove(self):
-        """移除环境配置"""
+    def retired(self):
+        """废弃环境配置"""
         change_env_status(
             env_name=self.env_name,
-            status=EnvironmentStatus.remove,
+            status=EnvironmentStatus.retired,
             db_manager=self.db_manager,
         )
+        # TODO: 移除定时任务
 
     def enable(self):
         """启用环境配置并添加任务"""
@@ -163,6 +164,7 @@ class EnvironmentManager:
             status=EnvironmentStatus.enable,
             db_manager=self.db_manager,
         )
+        # TODO: 添加定时任务
 
     def disable(self):
         """禁用环境配置"""
@@ -171,6 +173,7 @@ class EnvironmentManager:
             status=EnvironmentStatus.disable,
             db_manager=self.db_manager,
         )
+        # TODO: 移除定时任务
 
     def __repr__(self) -> str:
         return (
