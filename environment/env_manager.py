@@ -4,116 +4,188 @@
 # @Author   : guoqun X2590
 # @Desc     : 环境配置注册器
 
+import json
+import pathlib
 from typing import Optional
 
-from apollo.apollo import Apollo
-from database_models.schema import EnvironmentOtherConfig
+from crawler.env_info_crawler import EnvInfoCrawler
+from cruds.environment import change_env_status
+from database_models.schema import EnvironmentConfigYAMLSchema, EnvironmentOtherConfig
+from database_models.sys_enum import EnvironmentStatus
+from utils.db_manager import DatabaseManager
+from utils.file import load_yaml_from_file
 from utils.log import logger
 
 
+def load_all_env_config_from_yaml(
+    db_manager: DatabaseManager, config_yaml: pathlib.Path
+):
+    """读取environment.yaml配置并更新数据库配置和定时任务
+
+    Args:
+        db_manager (DatabaseManager): _description_
+        config_yaml (pathlib.Path): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    logger.info("读取环境YAML配置")
+    config_data_slice: list[EnvironmentConfigYAMLSchema] = []
+    env_manager = EnvironmentManager(db_manager=db_manager)
+    message, data = load_yaml_from_file(yaml_file_path=config_yaml)
+    if message != "ok":
+        logger.error(message)
+        raise Exception(message)
+    logger.trace(f"{config_yaml} ==> {json.dumps(data, ensure_ascii=False)}")
+    # 校验
+    config_data_slice = [EnvironmentConfigYAMLSchema(**ele) for ele in data]
+    for each_env_data in config_data_slice:
+        logger.debug(f"each_env_data: {id(each_env_data)} {each_env_data}")
+        env_manager.env_name = each_env_data.env_name
+        if each_env_data.apollo_web_ip:
+            env_manager.apollo_web_ip = each_env_data.apollo_web_ip
+        if each_env_data.tre_domain_data_bdp_web_ip:
+            env_manager.tre_domain_data_bdp_web_ip = (
+                each_env_data.tre_domain_data_bdp_web_ip
+            )
+        if each_env_data.other_configs:
+            env_manager.other_configs = each_env_data.other_configs
+        # 注册并更新
+        env_manager.register_and_update()
+        # 配置开关设置调度
+        if each_env_data.status is EnvironmentStatus.enable:
+            env_manager.enable()
+        elif each_env_data.status is EnvironmentStatus.disable:
+            env_manager.disable()
+        elif each_env_data.status is EnvironmentStatus.remove:
+            env_manager.remove()
+        # 重置对象配置值
+        env_manager.reset()
+
+
+def validate_ipv4(value: str, value_name: str):
+    if not isinstance(value, str):
+        raise TypeError(f"{{value_name}} must be a string, input {value_name}={value}")
+    # 简单 IP 校验（可扩展为正则）
+    parts = value.strip().split(".")
+    if len(parts) != 4 or not all(p.isdigit() and 0 <= int(p) <= 255 for p in parts):
+        raise ValueError(f"Invalid IP format, input {value_name}={value}")
+
+
 class EnvironmentManager:
-    def __init__(self) -> None:
-        self._env_name: str = ""
-        self._apollo_web_ip: str = ""
-        self._tre_domain_data_bdp_web_ip: str = ""
-        self._other_configs: Optional[EnvironmentOtherConfig] = None
+    def __init__(self, db_manager: DatabaseManager) -> None:
+        self.db_manager = db_manager
+        self.env_name: str = ""
+        self.apollo_web_ip: str = ""
+        self.tre_domain_data_bdp_web_ip: str = ""
+        self.other_configs: Optional[EnvironmentOtherConfig] = None
+        self.env_info_crawler = EnvInfoCrawler(inner_db_manager=self.db_manager)
+        self.validator()
 
     @logger.catch
-    def register(self):
-        """注册环境配置"""
-        if not self._env_name:
-            raise AttributeError("env_name不能为空")
-        if not self._apollo_web_ip and not self._other_configs:
-            raise AttributeError("apollo_web_ip和other_configs至少有一个不可为空")
-        if self._apollo_web_ip:
-            # 采集apollo信息
-            apollo = Apollo(ip=self._apollo_web_ip)
-            apollo_status, apollo_message, apollo_result = (
-                apollo.fetch_and_format_all_config()
+    def validator(self):
+        """校验合法性"""
+        logger.info("校验参数合法性")
+        if self.env_name:
+            if not isinstance(self.env_name, str):
+                raise TypeError("env_name must be a string")
+            self.env_name = self.env_name.strip()
+            if len(self.env_name) < 3:
+                raise ValueError(
+                    f"env_name too short (min 4 chars), input env_name={self.env_name}"
+                )
+            if len(self.env_name) > 128:
+                raise ValueError(
+                    f"env_name too long (max 128 chars), input env_name={self.env_name}"
+                )
+        if self.apollo_web_ip:
+            validate_ipv4(value=self.apollo_web_ip, value_name="apollo_web_ip")
+        if self.tre_domain_data_bdp_web_ip:
+            validate_ipv4(
+                value=self.tre_domain_data_bdp_web_ip,
+                value_name="tre_domain_data_bdp_web_ip",
             )
-            if apollo_status is False:
-                logger.error(apollo_message)
-                raise Exception(apollo_message)
-            result_array = apollo_result.get("config_list")
+        if self.other_configs:
+            if not isinstance(self.other_configs, (EnvironmentOtherConfig)):
+                raise TypeError("other_configs must be EnvironmentOtherConfig")
 
-    def remove(self, env_name: str):
+    @logger.catch
+    def reset(self):
+        """重置参数"""
+        self.env_name = ""
+        self.apollo_web_ip = ""
+        self.tre_domain_data_bdp_web_ip = ""
+        self.other_configs = None
+
+    @logger.catch
+    def register_and_update(self):
+        """注册和更新环境配置"""
+        if not self.env_name:
+            raise AttributeError("env_name不能为空")
+        if not self.apollo_web_ip and not self.other_configs:
+            raise AttributeError("apollo_web_ip和other_configs至少有一个不可为空")
+        # 采集阿波罗配置，更新数据库配置
+        if self.apollo_web_ip:
+            # 采集apollo信息并入库存储
+            if not self.env_info_crawler.fetch_and_save_environment_info(
+                env_name=self.env_name,
+                apollo_ip=self.apollo_web_ip,
+                tre_domain_data_bdp_web_ip=self.tre_domain_data_bdp_web_ip,
+            ):
+                logger.error(
+                    f"Apollo配置注册更新异常! "
+                    f"env_name={self.env_name} "
+                    f"apollo_web_ip={self.apollo_web_ip}"
+                )
+        # 其他独立配置信息入库
+        if self.other_configs:
+            if not self.env_info_crawler.standalone_environment_info_save(
+                env_name=self.env_name, other_configs=self.other_configs
+            ):
+                logger.error(
+                    f"独立配置注册更新异常!"
+                    f"env_name={self.env_name}"
+                    f"other_configs={self.other_configs.model_dump_json()}"
+                )
+
+    def remove(self):
         """移除环境配置"""
+        change_env_status(
+            env_name=self.env_name,
+            status=EnvironmentStatus.remove,
+            db_manager=self.db_manager,
+        )
 
-    def enable(self, env_name: str):
-        """启用环境配置"""
+    def enable(self):
+        """启用环境配置并添加任务"""
+        change_env_status(
+            env_name=self.env_name,
+            status=EnvironmentStatus.enable,
+            db_manager=self.db_manager,
+        )
 
-    def disable(self, env_name: str):
+    def disable(self):
         """禁用环境配置"""
-
-    # env_name 的 setter
-    @property
-    def env_name(self) -> str:
-        return self._env_name
-
-    @env_name.setter
-    def env_name(self, value: str) -> None:
-        if not isinstance(value, str):
-            raise TypeError("env_name must be a string")
-        if len(value) < 3:
-            raise ValueError("env_name too short (min 4 chars)")
-        self._env_name = value
-
-    # apollo_web_ip 的 setter
-    @property
-    def apollo_web_ip(self) -> str:
-        return self._apollo_web_ip
-
-    @apollo_web_ip.setter
-    def apollo_web_ip(self, value: str) -> None:
-        if not isinstance(value, str):
-            raise TypeError("apollo_web_ip must be a string")
-        # 简单 IP 校验（可扩展为正则）
-        parts = value.strip().split(".")
-        if len(parts) != 4 or not all(
-            p.isdigit() and 0 <= int(p) <= 255 for p in parts
-        ):
-            raise ValueError("Invalid IP format")
-        self._apollo_web_ip = value.strip()
-
-    # tre_domain_data_bdp_web_ip 的 setter
-    @property
-    def tre_domain_data_bdp_web_ip(self) -> str:
-        return self._tre_domain_data_bdp_web_ip
-
-    @tre_domain_data_bdp_web_ip.setter
-    def tre_domain_data_bdp_web_ip(self, value: str) -> None:
-        if not isinstance(value, str):
-            raise TypeError("tre_domain_data_bdp_web_ip must be a string")
-        # 简单 IP 校验（可扩展为正则）
-        parts = value.strip().split(".")
-        if len(parts) != 4 or not all(
-            p.isdigit() and 0 <= int(p) <= 255 for p in parts
-        ):
-            raise ValueError("Invalid IP format")
-        self._tre_domain_data_bdp_web_ip = value.strip()
-
-    # other_configs 的 setter
-    @property
-    def other_configs(self) -> Optional[EnvironmentOtherConfig]:
-        return self._other_configs
-
-    @other_configs.setter
-    def other_configs(self, value: Optional[EnvironmentOtherConfig]) -> None:
-        if not isinstance(value, (EnvironmentOtherConfig, type(None))):
-            raise TypeError("other_configs must be EnvironmentOtherConfig or None")
-        self._other_configs = value
+        change_env_status(
+            env_name=self.env_name,
+            status=EnvironmentStatus.disable,
+            db_manager=self.db_manager,
+        )
 
     def __repr__(self) -> str:
         return (
-            f"EnvironmentRegister("
+            "EnvironmentRegister("
             f"env_name='{self.env_name}', "
             f"apollo_web_ip='{self.apollo_web_ip}', "
             f"tre_domain_data_bdp_web_ip={self.tre_domain_data_bdp_web_ip}"
-            f"other_configs={self.other_configs})"
+            f"other_configs={
+                self.other_configs.model_dump_json() if self.other_configs else None
+            }, "
+            ")"
         )
 
     def model_dump(self) -> dict:
-        """兼容 Pydantic 的 model_dump 接口（可选）"""
+        """兼容 Pydantic 的 model_dump 接口"""
         return {
             "env_name": self.env_name,
             "apollo_web_ip": self.apollo_web_ip,
@@ -132,3 +204,35 @@ class EnvironmentManager:
             and self.tre_domain_data_bdp_web_ip == other.tre_domain_data_bdp_web_ip
             and self.other_configs == other.other_configs
         )
+
+
+if __name__ == "__main__":
+    from loguru import logger
+
+    from common.initialization import setup_logging
+    from config import ENVRIONMENT_CONFIG, PROJECT_PATH
+    from utils.log import LogManager
+
+    log_config = LogManager(
+        base_path=str(PROJECT_PATH.absolute()),
+        log_path="logs",
+        log_name="debug.log",
+        file_log_level="TRACE",
+        console_log_level="DEBUG",
+    )
+    setup_logging(log_config.get_config().get("handlers"))
+
+    # env_manager = EnvironmentManager(db_manager=DatabaseManager())
+    # env_manager.read_config()
+    # env_manager.env_name = "测试部仿真测试环境"
+    # env_manager.apollo_web_ip = APOLLO_WEB_IP
+    # env_manager.tre_domain_data_bdp_web_ip = TRE_DOMAIN_DATA_BDP_IP
+    # other_configs = EnvironmentOtherConfig(
+    #     postgresql=RelationalDatabaseConfig(), mysql=None, tsml=None
+    # )
+    # env_manager.other_configs = other_configs
+    # env_manager.register_and_update()
+
+    load_all_env_config_from_yaml(
+        db_manager=DatabaseManager(), config_yaml=ENVRIONMENT_CONFIG
+    )

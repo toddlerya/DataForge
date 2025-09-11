@@ -5,30 +5,67 @@
 # @FileName : environment.py
 # @Project  : HETUTaskChecker
 
-from sqlalchemy import desc
+from sqlalchemy import desc, update
 
 from database_models.models import EnvironmentInfo
+from database_models.sys_enum import EnvironmentStatus
 from utils.db import Database
+from utils.db_manager import DatabaseManager, GenericUpsert
 from utils.log import logger
 
 
-def save_environment_info(environment_data: dict, db: Database) -> tuple[bool, str]:
+def save_environment_info(
+    environment_data: dict, db_manager: DatabaseManager
+) -> tuple[bool, str]:
     """
     存储环境配置信息
 
     Args:
         environment_data (dict): 配置中心的配置信息
-        db (Database): 数据库连接对象
+        db_manager (DatabaseManager): 数据库连接对象
     """
     try:
-        db.insert_or_update(EnvironmentInfo, **environment_data)
+        result = GenericUpsert(db=db_manager.db).smart_insert_or_update_single(
+            session=db_manager.get_session(),
+            model_class=EnvironmentInfo,
+            data=environment_data,
+        )
+        logger.trace(f"save_environment_info: result={result.to_dict()}")
     except Exception as err:
-        db.session.rollback()
+        db_manager.get_session().rollback()
         message = f"数据库写操作错误: {err}"
         return False, message
     else:
-        db.session.commit()
         return True, "ok"
+
+
+def change_env_status(
+    env_name: str, status: EnvironmentStatus, db_manager: DatabaseManager
+) -> tuple[bool, str]:
+    """更新环境配置的状态
+
+    Args:
+        env_name (str): _description_
+        status (EnvironmentStatus): _description_
+        db_manager (DatabaseManager): _description_
+    """
+    try:
+        stmt = (
+            update(EnvironmentInfo)
+            .where(EnvironmentInfo.env_name == env_name)
+            .values(status=status)
+        )
+        result = db_manager.get_session().execute(stmt)
+        db_manager.get_session().commit()
+        logger.trace(
+            f"更新env_name={env_name}的status为{status} => "
+            f"更新了{result.rowcount}条数据"
+        )
+    except Exception as err:
+        db_manager.get_session().rollback()
+        message = f"更新env_name={env_name}的status为{status}异常! ERROR: {err}"
+        return (False, message)
+    return True, "ok"
 
 
 def query_environment_info_by_apollo_ip(
@@ -51,7 +88,10 @@ def query_environment_info_by_apollo_ip(
             .first()
         )
     except Exception as err:
-        message = f"根据阿波罗IP获取对应的环境配置信息失败! apollo_web_ip={apollo_web_ip} ERROR: {err}"
+        message = (
+            "根据阿波罗IP获取对应的环境配置信息失败! "
+            f"apollo_web_ip={apollo_web_ip} ERROR: {err}"
+        )
         return False, message, EnvironmentInfo()
     else:
         return True, "ok", data

@@ -400,17 +400,20 @@ class GenericUpsert:
         }
 
         if hasattr(model_class, self.updated_at):
-            update_dict[self.updated_at] = datetime.utcnow()  # type: ignore
+            update_dict[self.updated_at] = datetime.datetime.now()  # type: ignore
 
         stmt = stmt.on_conflict_do_update(
             index_elements=conflict_columns, set_=update_dict
         ).returning(model_class.__table__)
+        try:
+            result = session.execute(stmt)
+            row = result.fetchone()
+            session.commit()
+        except Exception as err:
+            logger.error(err)
+            session.rollback()
 
-        result = session.execute(stmt)
-        row = result.fetchone()
-        session.commit()
-
-        return session.get(model_class, row[0])  # type: ignore
+        return session.get(model_class, row._asdict().get("id"))  # type: ignore
 
     def _sqlite_smart_upsert(
         self,
@@ -426,7 +429,7 @@ class GenericUpsert:
 
         update_dict = {key: stmt.excluded[key] for key in data.keys()}
         if hasattr(model_class, self.updated_at):
-            update_dict[self.updated_at] = datetime.utcnow()  # type: ignore
+            update_dict[self.updated_at] = datetime.datetime.now()  # type: ignore
 
         stmt = stmt.on_conflict_do_update(
             index_elements=conflict_columns, set_=update_dict
@@ -455,7 +458,7 @@ class GenericUpsert:
                     setattr(existing, key, value)
 
             if hasattr(existing, "updated_at"):
-                existing.updated_at = datetime.utcnow()  # type: ignore
+                existing.updated_at = datetime.datetime.now()  # type: ignore
 
             session.commit()
             return existing

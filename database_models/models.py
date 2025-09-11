@@ -74,16 +74,12 @@ class ToDictMixin:
 class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "environment_info"
     __table_args__ = (
-        UniqueConstraint("uuid", name="uk_environment"),
+        UniqueConstraint("env_name", name="uuid_uk"),
         {"comment": "版本环境信息"},
     )
-    uuid = Column(
-        String(length=72),
-        nullable=False,
-        comment=("环境唯一ID, md5(除env_name的所有字段)"),
-    )
+
     env_name = Column(
-        String(length=64), nullable=False, default="未知", comment="环境信息"
+        String(length=128), nullable=False, default="未知", comment="环境名称"
     )
     apollo_web_ip = Column(String(length=64), nullable=True, comment="阿波罗界面IP")
     local_city_code = Column(
@@ -123,6 +119,13 @@ class EnvironmentInfo(CommonColumnMixin, ToDictMixin, Base):
         comment="数据域管理系统的IP: TRE_DOMAIN_DATA_ip",
     )
     other_configs = Column(JSONB, nullable=True, comment="其他配置信息")
+    env_hash = Column(
+        String(length=72),
+        nullable=True,
+        comment=(
+            "环境配置HASH, md5(除env_name, status的所有字段), 用于比较环境配置是否相同"
+        ),
+    )
     status = Column(
         Enum(EnvironmentStatus),
         nullable=False,
@@ -141,7 +144,7 @@ class TableMetaDataInfo(CommonColumnMixin, ToDictMixin, Base):
     uuid = Column(
         String(length=72),
         nullable=False,
-        comment="表唯一ID, md5(table_en_name+source+env_uuid)",
+        comment="表唯一ID, md5(table_en_name+source+env_name)",
     )
     table_en_name = Column(
         String(length=128), nullable=False, default="", comment="表英文名称"
@@ -160,10 +163,10 @@ class TableMetaDataInfo(CommonColumnMixin, ToDictMixin, Base):
         String(length=64), nullable=True, default="", comment="来源地市名称"
     )
     source = Column(String(length=64), default="", comment="数据来源")
-    env_uuid = Column(
-        String(length=72),
+    env_name = Column(
+        String(length=128),
         nullable=True,
-        comment="环境UUID, 用于区分表元数据和字典等的版本",
+        comment="环境名称",
     )
 
 
@@ -179,13 +182,13 @@ class TableExampleDataInfo(CommonColumnMixin, ToDictMixin, Base):
     table_uuid = Column(
         String(length=72),
         nullable=False,
-        comment="表唯一ID，md5(table_en_name+source+area_code+area_name)",
+        comment="表唯一ID",
     )
     example_data = Column(JSON, nullable=True, comment="表样例数据")
-    env_uuid = Column(
-        String(length=72),
+    env_name = Column(
+        String(length=128),
         nullable=True,
-        comment="环境UUID, 用于区分表元数据和字典等的版本",
+        comment="环境名称",
     )
 
 
@@ -282,19 +285,19 @@ class RecommendPanGuFieldInfo(CommonColumnMixin, ToDictMixin, Base):
         Float, default=0.0, comment="是否核心字段出现次数占比"
     )
     example_data = Column(Text, nullable=True, comment="样例数据")
-    env_uuid = Column(
-        String(length=72),
+    env_name = Column(
+        String(length=128),
         nullable=True,
-        comment="环境UUID, 用于区分表元数据和字典等的版本",
+        comment="环境名称",
     )
 
 
 class PanGuDictInfo(CommonColumnMixin, ToDictMixin, Base):
     __tablename__ = "pangu_dict_info"
     __table_args__ = (
-        UniqueConstraint("uuid", name="uuid"),
+        UniqueConstraint("uuid", name="dict_uk"),
         UniqueConstraint(
-            "uuid", "dictkey_with_nlevel", name="dictkey_with_nlevel_uuid_unique"
+            "uuid", "dictkey_with_nlevel", name="dictkey_with_nlevel_uuid_uk"
         ),
         {"comment": "盘古字典"},
     )
@@ -309,10 +312,10 @@ class PanGuDictInfo(CommonColumnMixin, ToDictMixin, Base):
     dict_level = Column(Integer, nullable=False, comment="字典层级")
     dict_id = Column(String(length=128), nullable=False, comment="字典项编码")
     dict_name = Column(Text, nullable=False, comment="字典项名称")
-    env_uuid = Column(
-        String(length=72),
+    env_name = Column(
+        String(length=128),
         nullable=True,
-        comment="环境UUID, 用于区分表元数据和字典等的版本",
+        comment="环境名称",
     )
 
 
@@ -340,10 +343,10 @@ class FieldDGRuleCache(CommonColumnMixin, ToDictMixin, Base):
     ttl = Column(
         Integer, nullable=False, default=86400 * 7, comment="缓存规则过期时间，默认7天"
     )
-    env_uuid = Column(
-        String(length=72),
+    env_name = Column(
+        String(length=128),
         nullable=True,
-        comment="环境UUID, 用于区分表元数据和字典等的版本",
+        comment="环境名称",
     )
 
 
@@ -380,10 +383,10 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
     dg_task_rule_data_preview = Column(JSON, default=None, comment="DG规则的预览数据")
     dg_task_duration = Column(String(length=56), default="", comment="DG任务耗时")
     user_modified_rules = Column(JSON, default=None, comment="用户修改的字段规则")
-    env_uuid = Column(
-        String(length=72),
+    env_name = Column(
+        String(length=128),
         nullable=True,
-        comment="环境UUID, 用于区分表元数据和字典等的版本",
+        comment="环境名称",
     )
 
 

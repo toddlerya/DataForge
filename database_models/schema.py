@@ -7,7 +7,9 @@
 
 from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from database_models.sys_enum import EnvironmentStatus
 
 
 class RelationalDatabaseConfig(BaseModel):
@@ -35,6 +37,25 @@ class EnvironmentOtherConfig(BaseModel):
     #     None, description="SQLServer连接配置"
     # )
     tsml: Optional[dict] = Field(None, description="tsml文件信息")
+
+
+class EnvironmentConfigYAMLSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    status: EnvironmentStatus = Field(..., description="环境状态")
+    env_name: str = Field(..., description="环境名称")
+    apollo_web_ip: Optional[str] = Field(default="", description="阿波罗界面IP")
+    tre_domain_data_bdp_web_ip: Optional[str] = Field(
+        default="", description="数据域单独的bdp web ip"
+    )
+    other_configs: Optional[EnvironmentOtherConfig] = Field(
+        default=None, description="其他配置信息"
+    )
+
+    @model_validator(mode="after")
+    def validate_apollo_or_other_config(self) -> "EnvironmentConfigYAMLSchema":
+        if not self.apollo_web_ip and not self.other_configs:
+            raise ValueError("apollo_web_ip 和 other_configs 至少有一个不为空")
+        return self
 
 
 class TaskDataSchema(BaseModel):

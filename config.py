@@ -63,6 +63,7 @@ GEN_TABLE_MODELS_DATA_PATH = GEN_TABLE_MODELS_BASE_PATH.joinpath("data").absolut
 CONF_DATA_PATH = PROJECT_PATH.joinpath("conf").absolute()
 DATABASE_PATH = PROJECT_PATH.joinpath("database").absolute()
 
+ENVRIONMENT_CONFIG = CONF_DATA_PATH.joinpath("envrionment.yaml").absolute()
 PRESET_FIXED_DG_RULE_PATH = PROJECT_PATH.joinpath(
     "preset_fixed_field_dg_rule"
 ).absolute()

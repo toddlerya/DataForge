@@ -19,21 +19,21 @@ from config import (
     TRE_DOMAIN_DATA_IP,
 )
 from cruds.environment import save_environment_info
-from utils.db import Database
+from database_models.schema import EnvironmentOtherConfig
+from utils.db_manager import DatabaseManager
 from utils.file import get_md5
 from utils.log import logger
 
 
 class EnvInfoCrawler:
-    def __init__(self, inner_db_handler: Database) -> None:
+    def __init__(self, inner_db_manager: DatabaseManager) -> None:
         """初始化存储入库对象
 
         Args:
-            inner_db_handler (Database): _description_
+            inner_db_manager (inner_db_manager): _description_
         """
-        self.db_handler = inner_db_handler
-        self.env_uuid = ""
-        self.environment_data: dict[str, str | int] = {}
+        self.inner_db_manager = inner_db_manager
+        self.environment_data: dict[str, str | int | dict] = {}
 
     def fetch_and_save_environment_info(
         self, env_name: str, apollo_ip: str, tre_domain_data_bdp_web_ip: str
@@ -47,6 +47,9 @@ class EnvInfoCrawler:
         Returns:
             bool: _description_
         """
+        # 清空属性信息
+        self.environment_data = {}
+        # 设置基础信息
         self.environment_data = {
             "env_name": env_name,
             "apollo_web_ip": apollo_ip,
@@ -85,62 +88,69 @@ class EnvInfoCrawler:
                 {"key": "Metadata_Dbn_dbName", "value": METADATA_DB_NAME},
                 {"key": "TRE_DOMAIN_DATA_ip", "value": TRE_DOMAIN_DATA_IP},
             ]
-        env_uuid_input: str = f"{apollo_ip}{tre_domain_data_bdp_web_ip}"
+        env_hash_input: str = f"{apollo_ip}{tre_domain_data_bdp_web_ip}"
         for apollo_key, value in apollo_env_config_keys_pair.items():
             for item_config in config_list_data:
                 if apollo_key == item_config.get("key", ""):
                     self.environment_data[value] = item_config.get("value", "")
-                    # 拼接env_uuid计算字段
-                    env_uuid_input += str(item_config.get("value", ""))
-        # 计算env_uuid
-        md5_status, env_uuid = get_md5(env_uuid_input)
+                    # 拼接env_hash计算字段
+                    env_hash_input += str(item_config.get("value", ""))
+        # 计算env_hash
+        md5_status, env_hash = get_md5(env_hash_input)
         if md5_status is False:
             logger.error("计算env_uuid错误!")
             return False
-        self.environment_data.update({"uuid": env_uuid, "remark": remark})
+        self.environment_data.update({"env_hash": env_hash, "remark": remark})
         logger.debug(
             "记录环境配置信息为: "
             f"{json.dumps(self.environment_data, ensure_ascii=False)}"
         )
         save_status, save_message = save_environment_info(
-            environment_data=self.environment_data, db=self.db_handler
+            environment_data=self.environment_data, db_manager=self.inner_db_manager
         )
         if save_status is False:
             logger.error(save_message)
             return False
-        self.env_uuid = env_uuid
         return True
 
     def standalone_environment_info_save(
-        self, env_name: str, other_configs: list[dict[str, str | int]]
+        self, env_name: str, other_configs: EnvironmentOtherConfig
     ) -> bool:
         """非WA体系阿波罗管理的其他环境配置场景
 
         Args:
             env_name (str): _description_
-            other_configs (list[dict[str, str | int]]): _description_
+            other_configs (EnvironmentOtherConfig): _description_
         """
+        # 清空属性信息
+        self.environment_data = {}
         logger.info(
             f"更新环境配置信息: {env_name} "
             f"非Apollo配置场景. other_configs: "
-            f"{json.dumps(other_configs, ensure_ascii=False)}"
+            f"{other_configs.model_dump_json()}"
         )
+
+        # 设置基础信息
+        self.environment_data = {
+            "env_name": env_name,
+        }
         remark = "非Apollo配置场景"
         # 计算env_uuid
-        md5_status, env_uuid = get_md5(json.dumps(other_configs))
+        md5_status, env_hash = get_md5(other_configs.model_dump_json())
         if md5_status is False:
             logger.error("计算env_uuid错误!")
             return False
-        self.environment_data.update({"uuid": env_uuid, "remark": remark})
-        logger.debug(
-            "记录环境配置信息为: "
-            f"{json.dumps(self.environment_data, ensure_ascii=False)}"
+        self.environment_data.update(
+            {
+                "env_hash": env_hash,
+                "other_configs": other_configs.model_dump(),
+                "remark": remark,
+            }
         )
         save_status, save_message = save_environment_info(
-            environment_data=self.environment_data, db=self.db_handler
+            environment_data=self.environment_data, db_manager=self.inner_db_manager
         )
         if save_status is False:
             logger.error(save_message)
             return False
-        self.env_uuid = env_uuid
         return True
