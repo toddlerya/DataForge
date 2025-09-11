@@ -190,13 +190,15 @@ class PanGuCrawler:
             resp_json = resp.json()
             if resp_json.get("status") != 200:
                 logger.error(
-                    f"盘古数据资源目录获取异常: resp_json.status={resp_json.get('status')}"
+                    "盘古数据资源目录获取异常: "
+                    f"resp_json.status={resp_json.get('status')}"
                 )
             data = resp_json.get("data", {})
             total_records = data.get("totalRecords", -1)
             resources = data.get("resources", [])
             logger.info(
-                f"盘古数据资源目录获取到{total_records}个资源, 实际{len(resources)}个资源"
+                f"盘古数据资源目录获取到{total_records}个资源, "
+                f"实际{len(resources)}个资源"
             )
             self.template_id_slice.extend(
                 [ele.get("templateId", -1) for ele in resources]
@@ -228,7 +230,8 @@ class PanGuCrawler:
             resp_json = resp.json()
             if resp_json.get("status") != 200:
                 logger.error(
-                    f"盘古资源实体清单获取异常: resp_json.status={resp_json.get('status')}"
+                    "盘古资源实体清单获取异常: "
+                    f"resp_json.status={resp_json.get('status')}"
                 )
             data = resp_json.get("data", [])
             logger.trace(
@@ -314,7 +317,7 @@ class PanGuCrawler:
             return None
 
     def crawl_sample(
-        self, table_en_name: str, entity_id: int, type_value: str = 2, limit: int = 10
+        self, table_en_name: str, entity_id: int, type_value: str = "2", limit: int = 10
     ) -> list[dict]:
         """
         抓取样例数据
