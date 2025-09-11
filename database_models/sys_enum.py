@@ -18,5 +18,5 @@ class MetaDataSource(str, Enum):
 class EnvironmentStatus(str, Enum):
     enable = "启用"
     disable = "禁用"
-    remove = "废弃"
+    retired = "废弃"
     new = "新建"

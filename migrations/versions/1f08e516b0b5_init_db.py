@@ -1,8 +1,8 @@
 """init db
 
-Revision ID: f4bf682fa6d9
+Revision ID: 1f08e516b0b5
 Revises: 
-Create Date: 2025-09-11 11:15:09.451940
+Create Date: 2025-09-11 16:36:13.363309
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = 'f4bf682fa6d9'
+revision = '1f08e516b0b5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -33,7 +33,7 @@ def upgrade() -> None:
     sa.Column('tre_domain_data_ip', sa.String(length=128), nullable=True, comment='数据域管理系统的IP: TRE_DOMAIN_DATA_ip'),
     sa.Column('other_configs', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='其他配置信息'),
     sa.Column('env_hash', sa.String(length=72), nullable=True, comment='环境配置HASH, md5(除env_name, status的所有字段), 用于比较环境配置是否相同'),
-    sa.Column('status', sa.Enum('enable', 'disable', 'remove', 'new', name='environmentstatus'), nullable=False, comment='状态位'),
+    sa.Column('status', sa.Enum('enable', 'disable', 'retired', 'new', name='environmentstatus'), nullable=False, comment='状态位'),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False, comment='主键'),
     sa.Column('remark', sa.Text(), nullable=True, comment='备注'),
     sa.Column('create_time', sa.DateTime(), nullable=False, comment='创建时间'),
