@@ -422,7 +422,9 @@ class PanGuCrawler:
                 example_slice=example_data,
             )
             each_table_metadata_record = each_table_metadata_model.model_dump()
-            each_table_metadata_record.update({"remark": entity_id})
+            each_table_metadata_record.update(
+                {"remark": entity_id, "env_name": env_name}
+            )
             save_status, save_message = table_metadata_save(
                 record=each_table_metadata_record, db_manager=self.inner_db_manager
             )
