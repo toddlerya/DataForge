@@ -97,6 +97,11 @@ class PanGuFieldCrawler:
                     f"盘古字段推荐异常: field_en_name={field_en_name} ERROR: {message}"
                 )
                 return False
+            if data is None:
+                logger.warning(
+                    f"盘古字段推荐异常: field_en_name={field_en_name} 结果为空!"
+                )
+                return False
             save_filed_status, save_field_message = save_recommend_pangu_field_info(
                 db_manager=self.inner_db_manager,
                 recommend_pangu_field_data=data.model_dump(),
