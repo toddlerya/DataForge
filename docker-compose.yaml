@@ -21,7 +21,45 @@ services:
       # 请务必修改密码
       POSTGRES_USER: data_forge
       POSTGRES_PASSWORD: data_forge_2590
-
+  crond_task:
+    image: llm_server_py313_env:1.0.0
+    container_name: DataForgeCrondTask
+    hostname: DataForgeCrondTask
+    restart: unless-stopped
+    privileged: true
+    working_dir: /app
+    command: bash -c "python -m tasks.crond_task"
+    networks:
+      harbor_net:
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./data:/app/data
+      - ./conf:/app/conf
+      - ./logs:/app/logs
+      - ./database_models:/app/database_models
+      - ./apollo:/app/apollo
+      - ./agent:/app/agent
+      - ./cruds:/app/cruds
+      - ./common:/app/common
+      - ./server:/app/server
+      - ./utils:/app/utils
+      - ./config.py:/app/config.py
+      - ./tasks:/app/tasks
+      - ./.env:/app/.env
+    environment:
+      - TZ=Asia/Shanghai
+      # 日志级别
+      - LOG_LEVEL=INFO
+      - SQLALCHEMY_ECHO=0
+      # 数据默认保留时间
+      - DATA_EXPIRED_DAY=30
+      # 部署环境的服务器IP
+      - SERVER_HOST=10.1.2.132
+      - SERVER_PORT=25702
+      - APOLLO_WEB_IP=172.21.5.130
+      - APOLLO_WEB_PORT=8070
+      - INNER_DB_HOST=DataForgeDB
   server:
     image: llm_server_py313_env:1.0.0
     container_name: DataForgeServer

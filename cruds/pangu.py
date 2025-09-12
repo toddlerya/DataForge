@@ -33,7 +33,7 @@ def get_all_pangu_field_stat(
 
 def pangu_recommend_field_info(
     db_manager: DatabaseManager, field_en_name: str
-) -> tuple[bool, str, RecommendPanGuFieldSchema | None]:
+) -> tuple[bool, str, dict]:
     """
     查询盘古表元数据信息获取字段的推荐属性
     :param db_manager:
@@ -227,9 +227,9 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
     except Exception as err:
         message = f"数据库读操作异常: {err}"
         db_manager.get_session().rollback()
-        return False, message, None
+        return False, message, field_info
     else:
-        return True, "ok", RecommendPanGuFieldSchema(**field_info)
+        return True, "ok", field_info
 
 
 def pangu_dict_key_values(

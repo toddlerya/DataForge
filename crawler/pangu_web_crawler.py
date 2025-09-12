@@ -25,13 +25,14 @@ from utils.file import get_md5
 urllib3.disable_warnings(InsecureRequestWarning)
 
 
-class PanGuCrawler:
+class PanGuWebCrawler:
     def __init__(
         self,
         inner_db_manager: DatabaseManager,
         resource_count: int = 2000,
     ):
         self.inner_db_manager = inner_db_manager
+        self.env_name = ""
         self.bdp_ip: str = ""
         self.local_city_code: str = ""
         self.pangu_web_ip_port = ""
@@ -52,39 +53,56 @@ class PanGuCrawler:
         Args:
             env_name (str): _description_
         """
+        logger.info(f"同步环境配置信息env_name={env_name}")
+        self.env_name = env_name
         status, message, result = query_environment_info_by_env_name(
             env_name=env_name, db_manager=self.inner_db_manager
         )
         if status is False:
-            logger.error(f"同步环境配置信息异常: {message}")
-            raise Exception(message)
-        self.pangu_web_ip_port = f"{result.pangu_web_ip}:11018"
-        self.bdp_ip = str(result.bdp_web_ip)
-        self.local_city_code = str(result.local_city_code)
-        logger.debug(
-            f"pangu_web_ip_port: {self.pangu_web_ip_port} "
-            f"bdp_ip: {self.bdp_ip} "
-            f"local_city_code: {self.local_city_code} "
-        )
+            logger.error(f"同步环境配置信息异常env_name={env_name} ERROR: {message}")
+            return False
+        if str(result.pangu_web_ip) and str(result.bdp_web_ip):
+            self.pangu_web_ip_port = f"{result.pangu_web_ip}:11018"
+            self.bdp_ip = str(result.bdp_web_ip)
+            self.local_city_code = str(result.local_city_code)
+            logger.debug(
+                f"pangu_web_ip_port: {self.pangu_web_ip_port} "
+                f"bdp_ip: {self.bdp_ip} "
+                f"local_city_code: {self.local_city_code} "
+            )
+            return True
+        else:
+            logger.warning(
+                f"当前环境配置(env_name={env_name})的"
+                f"pangu_web_ip={result.pangu_web_ip} "
+                f"bdp_web_ip={result.bdp_web_ip} 不满足运行条件"
+            )
+            return False
 
     def auth(self):
         """登录BDP认证"""
+        logger.info(f"BDP登录认证env_name={self.env_name}")
+        auth_flag = False
         app_id = "pangu"
         message, data = create_bdp_token(bdp_ip=self.bdp_ip, app_id=app_id)
         if message != "ok":
             logger.error(f"PanGuWeb BDP认证异常: {message}")
-            raise Exception(message)
+            return auth_flag
         logger.debug(f"bdp token data: {json.dumps(data)}")
-        self.pangu_cookie = (
-            "contextPath=/catalog; JSESSIONID=212D9047AF5D54880D245EE23D92C371; "
-            f"contextPath=/; citycode={self.local_city_code}; appId={app_id}; "
-            f"topoptid={app_id}; JSESSIONID=8CE476D6DFFC4A1DEEEC90D89199E76D; "
-            f"userToken={data.get('userToken')}; "
-            f"appToken={data.get('appToken')}; "
-            "loginIp=1.1.1.1; loginMac=A4-BB-6D-43-BE-0D"
-        )
+        if user_token := data.get("userToken"):
+            if app_token := data.get("appToken"):
+                self.pangu_cookie = (
+                    "contextPath=/catalog; JSESSIONID=212D9047AF5D54880D245EE23D92C371; "
+                    f"contextPath=/; citycode={self.local_city_code}; appId={app_id}; "
+                    f"topoptid={app_id}; JSESSIONID=8CE476D6DFFC4A1DEEEC90D89199E76D; "
+                    f"userToken={user_token}; "
+                    f"appToken={app_token}; "
+                    "loginIp=1.1.1.1; loginMac=A4-BB-6D-43-BE-0D"
+                )
+                auth_flag = True
         logger.debug(f"pangu_cookie: {self.pangu_cookie}")
         self.bdp_headers = {"Cookie": self.pangu_cookie}
+        return auth_flag
 
     def set_pangu_url_config(self):
         # 盘古配置
@@ -363,9 +381,11 @@ class PanGuCrawler:
         finally:
             return data
 
-    def run(self, env_name: str, need_overwrite: bool = False):
-        self.sync_env_data(env_name=env_name)
-        self.auth()
+    def run(self, env_name: str, need_overwrite: bool = False) -> bool:
+        if self.sync_env_data(env_name=env_name) is False:
+            return False
+        if self.auth() is False:
+            return False
         self.set_pangu_url_config()
         self.crawl_inner_resource()
         self.crawl_resource()
@@ -452,6 +472,7 @@ class PanGuCrawler:
                         f"样例数据入库异常: {example_data.model_dump_json()} "
                         f"ERROR: {save_ex_message}"
                     )
+        return True
 
 
 if __name__ == "__main__":
@@ -471,6 +492,6 @@ if __name__ == "__main__":
     setup_logging(log_config.get_config().get("handlers"))
 
     db_manager = DatabaseManager()
-    pgc = PanGuCrawler(inner_db_manager=db_manager)
+    pgc = PanGuWebCrawler(inner_db_manager=db_manager)
     pgc.run(env_name="测试部仿真测试环境")
     db_manager.close()

@@ -51,6 +51,11 @@ alembic downgrade "xxx"
 # 常用 SQL
 
 ```sql
+-- 清空表以及重置自增序列
+TRUNCATE TABLE environment_info RESTART IDENTITY;
+```
+
+```sql
 -- 查询盘古字段在哪些盘古表出现过
 SELECT DISTINCT t.*
 FROM table_meta_data_info t,

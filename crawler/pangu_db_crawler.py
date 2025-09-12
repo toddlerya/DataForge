@@ -16,11 +16,12 @@ from cruds.pangu import (
     save_pangu_dict_info,
     save_recommend_pangu_field_info,
 )
+from database_models.schema import RecommendPanGuFieldSchema
 from utils.db_manager import DatabaseManager
 from utils.log import logger
 
 
-class PanGuFieldCrawler:
+class PanGuDatabaseCrawler:
     def __init__(self, inner_db_manager: DatabaseManager):
         self.env_name: str = ""
         self.inner_db_manager = inner_db_manager
@@ -89,19 +90,27 @@ class PanGuFieldCrawler:
                 )
                 continue
             logger.info(f"[{index}]正在进行盘古字段推荐: field_en_name={field_en_name}")
-            status, message, data = pangu_recommend_field_info(
-                db_manager=self.metadata_db_manager, field_en_name=str(field_en_name)
+            status, message, field_info_data = pangu_recommend_field_info(
+                db_manager=self.metadata_db_manager,
+                field_en_name=str(field_en_name),
             )
             if status is False:
                 logger.error(
                     f"盘古字段推荐异常: field_en_name={field_en_name} ERROR: {message}"
                 )
                 return False
-            if data is None:
+            if field_info_data is None:
                 logger.warning(
                     f"盘古字段推荐异常: field_en_name={field_en_name} 结果为空!"
                 )
                 return False
+            try:
+                data = RecommendPanGuFieldSchema(**field_info_data)
+            except Exception as err:
+                logger.error(
+                    f"盘古字段推荐结果校验! field_en_name={field_en_name} ERROR: {err}"
+                )
+                continue
             save_filed_status, save_field_message = save_recommend_pangu_field_info(
                 db_manager=self.inner_db_manager,
                 recommend_pangu_field_data=data.model_dump(),
@@ -185,7 +194,22 @@ class PanGuFieldCrawler:
 
 
 if __name__ == "__main__":
+    from loguru import logger
+
+    from common.initialization import setup_logging
+    from config import PROJECT_PATH
+    from utils.log import LogManager
+
+    log_config = LogManager(
+        base_path=str(PROJECT_PATH.absolute()),
+        log_path="logs",
+        log_name="debug.log",
+        file_log_level="TRACE",
+        console_log_level="INFO",
+    )
+    setup_logging(log_config.get_config().get("handlers"))
+
     inner_db_manager = DatabaseManager()
-    pfc = PanGuFieldCrawler(inner_db_manager=inner_db_manager)
-    pfc.run(env_name="测试部仿真测试环境")
+    pdc = PanGuDatabaseCrawler(inner_db_manager=inner_db_manager)
+    pdc.run(env_name="测试部仿真测试环境")
     inner_db_manager.close()

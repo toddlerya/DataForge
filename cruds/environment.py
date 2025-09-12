@@ -72,8 +72,8 @@ def query_environment_info_by_env_name(
 ) -> tuple[bool, str, EnvironmentInfo]:
     """
     根据环境名称获取对应的环境配置信息
-    :param apollo_web_ip:
-    :param db:
+    :param env_name:
+    :param db_manager:
     :return:
     """
     try:
@@ -91,6 +91,32 @@ def query_environment_info_by_env_name(
             f"根据环境名称获取对应的环境配置信息失败! env_name={env_name} ERROR: {err}"
         )
         return False, message, EnvironmentInfo()
+    else:
+        return True, "ok", data
+
+
+def query_environment_info_by_status(
+    status: EnvironmentStatus, db_manager: DatabaseManager
+) -> tuple[bool, str, list[EnvironmentInfo]]:
+    """
+    根据状态的环境配置信息
+    :param status:
+    :param db_manager:
+    :return:
+    """
+    try:
+        logger.trace(f"query_environment_info_by_status(status={status})")
+        data = (
+            db_manager.get_session()
+            .query(EnvironmentInfo)
+            .filter(EnvironmentInfo.status == status)
+            .all()
+        )
+        db_manager.get_session().commit()
+    except Exception as err:
+        db_manager.get_session().rollback()
+        message = f"根据状态的环境配置信息失败! status={status} ERROR: {err}"
+        return False, message, [EnvironmentInfo()]
     else:
         return True, "ok", data
 
