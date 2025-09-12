@@ -5,9 +5,9 @@
 # @Desc     : 环境配置管理器
 
 import json
-import pathlib
 from typing import Optional
 
+from config import ENVRIONMENT_CONFIG, PROJECT_PATH
 from crawler.env_info_crawler import EnvInfoCrawler
 from cruds.environment import change_env_status
 from database_models.schema import EnvironmentConfigYAMLSchema, EnvironmentOtherConfig
@@ -17,19 +17,15 @@ from utils.file import load_yaml_from_file
 from utils.log import logger
 
 
-def load_all_env_config_from_yaml(
-    db_manager: DatabaseManager, config_yaml: pathlib.Path
-):
+def load_all_env_config_from_yaml_and_update_db():
     """读取environment.yaml配置并更新数据库配置和定时任务
-
-    Args:
-        db_manager (DatabaseManager): _description_
-        config_yaml (pathlib.Path): _description_
 
     Returns:
         _type_: _description_
     """
-    logger.info("读取环境YAML配置")
+    logger.info(f"读取环境YAML配置: {ENVRIONMENT_CONFIG}")
+    db_manager = DatabaseManager()
+    config_yaml = ENVRIONMENT_CONFIG
     config_data_slice: list[EnvironmentConfigYAMLSchema] = []
     env_manager = EnvironmentManager(db_manager=db_manager)
     message, data = load_yaml_from_file(yaml_file_path=config_yaml)
@@ -61,6 +57,7 @@ def load_all_env_config_from_yaml(
             env_manager.retired()
         # 重置对象配置值
         env_manager.reset()
+    db_manager.close()
 
 
 def validate_ipv4(value: str, value_name: str):
@@ -213,7 +210,7 @@ if __name__ == "__main__":
     from loguru import logger
 
     from common.initialization import setup_logging
-    from config import ENVRIONMENT_CONFIG, PROJECT_PATH
+    from config import PROJECT_PATH
     from utils.log import LogManager
 
     log_config = LogManager(
@@ -236,6 +233,4 @@ if __name__ == "__main__":
     # env_manager.other_configs = other_configs
     # env_manager.register_and_update()
 
-    load_all_env_config_from_yaml(
-        db_manager=DatabaseManager(), config_yaml=ENVRIONMENT_CONFIG
-    )
+    load_all_env_config_from_yaml_and_update_db()

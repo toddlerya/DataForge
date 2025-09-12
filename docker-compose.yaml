@@ -1,3 +1,30 @@
+x-common-envs: &common-envs
+  - TZ=Asia/Shanghai
+  # 日志级别
+  - LOG_LEVEL=INFO
+  - SQLALCHEMY_ECHO=0
+  # 数据默认保留时间
+  - DATA_EXPIRED_DAY=30
+  # 部署环境的服务器IP
+  - SERVER_HOST=10.1.2.132
+  - SERVER_PORT=25702
+  - APOLLO_WEB_IP=172.21.5.130
+  - APOLLO_WEB_PORT=8070
+  - INNER_DB_HOST=DataForgeDB
+
+x-common-volumes: &common-volumes
+  - /etc/localtime:/etc/localtime:ro
+  - /etc/timezone:/etc/timezone:ro
+  - ./data:/app/data
+  - ./logs:/app/logs
+  - ./database_models:/app/database_models
+  - ./agent:/app/agent
+  - ./cruds:/app/cruds
+  - ./common:/app/common
+  - ./utils:/app/utils
+  - ./config.py:/app/config.py
+  - ./.env:/app/.env
+
 services:
   db:
     image: postgres:14.2
@@ -10,6 +37,7 @@ services:
       - "5432:5432"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - ./postgresql/data:/var/lib/postgresql/data
       - ./postgresql/conf/postgresql.conf:/etc/postgresql/postgresql.conf
     command:
@@ -21,6 +49,7 @@ services:
       # 请务必修改密码
       POSTGRES_USER: data_forge
       POSTGRES_PASSWORD: data_forge_2590
+
   crond_task:
     image: llm_server_py313_env:1.0.0
     container_name: DataForgeCrondTask
@@ -31,35 +60,17 @@ services:
     command: bash -c "python -m tasks.crond_task"
     networks:
       harbor_net:
+    depends_on:
+      - db
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
+      - *common-volumes
       - ./conf:/app/conf
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
       - ./apollo:/app/apollo
-      - ./agent:/app/agent
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./server:/app/server
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
       - ./tasks:/app/tasks
-      - ./.env:/app/.env
+      - ./environment:/app/environment
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      # 部署环境的服务器IP
-      - SERVER_HOST=10.1.2.132
-      - SERVER_PORT=25702
-      - APOLLO_WEB_IP=172.21.5.130
-      - APOLLO_WEB_PORT=8070
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
+
   server:
     image: llm_server_py313_env:1.0.0
     container_name: DataForgeServer
@@ -72,36 +83,15 @@ services:
       harbor_net:
     ports:
       - "25702:25702"
+    depends_on:
+      - db
+      - crond_task
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
-      - ./app_data_gen:/app/app_data_gen
-      - ./app_table_gen:/app/app_table_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
+      - *common-volumes
       - ./server:/app/server
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
       - ./serve.py:/app/serve.py
-      - ./.env:/app/.env
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      # 部署环境的服务器IP
-      - SERVER_HOST=10.1.2.132
-      - SERVER_PORT=25702
-      - APOLLO_WEB_IP=172.21.5.130
-      - APOLLO_WEB_PORT=8070
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
 
   data_gen_chat:
     image: llm_server_py313_env:1.0.0
@@ -115,29 +105,15 @@ services:
       harbor_net:
     ports:
       - "9801:9801"
+    depends_on:
+      - db
+      - croond_task
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
+      - *common-volumes
       - ./app_data_gen:/app/app_data_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./.env:/app/.env
       - ./.chainlit:/app/.chainlit
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
 
   table_gen_chat:
     image: llm_server_py313_env:1.0.0
@@ -151,29 +127,15 @@ services:
       harbor_net:
     ports:
       - "9802:9802"
+    depends_on:
+      - db
+      - croond_task
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
+      - *common-volumes
       - ./app_table_gen:/app/app_table_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./.env:/app/.env
       - ./.chainlit:/app/.chainlit
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
 
   sql_mode_data_gen_chat:
     image: llm_server_py313_env:1.0.0
@@ -187,29 +149,15 @@ services:
       harbor_net:
     ports:
       - "9803:9803"
+    depends_on:
+      - db
+      - croond_task
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
+      - *common-volumes
       - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./.env:/app/.env
       - ./.chainlit:/app/.chainlit
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
 
   fmdb_insert_sql_gen_chat:
     image: llm_server_py313_env:1.0.0
@@ -224,28 +172,11 @@ services:
     ports:
       - "9804:9804"
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
+      - *common-volumes
       - ./app_fmdb_insert_sql_gen:/app/app_fmdb_insert_sql_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./.env:/app/.env
       - ./.chainlit:/app/.chainlit
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
 
 #  caddy:
 #    image: caddy:2-alpine
