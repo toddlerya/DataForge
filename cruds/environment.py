@@ -84,7 +84,9 @@ def query_environment_info_by_env_name(
             .filter(EnvironmentInfo.env_name == env_name)
             .one_or_none()
         )
+        db_manager.get_session().commit()
     except Exception as err:
+        db_manager.get_session().rollback()
         message = (
             f"根据环境名称获取对应的环境配置信息失败! env_name={env_name} ERROR: {err}"
         )

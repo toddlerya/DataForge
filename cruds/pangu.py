@@ -12,30 +12,31 @@ from cruds.dynamic_query import query_sql
 from database_models.models import PanGuDictInfo, RecommendPanGuFieldInfo
 from database_models.schema import RecommendPanGuDictSchema, RecommendPanGuFieldSchema
 from utils.db import Database
+from utils.db_manager import DatabaseManager, GenericUpsert
 
 
 def get_all_pangu_field_stat(
-    db_handler: Database,
+    db_manager: DatabaseManager,
 ) -> tuple[bool, str, list[dict] | None]:
     """
     获取所有盘古字段统计
-    :param db_handler:
+    :param db_manager:
     :return:
     """
     sql = """SELECT ename, count(*) ename_count
                 FROM public.base_field_info
                 GROUP BY ename
                 ORDER BY ename_count DESC;"""
-    status, message, result = query_sql(db=db_handler, sql_text=sql)
+    status, message, result = query_sql(db_manager=db_manager, sql_text=sql)
     return status, message, result
 
 
 def pangu_recommend_field_info(
-    db_handler: Database, field_en_name: str
+    db_manager: DatabaseManager, field_en_name: str
 ) -> tuple[bool, str, RecommendPanGuFieldSchema]:
     """
     查询盘古表元数据信息获取字段的推荐属性
-    :param db_handler:
+    :param db_manager:
     :param field_en_name:
     :return:
     """
@@ -217,20 +218,22 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
                      WHERE (ename = UPPER('{field_en_name}') OR ename = '{field_en_name}') ) AS total_sub;"""  # noqa: E501
     field_info = {}
     try:
-        result = db_handler.session.execute(statement=text(sql))
+        result = db_manager.get_session().execute(statement=text(sql))
         temp_field_info = [dict(zip(result.keys(), row)) for row in result.fetchall()]
         if len(temp_field_info) == 1:
             field_info = temp_field_info[0]
             field_info.update({"ename": field_en_name})
+        db_manager.get_session().commit()
     except Exception as err:
         message = f"数据库读操作异常: {err}"
+        db_manager.get_session().rollback()
         return False, message, RecommendPanGuFieldSchema(ename=field_en_name)
     else:
         return True, "ok", RecommendPanGuFieldSchema(**field_info)
 
 
 def pangu_dict_key_values(
-    db_handler: Database, dictkey_with_nlevel: str
+    db_manager: DatabaseManager, dictkey_with_nlevel: str
 ) -> tuple[bool, str, list[dict]]:
     """
     根据字典关联ID及层级获取字典详情
@@ -247,31 +250,58 @@ def pangu_dict_key_values(
                     name AS dict_name FROM public.base_dd_tab
                 WHERE parentid = split_part('{dictkey_with_nlevel}', ':', 1)
                 AND nlevel = CAST(split_part('{dictkey_with_nlevel}', ':', 2) AS INTEGER);"""  # noqa: E501
-    status, message, result = query_sql(db=db_handler, sql_text=sql)
+    status, message, result = query_sql(db_manager=db_manager, sql_text=sql)
     return status, message, result
 
 
 def save_recommend_pangu_field_info(
-    db_handler: Database, recommend_pangu_field_data: dict
+    db_manager: DatabaseManager,
+    recommend_pangu_field_data: dict,
+    auto_commit: bool = True,
 ) -> tuple[bool, str]:
     try:
-        db_handler.insert_or_update(
-            RecommendPanGuFieldInfo, **recommend_pangu_field_data
+        GenericUpsert(db=db_manager.db).smart_insert_or_update_single(
+            session=db_manager.get_session(),
+            model_class=RecommendPanGuFieldInfo,
+            data=recommend_pangu_field_data,
+            auto_commit=auto_commit,
         )
     except Exception as err:
-        db_handler.session.rollback()
+        message = f"数据库写操作错误: {err}"
+        return False, message
+    return True, "ok"
+
+
+def batch_save_recommend_pangu_field_info(
+    db_manager: DatabaseManager,
+    recommend_pangu_field_data_slice: list[dict],
+    batch_size: int,
+) -> tuple[bool, str]:
+    try:
+        GenericUpsert(db=db_manager.db).batch_smart_insert_or_update(
+            session=db_manager.get_session(),
+            model_class=RecommendPanGuFieldInfo,
+            data_list=recommend_pangu_field_data_slice,
+            batch_size=batch_size,
+        )
+    except Exception as err:
+        db_manager.get_session().rollback()
         message = f"数据库写操作错误: {err}"
         return False, message
     return True, "ok"
 
 
 def save_pangu_dict_info(
-    db_handler: Database, pangu_dict_key_data: dict
+    db_manager: DatabaseManager, pangu_dict_key_data: dict, auto_commit: bool = True
 ) -> tuple[bool, str]:
     try:
-        db_handler.insert_or_update(PanGuDictInfo, **pangu_dict_key_data)
+        GenericUpsert(db=db_manager.db).smart_insert_or_update_single(
+            session=db_manager.get_session(),
+            model_class=PanGuDictInfo,
+            data=pangu_dict_key_data,
+            auto_commit=auto_commit,
+        )
     except Exception as err:
-        db_handler.session.rollback()
         message = f"数据库写操作错误: {err}"
         return False, message
     return True, "ok"

@@ -10,11 +10,11 @@ from typing import Any, Dict, List
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import text
 
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 
 
 def query_sql(
-    db: Database, sql_text: str, max_count: int = 9999999999999
+    db_manager: DatabaseManager, sql_text: str, max_count: int = 9999999999999
 ) -> tuple[bool, str, List[Dict[str, Any]]]:
     """
     动态查询SQL
@@ -27,9 +27,10 @@ def query_sql(
 
     """
     try:
-        result = db.session.execute(text(sql_text))
+        result = db_manager.get_session().execute(text(sql_text))
+        db_manager.get_session().commit()
     except Exception as err:
-        db.session.rollback()
+        db_manager.get_session().rollback()
         message = f"动态查询SQL执行错误! SQL: {sql_text}, 错误信息: {err}"
         return False, message, []
     else:
@@ -41,8 +42,8 @@ if __name__ == "__main__":
     import time
 
     sql = "SELECT * FROM recommend_pangu_field_info WHERE dictkey IS NOT null limit 10;"
-    with Database() as db_handler:
-        status, msg, data = query_sql(sql_text=sql, max_count=5, db=db_handler)
+    with DatabaseManager() as db_manager:
+        status, msg, data = query_sql(sql_text=sql, max_count=5, db_manager=db_manager)
         print(status)
         print(msg)
         print(data)

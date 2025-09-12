@@ -74,15 +74,15 @@ class DatabaseManager:
         """关闭当前会话（不调用 remove, 由框架或业务逻辑管理）"""
         try:
             self.db.session.close()
-            logger.info("Session closed")
+            logger.info(f"Session closed: {self.db._engine}")
         except Exception as err:
-            logger.warning(f"Failed to close session: {err}")
+            logger.warning(f"Failed to close session: : {self.db._engine} ERROR: {err}")
         try:
             if hasattr(self.db, "_engine") and self.db._engine:
                 self.db._engine.dispose()
-                logger.info("Engine disposed")
+                logger.info(f"Engine disposed: {self.db._engine}")
         except Exception as err:
-            logger.warning(f"Failed to dispose engine: {err}")
+            logger.warning(f"Failed to dispose engine: {self.db._engine} ERROR: {err}")
 
     def __enter__(self):
         """支持 with 语句（仅限单线程/非并发场景，不推荐在 Web 框架中使用）"""
@@ -323,6 +323,7 @@ class GenericUpsert:
         data: Dict[str, Any],
         conflict_columns: Optional[List[str]] = None,
         auto_detect: bool = True,
+        auto_commit: bool = True,
     ) -> Any:
         """
         智能的单条记录插入或更新
@@ -358,7 +359,9 @@ class GenericUpsert:
             logger.trace(f"🔑 使用主键作为冲突检测: {conflict_columns}")
 
         # 3. 执行插入或更新
-        return self._execute_upsert(session, model_class, data, conflict_columns)
+        return self._execute_upsert(
+            session, model_class, data, conflict_columns, auto_commit
+        )
 
     def _execute_upsert(
         self,
@@ -366,11 +369,12 @@ class GenericUpsert:
         model_class: Type[DeclarativeBase],
         data: Dict[str, Any],
         conflict_columns: List[str],
+        auto_commit: bool = True,
     ) -> Any:
         """执行具体的UPSERT操作"""
         if self.db_dialect == "postgresql":
             return self._postgresql_smart_upsert(
-                session, model_class, data, conflict_columns
+                session, model_class, data, conflict_columns, auto_commit
             )
         elif self.db_dialect == "sqlite":
             return self._sqlite_smart_upsert(
@@ -387,6 +391,7 @@ class GenericUpsert:
         model_class: Type[DeclarativeBase],
         data: Dict[str, Any],
         conflict_columns: List[str],
+        auto_commit: bool = True,
     ) -> Any:
         """PostgreSQL智能UPSERT"""
         from sqlalchemy.dialects.postgresql import insert
@@ -405,15 +410,19 @@ class GenericUpsert:
         stmt = stmt.on_conflict_do_update(
             index_elements=conflict_columns, set_=update_dict
         ).returning(model_class.__table__)
+        logger.trace(f"final stmt: {stmt}")
+        result = None
         try:
             result = session.execute(stmt)
             row = result.fetchone()
-            session.commit()
+            if row:
+                result = session.get(model_class, row._asdict().get("id"))
+            if auto_commit:
+                session.commit()
         except Exception as err:
             logger.error(err)
             session.rollback()
-
-        return session.get(model_class, row._asdict().get("id"))  # type: ignore
+        return result
 
     def _sqlite_smart_upsert(
         self,

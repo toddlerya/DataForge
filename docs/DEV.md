@@ -1,6 +1,6 @@
-## 　Migration初始化
+## 　 Migration 初始化
 
-### 　1. 生成
+### 　 1. 生成
 
 ```shell
 alembic init migrations
@@ -46,4 +46,14 @@ target_metadata = models.Base.metadata
 alembic revision --autogenerate -m "init db"
 alembic upgrade head
 alembic downgrade "xxx"
+```
+
+# 常用 SQL
+
+```sql
+-- 查询盘古字段在哪些盘古表出现过
+SELECT DISTINCT t.*
+FROM table_meta_data_info t,
+     jsonb_array_elements(t.table_fields) AS field
+WHERE field->>'en_name' = 'ACTION_TYPE';
 ```

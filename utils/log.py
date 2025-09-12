@@ -27,7 +27,7 @@ class TraceFilter:
 
     def __call__(self, record):
         trace_uuid = trace_context.get()
-        record["extra"]["trace_uuid"] = trace_uuid or "NO_TRACE"
+        record["extra"]["trace_uuid"] = trace_uuid or "NO_TRACE_UUID"
         return record
 
 

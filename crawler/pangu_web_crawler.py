@@ -30,12 +30,11 @@ class PanGuCrawler:
         self,
         inner_db_manager: DatabaseManager,
         resource_count: int = 2000,
-        pangu_web_ip_port: str = "",
     ):
         self.inner_db_manager = inner_db_manager
         self.bdp_ip: str = ""
         self.local_city_code: str = ""
-        self.pangu_web_ip_port = pangu_web_ip_port
+        self.pangu_web_ip_port = ""
         self.resource_url: str = ""
         self.pangu_data_inner_resource_dir_url: str = ""
         self.entity_list_url: str = ""
@@ -364,7 +363,7 @@ class PanGuCrawler:
         finally:
             return data
 
-    def run(self, env_name: str, overwrite: bool = False):
+    def run(self, env_name: str, need_overwrite: bool = False):
         self.sync_env_data(env_name=env_name)
         self.auth()
         self.set_pangu_url_config()
@@ -373,6 +372,7 @@ class PanGuCrawler:
         # template_id_slice 去重
         self.template_id_slice = list(set(self.template_id_slice))
         logger.info(f"盘古去重后一共有{len(self.template_id_slice)}个资源")
+        logger.info("正在获取资源实体信息, 请等待...")
         for template_id in self.template_id_slice:
             self.crawl_resource_entity_list(template_id=template_id)
         logger.info(f"盘古实体清单获取到{len(self.entity_elements)}个实体信息")
@@ -380,7 +380,7 @@ class PanGuCrawler:
             entity_id = entity_info.get("entityId", -1)
             if entity_id in []:
                 continue
-            if not overwrite:
+            if not need_overwrite:
                 query_status, query_msg, entity_data = (
                     table_metadata_query_by_entity_id(
                         entity_id=entity_id, db_manager=self.inner_db_manager
@@ -409,7 +409,7 @@ class PanGuCrawler:
             example_data = self.crawl_sample(
                 table_en_name=each_table_metadata_model.table_en_name,
                 entity_id=entity_id,
-                limit=10,
+                limit=5,
             )
             logger.debug(
                 f"entity_id={entity_id} "
@@ -466,7 +466,7 @@ if __name__ == "__main__":
         log_path="logs",
         log_name="debug.log",
         file_log_level="TRACE",
-        console_log_level="DEBUG",
+        console_log_level="INFO",
     )
     setup_logging(log_config.get_config().get("handlers"))
 

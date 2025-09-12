@@ -157,7 +157,7 @@ class RecommendPanGuFieldSchema(BaseModel):
     core_flag_count: int = Field(0, description="是否核心字段出现次数")
     core_flag_percentage: float = Field(0.0, description="是否核心字段出现次数占比")
     example_data: str | None = Field("", description="样例数据")
-    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
+    env_name: str = Field("", description="环境名称")
 
 
 class RecommendPanGuDictSchema(BaseModel):

@@ -30,7 +30,9 @@ def table_metadata_query_by_entity_id(
             .filter(TableMetaDataInfo.remark == entity_id)
             .one_or_none()
         )
+        db_manager.get_session().commit()
     except Exception as err:
+        db_manager.get_session().rollback()
         message = f"数据库读操作异常: {err}"
         return False, message, None
     else:
@@ -51,12 +53,12 @@ def table_metadata_save(record: dict, db_manager: DatabaseManager) -> Tuple[bool
         GenericUpsert(db=db_manager.db).smart_insert_or_update_single(
             session=db_manager.get_session(), model_class=TableMetaDataInfo, data=record
         )
+        db_manager.get_session().commit()
     except Exception as err:
         db_manager.get_session().rollback()
         message = f"数据库写操作异常: {err}"
         return False, message
     else:
-        db_manager.get_session().commit()
         return True, "ok"
 
 
@@ -79,8 +81,10 @@ def table_metadata_query(
             .filter(TableMetaDataInfo.table_en_name.like(table_en_name))
             .one_or_none()
         )
+        db_manager.get_session().commit()
     except Exception as err:
-        message = f"数据库查询异常: {err}"
+        db_manager.get_session().rollback()
+        message = f"数据库读操作异常: {err}"
         return False, message, None
     else:
         return True, "ok", result

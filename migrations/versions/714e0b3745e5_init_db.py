@@ -1,8 +1,8 @@
 """init db
 
-Revision ID: 1f08e516b0b5
+Revision ID: 714e0b3745e5
 Revises: 
-Create Date: 2025-09-11 16:36:13.363309
+Create Date: 2025-09-12 10:05:42.013527
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '1f08e516b0b5'
+revision = '714e0b3745e5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -49,7 +49,7 @@ def upgrade() -> None:
     sa.Column('cname', sa.String(length=512), nullable=True, comment='字段出现次数最多的中文名称'),
     sa.Column('description', sa.Text(), nullable=True, comment='字段描述'),
     sa.Column('field_type_name', sa.String(length=128), nullable=True, comment='字段类型'),
-    sa.Column('dg_rule', sa.JSON(), nullable=False, comment='DG规则配置'),
+    sa.Column('dg_rule', postgresql.JSONB(astext_type=sa.Text()), nullable=False, comment='DG规则配置'),
     sa.Column('example_data', sa.Text(), nullable=True, comment='样例数据'),
     sa.Column('ttl', sa.Integer(), nullable=False, comment='缓存规则过期时间，默认7天'),
     sa.Column('env_name', sa.String(length=128), nullable=True, comment='环境名称'),
@@ -132,7 +132,7 @@ def upgrade() -> None:
     op.create_table('table_example_data_info',
     sa.Column('uuid', sa.String(length=72), nullable=False, comment='数据唯一ID, md5(example_data)'),
     sa.Column('table_uuid', sa.String(length=72), nullable=False, comment='表唯一ID'),
-    sa.Column('example_data', sa.JSON(), nullable=True, comment='表样例数据'),
+    sa.Column('example_data', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='表样例数据'),
     sa.Column('env_name', sa.String(length=128), nullable=True, comment='环境名称'),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False, comment='主键'),
     sa.Column('remark', sa.Text(), nullable=True, comment='备注'),
@@ -149,7 +149,7 @@ def upgrade() -> None:
     sa.Column('description', sa.Text(), nullable=True, comment='表描述'),
     sa.Column('position_type', sa.String(length=128), nullable=True, comment='数据库类型'),
     sa.Column('storage_type', sa.String(length=128), nullable=True, comment='表数据格式'),
-    sa.Column('table_fields', sa.JSON(), nullable=False, comment='表字段信息'),
+    sa.Column('table_fields', postgresql.JSONB(astext_type=sa.Text()), nullable=False, comment='表字段信息'),
     sa.Column('area_code', sa.String(length=64), nullable=True, comment='来源地市编码'),
     sa.Column('area_name', sa.String(length=64), nullable=True, comment='来源地市名称'),
     sa.Column('source', sa.String(length=64), nullable=True, comment='数据来源'),
@@ -166,19 +166,19 @@ def upgrade() -> None:
     sa.Column('task_uuid', sa.String(length=72), nullable=False, comment='任务唯一ID, 与session_uuid, trace_uuid一致'),
     sa.Column('table_en_name', sa.String(length=128), nullable=False, comment='表英文名称'),
     sa.Column('data_row_count', sa.Integer(), nullable=True, comment='任务生成的数据条数'),
-    sa.Column('user_intent', sa.JSON(), nullable=True, comment='用户意图'),
+    sa.Column('user_intent', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='用户意图'),
     sa.Column('mode', sa.Integer(), nullable=True, comment='任务模式[0:未知 1: 元数据模式 2: SQL解析模式]'),
     sa.Column('client_ip', sa.String(length=15), nullable=True, comment='客户端IP'),
     sa.Column('task_payload', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='创建任务请求的请求体JSON'),
     sa.Column('rule_name', sa.String(length=56), nullable=True, comment='任务规则名称'),
-    sa.Column('task_rule', sa.JSON(), nullable=True, comment='任务规则配置JSON'),
+    sa.Column('task_rule', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='任务规则配置JSON'),
     sa.Column('dg_task_status', sa.Integer(), nullable=True, comment='DG任务状态: 0正常,1异常,-1未知'),
     sa.Column('dg_task_message', sa.Text(), nullable=True, comment='DG任务状态信息'),
     sa.Column('dg_task_id', sa.String(length=36), nullable=True, comment='DG的任务ID'),
     sa.Column('dg_task_edit_url', sa.Text(), nullable=True, comment='DG任务的编辑URL'),
-    sa.Column('dg_task_rule_data_preview', sa.JSON(), nullable=True, comment='DG规则的预览数据'),
+    sa.Column('dg_task_rule_data_preview', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='DG规则的预览数据'),
     sa.Column('dg_task_duration', sa.String(length=56), nullable=True, comment='DG任务耗时'),
-    sa.Column('user_modified_rules', sa.JSON(), nullable=True, comment='用户修改的字段规则'),
+    sa.Column('user_modified_rules', postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment='用户修改的字段规则'),
     sa.Column('env_name', sa.String(length=128), nullable=True, comment='环境名称'),
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False, comment='主键'),
     sa.Column('remark', sa.Text(), nullable=True, comment='备注'),
