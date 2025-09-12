@@ -1,16 +1,13 @@
 x-common-envs: &common-envs
-  - TZ=Asia/Shanghai
-  # 日志级别
-  - LOG_LEVEL=INFO
-  - SQLALCHEMY_ECHO=0
-  # 数据默认保留时间
-  - DATA_EXPIRED_DAY=30
-  # 部署环境的服务器IP
-  - SERVER_HOST=10.1.2.132
-  - SERVER_PORT=25702
-  - APOLLO_WEB_IP=172.21.5.130
-  - APOLLO_WEB_PORT=8070
-  - INNER_DB_HOST=DataForgeDB
+  TZ: Asia/Shanghai
+  LOG_LEVEL: INFO
+  SQLALCHEMY_ECHO: "0"
+  DATA_EXPIRED_DAY: "30"
+  SERVER_HOST: "10.1.2.132"
+  SERVER_PORT: "25702"
+  APOLLO_WEB_IP: "172.21.5.130"
+  APOLLO_WEB_PORT: "8070"
+  INNER_DB_HOST: DataForgeDB
 
 x-common-volumes: &common-volumes
   - /etc/localtime:/etc/localtime:ro
