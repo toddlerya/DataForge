@@ -24,6 +24,8 @@ x-common-volumes: &common-volumes
   - ./conf:/app/conf
   - ./apollo:/app/apollo
   - ./tasks:/app/tasks
+  - ./server:/app/server
+  - ./serve.py:/app/serve.py
   - ./environment:/app/environment
   - ./app_data_gen:/app/app_data_gen
   - ./.chainlit:/app/.chainlit
@@ -87,10 +89,7 @@ services:
     depends_on:
       - db
       - crond_task
-    volumes:
-      - *common-volumes
-      - ./server:/app/server
-      - ./serve.py:/app/serve.py
+    volumes: *common-volumes
     environment:
       <<: *common-envs
 
