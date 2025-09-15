@@ -124,6 +124,7 @@ services:
     volumes: *common-volumes
     environment:
       <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_data_gen
 
   table_gen_chat:
     <<: *common-user-privileged
@@ -143,6 +144,7 @@ services:
     volumes: *common-volumes
     environment:
       <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_table_gen
 
   sql_mode_data_gen_chat:
     <<: *common-user-privileged
@@ -162,6 +164,7 @@ services:
     volumes: *common-volumes
     environment:
       <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_sql_mode_data_gen
 
   fmdb_insert_sql_gen_chat:
     <<: *common-user-privileged
@@ -178,6 +181,7 @@ services:
     volumes: *common-volumes
     environment:
       <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_fmdb_insert_sql_gen
 
 #  caddy:
 #    image: caddy:2-alpine
