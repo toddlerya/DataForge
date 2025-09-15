@@ -109,22 +109,28 @@ def recommend_dg_rule_by_llm(
     else:
         # 构建该字段的DataGenius规则参数
         # 处理字典规则
-        args = {}
+        args: dict[str, str | list] = {}
         name = ""
         category = llm_dg_field_category_recommendation.category
         if category in table_dictkey_map:
-            dict_items: list[RecommendPanGuDictSchema] = table_dictkey_map.get(category)
-            # TODO: 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
-            if len(dict_items) > 100:
-                dict_items = dict_items[:100]
-            choices = [item.dict_id for item in dict_items]
-            args = {"choices": choices}
-            name = f"{category}_字典规则"
-            category = "自定义-枚举"
-            logger.debug(
-                f"类别={llm_dg_field_category_recommendation.category} "
-                f"更新为字典规则: {name}"
+            dict_items: list[RecommendPanGuDictSchema] | None = table_dictkey_map.get(
+                category
             )
+            # TODO: 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
+            if dict_items and len(dict_items) > 100:
+                dict_items = dict_items[:100]
+                choices = [item.dict_id for item in dict_items]
+                args = {"choices": choices}
+                name = f"{category}_字典规则"
+                category = "自定义-枚举"
+                logger.debug(
+                    f"类别={llm_dg_field_category_recommendation.category} "
+                    f"更新为字典规则: {name}"
+                )
+            else:
+                logger.error(
+                    f"category: {category}的dict_items={dict_items} 无法生成字典规则"
+                )
         pydantic_data_genius_rule = PydanticDataGeniusRule(
             col=col_index,
             category=category,
@@ -161,7 +167,8 @@ def dg_rule_processor(
     session_id = state["session_id"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     logger.info(
-        f"DG_FIELD_CATEGORY_CONFIG category slice: {[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}"
+        "DG_FIELD_CATEGORY_CONFIG category slice: "
+        f"{[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}"
     )
     table_dictkey_map = state.get("table_dictkey_map")
 
@@ -210,7 +217,8 @@ def dg_rule_processor(
         # 命中缓存，直接使用缓存的DG规则
         if query_status and query_result:
             logger.info(
-                f"字段 {field_info.en_name} 命中DG规则缓存 cache_result: {query_result.to_dict()}"
+                f"字段 {field_info.en_name} 命中DG规则缓存 "
+                f"cache_result: {query_result.to_dict()}"
             )
             cached_dg_rule = PydanticDataGeniusRule(**query_result.dg_rule)
             # 更新字段的DG规则配置
@@ -238,9 +246,10 @@ def dg_rule_processor(
                 )
             )
             # 推荐异常，重试
-            if recommend_status is False:
+            if recommend_status is False or pydantic_data_genius_rule is None:
                 logger.warning(
-                    f"推荐异常, 重试第{retry_count}次... field_info: {field_info.model_dump_json()}"
+                    f"推荐异常, 重试第{retry_count}次... "
+                    f"field_info: {field_info.model_dump_json()}"
                 )
                 # LLM推荐重试达到最大次数，给默认DG规则
                 if retry_count >= max_retries:
@@ -252,7 +261,8 @@ def dg_rule_processor(
                         )
                     )
                     logger.warning(
-                        f"已达到最大推荐重试次数 {max_retries}，自动填充默认DataGenius分类推荐"
+                        f"已达到最大推荐重试次数 {max_retries}, "
+                        "自动填充默认DataGenius分类推荐"
                     )
                     logger.trace(
                         f"llm_dg_field_category_recommendation: "

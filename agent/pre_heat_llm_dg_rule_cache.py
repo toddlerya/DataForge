@@ -7,20 +7,22 @@
 
 import uuid
 
+from langchain_core.runnables.config import RunnableConfig
+
 from agent.data_graph import data_gen_graph
 from agent.state import DataGenUserIntentSchema
 from config import PRESET_FIXED_PANGU_DG_RULE_PATH
 from cruds.dynamic_query import query_sql
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 from utils.file import load_yaml_from_file
 from utils.log import logger
 
 
-def preset_fixed_dg_rule(db_handler: Database):
+def preset_fixed_dg_rule(db_manager: DatabaseManager):
     """
     初始化预置固化的字段DG规则
     Args:
-        db_handler:
+        db_manager:
 
     Returns:
 
@@ -31,14 +33,14 @@ def preset_fixed_dg_rule(db_handler: Database):
             logger.error(f"读取数据异常! yaml_file={yaml_file} error: {load_message}")
             continue
         logger.info(yaml_data)
-    # cache_dg_rule(db_handler=db_handler)
+    # cache_dg_rule(db_manager=db_manager)
 
 
-async def pre_heat_llm_recommendation_dg_rule(db_handler: Database):
+async def pre_heat_llm_recommendation_dg_rule(db_manager: DatabaseManager):
     """
     预热盘古字段的LLM推荐DG规则
     Args:
-        db_handler:
+        db_manager:
 
     Returns:
 
@@ -46,7 +48,8 @@ async def pre_heat_llm_recommendation_dg_rule(db_handler: Database):
     logger.info("根据盘古元数据预热字段")
     query_dict_field_status, query_dict_field_message, dict_field_en_name_slice = (
         query_sql(
-            db=db_handler, sql_text="SELECT table_en_name FROM table_meta_data_info"
+            db_manager=db_manager,
+            sql_text="SELECT table_en_name FROM table_meta_data_info",
         )
     )
     if query_dict_field_status is False:
@@ -55,9 +58,7 @@ async def pre_heat_llm_recommendation_dg_rule(db_handler: Database):
     for dict_field_en_name in dict_field_en_name_slice:
         logger.info(f"当前预热表信息: {dict_field_en_name}")
         table_en_name = dict_field_en_name["table_en_name"]
-        user_intent = DataGenUserIntentSchema(
-            table_en_names=[table_en_name], table_data_count={table_en_name: 1}
-        )
+        user_intent = DataGenUserIntentSchema(table_en_name=table_en_name, data_count=1)
 
         session_id = uuid.uuid4().hex
         init_state = {
@@ -69,14 +70,14 @@ async def pre_heat_llm_recommendation_dg_rule(db_handler: Database):
             "client_ip": "0.0.0.0",
             "pre_heat_mode": True,
         }
-        thread = {"configurable": {"thread_id": session_id}}
+        thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
         event = await data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
 
 
 def run_data_graph_preheat():
     import asyncio
 
-    asyncio.run(pre_heat_llm_recommendation_dg_rule(db_handler=Database()))
+    asyncio.run(pre_heat_llm_recommendation_dg_rule(db_manager=DatabaseManager()))
 
 
 if __name__ == "__main__":

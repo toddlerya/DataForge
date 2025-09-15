@@ -1,3 +1,29 @@
+# 接口服务
+
+## 表元数据-数据生成服务
+
+```
+http://172.16.108.3:25702/data_gen_agent/run
+
+POST
+
+{
+"table_en_name": "massdata.ADM_REL_MOBILE",
+"data_count": 100
+}
+```
+
+## 动态查询 SQL 服务
+
+http://172.16.108.3:25702/db/dynamic_query
+
+POST
+
+{
+"sql": "select \* from table_meta_data_info tmdi where table_cn_name like '%用户%' limit 100;",
+"max_count": 10
+}
+
 # DG 对接待办事项
 
 ## AI 生成的任务规则经人工修改后的派生任务记录回调录入

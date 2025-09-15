@@ -243,13 +243,13 @@ def query_dg_task_status(
 
                         # TODO: 调用 DG的genius/get-preview接口，
                         # 获取响应的data结果作为预览数据
-                        # get_preview_status, get_preview_message, preview_data = (
-                        #     dg_rule_data_preview(rule_data=task_data.task_rule)
-                        # )
-                        # if get_preview_status:
-                        #     task_data.dg_task_rule_data_preview = preview_data
-                        # else:
-                        #     logger.error(get_preview_message)
+                        get_preview_status, get_preview_message, preview_data = (
+                            dg_rule_data_preview(rule_data=task_data.task_rule)
+                        )
+                        if get_preview_status:
+                            task_data.dg_task_rule_data_preview = preview_data
+                        else:
+                            logger.error(get_preview_message)
                         task_data.dg_task_duration = duration
                         state["task_data"] = task_data
                         return state
