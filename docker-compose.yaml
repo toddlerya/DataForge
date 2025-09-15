@@ -104,7 +104,7 @@ services:
       - "9801:9801"
     depends_on:
       - db
-      - croond_task
+      - crond_task
     volumes:
       - *common-volumes
       - ./app_data_gen:/app/app_data_gen
@@ -126,7 +126,7 @@ services:
       - "9802:9802"
     depends_on:
       - db
-      - croond_task
+      - crond_task
     volumes:
       - *common-volumes
       - ./app_table_gen:/app/app_table_gen
@@ -148,7 +148,7 @@ services:
       - "9803:9803"
     depends_on:
       - db
-      - croond_task
+      - crond_task
     volumes:
       - *common-volumes
       - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
