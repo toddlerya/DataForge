@@ -31,7 +31,7 @@ class CrondTask:
 
     def crond_update_env_config(self):
         """定时更新环境配置"""
-        job_id = "crond_update_pangu_web_data"
+        job_id = "crond_update_env_config"
         if self.check_job_if_exist(job_id=job_id):
             logger.warning(f"任务已经存在, 无需重复创建: {job_id}")
         else:
