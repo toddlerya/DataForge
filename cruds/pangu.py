@@ -11,7 +11,6 @@ from sqlalchemy import or_, text
 from cruds.dynamic_query import query_sql
 from database_models.models import PanGuDictInfo, RecommendPanGuFieldInfo
 from database_models.schema import RecommendPanGuDictSchema, RecommendPanGuFieldSchema
-from utils.db import Database
 from utils.db_manager import DatabaseManager, GenericUpsert
 
 
@@ -308,7 +307,7 @@ def save_pangu_dict_info(
 
 
 def query_field_recommend_info_by_ename(
-    db_handler: Database, field_en_name: str
+    db_manager: DatabaseManager, field_en_name: str
 ) -> tuple[bool, str, RecommendPanGuFieldSchema | None]:
     """
     根据字段英文名查询存储的盘古字段推荐信息
@@ -320,7 +319,8 @@ def query_field_recommend_info_by_ename(
     recommend_field_data = None
     try:
         result = (
-            db_handler.session.query(RecommendPanGuFieldInfo)
+            db_manager.get_session()
+            .query(RecommendPanGuFieldInfo)
             .filter(
                 or_(
                     RecommendPanGuFieldInfo.ename.like(field_en_name),
@@ -357,14 +357,16 @@ def query_field_recommend_info_by_ename(
                 max_identifier_percentage = (
                     row_recommend_field_data.identifier_percentage
                 )
+        db_manager.get_session().commit()
     except Exception as err:
         message = f"数据库查询异常: {err}"
+        db_manager.get_session().rollback()
         return False, message, recommend_field_data
     return True, "ok", recommend_field_data
 
 
 def query_dict_items_info_by_dictkey(
-    db_handler: Database, dictkey_with_nlevel: str
+    db_manager: DatabaseManager, dictkey_with_nlevel: str
 ) -> tuple[bool, str, list[RecommendPanGuDictSchema]]:
     """
     查询字典类别的所有字典值
@@ -372,7 +374,8 @@ def query_dict_items_info_by_dictkey(
     data: list[RecommendPanGuDictSchema] = []
     try:
         result = (
-            db_handler.session.query(PanGuDictInfo)
+            db_manager.get_session()
+            .query(PanGuDictInfo)
             .filter(PanGuDictInfo.dictkey_with_nlevel == dictkey_with_nlevel.strip())
             .all()
         )
@@ -384,14 +387,16 @@ def query_dict_items_info_by_dictkey(
             row_data.pop("remark")
             row_dict_data = RecommendPanGuDictSchema(**row_data)
             data.append(row_dict_data)
+        db_manager.get_session().commit()
     except Exception as err:
         message = f"数据库查询异常: {err}"
+        db_manager.get_session().rollback()
         return False, message, data
     return True, "ok", data
 
 
 def query_dict_items_info_by_dict_category(
-    db_handler: Database, dict_category: str
+    db_manager: DatabaseManager, dict_category: str
 ) -> tuple[bool, str, list[RecommendPanGuDictSchema]]:
     """
     查询字典类别的所有字典值
@@ -399,7 +404,8 @@ def query_dict_items_info_by_dict_category(
     data: list[RecommendPanGuDictSchema] = []
     try:
         result = (
-            db_handler.session.query(PanGuDictInfo)
+            db_manager.get_session()
+            .query(PanGuDictInfo)
             .filter(PanGuDictInfo.dict_category == dict_category.strip())
             .all()
         )
@@ -411,8 +417,10 @@ def query_dict_items_info_by_dict_category(
             row_data.pop("remark")
             row_dict_data = RecommendPanGuDictSchema(**row_data)
             data.append(row_dict_data)
+        db_manager.get_session().commit()
     except Exception as err:
         message = f"数据库查询异常: {err}"
+        db_manager.get_session().rollback()
         return False, message, data
     return True, "ok", data
 
@@ -448,13 +456,13 @@ if __name__ == "__main__":
     #             break
     # else:
     #     print(m)
-    db_handler = Database()
+    db_manager = DatabaseManager()
     print(
         query_field_recommend_info_by_ename(
-            db_handler=db_handler, field_en_name="RELE_DIRECTION_TYPE"
+            db_manager=db_manager, field_en_name="RELE_DIRECTION_TYPE"
         )
     )
-    db_handler.session.close()
+    db_manager.close()
     # s,m,d=(query_dict_items_info_by_dictkey(db_handler=Database(),
     # dictkey_with_nlevel="FHWACODE_0098:2"))
     # print(s)

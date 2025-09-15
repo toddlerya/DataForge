@@ -35,7 +35,7 @@ from cruds.pangu import (
 )
 from cruds.table_metadata import table_metadata_query
 from database_models.schema import RecommendPanGuDictSchema, TableRawFieldSchema
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 from utils.file import save_dict2jl
 
 
@@ -107,9 +107,9 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     # 查询知识库获取表的字段配置信息
 
     table_metadata = TableMetadataSchema(table_en_name=table_en_name)
-    db_handler = Database()
+    db_manager = DatabaseManager()
     query_status, query_message, query_result = table_metadata_query(
-        table_en_name=table_en_name, db_handler=db_handler
+        table_en_name=table_en_name, db_manager=db_manager
     )
     if query_status is False:
         logger.error(f"查询{table_en_name}元数据异常: {query_result}")
@@ -148,7 +148,7 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     table_metadata.raw_fields_info = raw_fields_data
 
     state["table_metadata_info"] = table_metadata
-    db_handler.session.close()
+    db_manager.close()
     return state
 
 
@@ -171,7 +171,7 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
     table_dictkey_slice: list[str] = []
     table_dict_category_code_map: dict[str, str] = {}
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = {}
-    db_handler = Database()
+    db_manager = DatabaseManager()
     for _, each_field in enumerate(table_metadata.raw_fields_info):
         if each_field.dict_key:
             # 数据域页面获取的表元数据没有dict_name，只有dict_key，
@@ -179,7 +179,7 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
             dict_key_with_nlevel = each_field.dict_key + ":2"
             table_dictkey_slice.append(dict_key_with_nlevel)
             dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(
-                db_handler=db_handler, dictkey_with_nlevel=dict_key_with_nlevel
+                db_manager=db_manager, dictkey_with_nlevel=dict_key_with_nlevel
             )
             if dict_status is False:
                 logger.error(f"获取盘古字典异常: {dict_message}")
@@ -188,7 +188,7 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
             # 对应RecommendPanGuDictSchema.dict_category
             dict_status, dict_message, dict_result = (
                 query_dict_items_info_by_dict_category(
-                    db_handler=db_handler, dict_category=each_field.dict_name
+                    db_manager=db_manager, dict_category=each_field.dict_name
                 )
             )
         else:
@@ -222,6 +222,7 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
     init_dg_category_config.DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
     # 如果已经生成过实例了，需要清空缓存更新
     PydanticDataGeniusCategoryRecommendation.reset_allowed_categories()
+    db_manager.close()
     return state
 
 

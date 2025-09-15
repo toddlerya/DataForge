@@ -34,7 +34,7 @@ from config import GEN_TABLE_MODELS_DATA_PATH, GEN_TABLE_MODELS_TEMP_PATH
 from cruds.advanced_query import sliding_window_query
 from database_models.models import TableMetaDataInfo
 from database_models.schema import GenTableFieldSchema
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 from utils.file import create_dir, save_dict2jl, targz_archive
 
 
@@ -90,9 +90,9 @@ def material_table_group_sliding_window_strategy(state: TableGenState):
         pass
 
     logger.info("[+] 元数据表作为素材分组策略，当前策略为滑动窗口拼接数据")
-    with Database() as db_handler:
+    with DatabaseManager() as db_manager:
         material_table_groups = sliding_window_query(
-            db_handler=db_handler,
+            db_manager=db_manager,
             model_class=TableMetaDataInfo,
             fields=["table_en_name", "table_cn_name", "description", "table_fields"],
             # 滑动窗口参数增加随机性

@@ -36,7 +36,7 @@ from cruds.pangu import (
     query_field_recommend_info_by_ename,
 )
 from database_models.schema import RecommendPanGuDictSchema
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 from utils.file import save_dict2jl
 
 
@@ -142,10 +142,10 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     table_metadata_error: list[str] = []
     table_dict_category_code_map: dict[str, str] = {}
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]] = {}
-    db_handler = Database()
+    db_manager = DatabaseManager()
     for each_field in table_info_data.fields_info:
         status, message, recommend_data = query_field_recommend_info_by_ename(
-            db_handler=db_handler, field_en_name=each_field.en_name
+            db_manager=db_manager, field_en_name=each_field.en_name
         )
         if status is False:
             err_message = (
@@ -171,7 +171,7 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
             if recommend_data.dictkey:
                 dict_status, dict_message, dict_result = (
                     query_dict_items_info_by_dictkey(
-                        db_handler=db_handler,
+                        db_manager=db_manager,
                         dictkey_with_nlevel=recommend_data.dictkey,
                     )
                 )
@@ -207,7 +207,7 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     init_dg_category_config.DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
     # 如果已经生成过实例了，需要清空缓存更新
     PydanticDataGeniusCategoryRecommendation.reset_allowed_categories()
-    db_handler.session.close()
+    db_manager.close()
     return state
 
 

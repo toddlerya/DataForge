@@ -8,11 +8,11 @@
 
 from typing import Dict, List, Optional
 
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 
 
 def sliding_window_query(
-    db_handler: Database,
+    db_manager: DatabaseManager,
     model_class,
     fields: List[str],
     window_size: int = 50,
@@ -42,7 +42,7 @@ def sliding_window_query(
     window_index = 0
 
     # 首先获取总记录数
-    total_count_query = db_handler.session.query(model_class)
+    total_count_query = db_manager.get_session().query(model_class)
     if filters:
         for field, value_slice in filters.items():
             total_count_query = total_count_query.filter(
@@ -104,12 +104,12 @@ if __name__ == "__main__":
         print(f"当前窗口: {window_index} 当前偏移量: {offset} 当前数据: {windows_data}")
         pass
 
-    db_handler = Database()
+    db_manager = DatabaseManager()
     all_results = sliding_window_query(
-        db_handler=db_handler,
+        db_manager=db_manager,
         model_class=TableMetaDataInfo,
         fields=["table_en_name", "table_cn_name", "description"],
         # filters={"source": "盘古"},
         callback=print_cb,
     )
-    db_handler.session.close()
+    db_manager.close()

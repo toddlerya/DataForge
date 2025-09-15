@@ -87,7 +87,7 @@ class TaskDataSchema(BaseModel):
     )
     dg_task_duration: str = Field(default="", description="DG任务耗时")
     user_modified_rules: dict = Field(default={}, description="用户修改的字段规则")
-    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
+    env_name: str = Field("", description="环境名称")
 
 
 class RecommendPanGuFieldSchema(BaseModel):

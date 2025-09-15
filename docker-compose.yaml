@@ -35,14 +35,14 @@ x-common-volumes: &common-volumes
   - ./alembic.ini:/app/alembic.ini
   - ./config.py:/app/config.py
   - ./serve.py:/app/serve.py
-  - ./.chainlit:/app/.chainlit
+  # - ./.chainlit:/app/.chainlit
   - ./app_data_gen:/app/app_data_gen
   - ./app_fmdb_insert_sql_gen:/app/app_fmdb_insert_sql_gen
   - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
   - ./app_table_gen:/app/app_table_gen
 
 x-common-user-privileged: &common-user-privileged
-  user: "1000:999"
+  user: "1000:1000"
   privileged: true
 
 services:
@@ -94,7 +94,7 @@ services:
     hostname: DataForgeServer
     restart: unless-stopped
     working_dir: /app
-    command: bash -c "python -m serve"
+    command: bash -c "alembic upgrade head && python -m serve"
     networks:
       harbor_net:
     ports:
