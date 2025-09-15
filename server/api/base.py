@@ -6,24 +6,14 @@
 # @Project  : DataForge
 
 
-import uuid
-
-from apscheduler.schedulers.background import BackgroundScheduler
-
 import pathlib
 
-from fastapi import FastAPI, HTTPException
+from apscheduler.schedulers.background import BackgroundScheduler
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.openapi.docs import (
-    get_redoc_html,
-    get_swagger_ui_html,
-    get_swagger_ui_oauth2_redirect_html,
-)
 
-from server.api.routers import agent_data_gen
-from server.api.routers import agent_sql_mode_data_gen
 from common.initialization import init_env
+from server.api.routers import agent_data_gen, agent_sql_mode_data_gen, dynamic_query
 
 # 实例化动态任务调度器
 scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
@@ -65,6 +55,7 @@ async def test():
 
 app.include_router(agent_data_gen.router)
 app.include_router(agent_sql_mode_data_gen.router)
+app.include_router(dynamic_query.router)
 
 # @app.get('/docs', include_in_schema=False)
 # async def custom_swagger_ui_html():

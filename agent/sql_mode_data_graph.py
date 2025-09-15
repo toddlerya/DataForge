@@ -55,7 +55,7 @@ def detect_input_type(state: SQLModeDataGenState):
 
 def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
-    解析用户意图，SQL模式
+    解析用户意图, SQL模式
     :param state:
     :return:
     """

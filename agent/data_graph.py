@@ -47,6 +47,7 @@ def detect_input_type(state: DataGenState):
     """
 
     user_intent: DataGenUserIntentSchema = state.get("user_intent")
+    state["mode"] = 1
     if user_intent:
         return "query_table_raw_field_info"
     else:
@@ -69,7 +70,6 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
     logger.info(f"user_intent: {user_intent} type: {type(user_intent)}")
     if isinstance(user_intent, DataGenUserIntentSchema):
         state["user_intent"] = user_intent
-    state["mode"] = 1
     return state
 
 

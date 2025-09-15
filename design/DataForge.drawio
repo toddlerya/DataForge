@@ -1531,7 +1531,7 @@
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-59" value="待重构" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fff2cc;strokeColor=#d6b656;gradientColor=#ffd966;" vertex="1" parent="1">
           <mxGeometry x="1880" y="838.75" width="60" height="16.25" as="geometry" />
         </mxCell>
-        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-60" value="&lt;font&gt;需要支持区分&lt;/font&gt;&lt;div&gt;&lt;font&gt;不同的环境资源&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font&gt;env_uuid&lt;/font&gt;&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontColor=#FF3333;position2=0.29;" vertex="1" parent="1">
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-60" value="&lt;font&gt;需要支持区分&lt;/font&gt;&lt;div&gt;&lt;font&gt;不同的环境资源&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font&gt;env_name&lt;/font&gt;&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontColor=#FF3333;position2=0.29;" vertex="1" parent="1">
           <mxGeometry x="2090" y="684.38" width="140" height="91" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-61" value="待重构" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fff2cc;strokeColor=#d6b656;gradientColor=#ffd966;" vertex="1" parent="1">

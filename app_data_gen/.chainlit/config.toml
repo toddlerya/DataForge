@@ -68,7 +68,7 @@ allowed_executables = ["npx", "uvx"]
 # Name of the assistant.
 name = "DataGenAssistant"
 
-# default_theme = "dark"
+default_theme = "light"
 
 layout = "wide"
 

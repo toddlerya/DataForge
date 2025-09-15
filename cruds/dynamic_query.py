@@ -5,12 +5,40 @@
 # @FileName : dynamic_query.py
 # @Project  : HETUTaskChecker
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import text
 
 from utils.db_manager import DatabaseManager
+
+
+def query_safe_check(sql: str) -> Tuple[bool, list]:
+    """
+    SQL安全检查
+    Args:
+        sql:
+
+    Returns:
+
+    """
+    status = True
+    forbid_key_words = (
+        "DELETE",
+        "UPDATE",
+        "INSERT",
+        "CREATE",
+        "DROP",
+        "GRAND",
+        "ALTER",
+    )
+    format_sql_list = sql.upper().strip().split()
+    forbid_result = []
+    for each in format_sql_list:
+        if each in forbid_key_words:
+            forbid_result.append(each)
+            status = False
+    return status, forbid_result
 
 
 def query_sql(

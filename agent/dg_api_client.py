@@ -24,7 +24,7 @@ from agent.state import DataGenState, SQLModeDataGenState, TableMetadataSchema
 from config import DG_PAYLOAD_PATH
 from cruds.task import save_task_info
 from database_models.schema import TaskDataSchema
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 from utils.file import save_dict2jl
 
 
@@ -162,6 +162,7 @@ def create_dg_task(
         task_payload=payload,
         rule_name=pydantic_data_genius_plan.rule_name,
         task_rule=pydantic_data_genius_plan_dict["rules"],
+        env_name=state.get("env_name", ""),
     )
     state["task_data"] = task_data
     return state
@@ -242,13 +243,13 @@ def query_dg_task_status(
 
                         # TODO: 调用 DG的genius/get-preview接口，
                         # 获取响应的data结果作为预览数据
-                        get_preview_status, get_preview_message, preview_data = (
-                            dg_rule_data_preview(rule_data=task_data.task_rule)
-                        )
-                        if get_preview_status:
-                            task_data.dg_task_rule_data_preview = preview_data
-                        else:
-                            logger.error(get_preview_message)
+                        # get_preview_status, get_preview_message, preview_data = (
+                        #     dg_rule_data_preview(rule_data=task_data.task_rule)
+                        # )
+                        # if get_preview_status:
+                        #     task_data.dg_task_rule_data_preview = preview_data
+                        # else:
+                        #     logger.error(get_preview_message)
                         task_data.dg_task_duration = duration
                         state["task_data"] = task_data
                         return state
@@ -281,16 +282,14 @@ def save_task_info2db(
     """
     logger.info("存储任务信息到数据库")
     task_data = state["task_data"]
-    mode = state["mode"]
+    mode = state.get("mode")
     logger.info(f"gen mode: {mode}")
     task_data.mode = mode
-    db_handler = Database()
+    db_manager = DatabaseManager()
     save_status, save_message = save_task_info(
-        db_handler=db_handler, task_info_data=task_data.model_dump()
+        db_manager=db_manager, task_info_data=task_data.model_dump()
     )
     if save_status is False:
         logger.error(save_message)
-    else:
-        db_handler.session.commit()
-    db_handler.session.close
+    db_manager.close()
     return state
