@@ -12,26 +12,34 @@ x-common-envs: &common-envs
 x-common-volumes: &common-volumes
   - /etc/localtime:/etc/localtime:ro
   - /etc/timezone:/etc/timezone:ro
+  # 数据目录
   - ./data:/app/data
   - ./logs:/app/logs
-  - ./database_models:/app/database_models
+  # 代码目录
   - ./agent:/app/agent
-  - ./cruds:/app/cruds
-  - ./common:/app/common
-  - ./utils:/app/utils
-  - ./config.py:/app/config.py
-  - ./.env:/app/.env
-  - ./conf:/app/conf
   - ./apollo:/app/apollo
-  - ./tasks:/app/tasks
-  - ./server:/app/server
-  - ./serve.py:/app/serve.py
+  - ./bdp:/app/bdp
+  - ./common:/app/common
+  - ./conf:/app/conf
+  - ./crawler:/app/crawler
+  - ./cruds:/app/cruds
+  - ./database_models:/app/database_models
   - ./environment:/app/environment
-  - ./app_data_gen:/app/app_data_gen
+  - ./migrations:/app/migrations
+  - ./public:/app/public
+  - ./server:/app/server
+  - ./tasks:/app/tasks
+  - ./utils:/app/utils
+  - ./__init__.py:/app/__init__.py
+  - ./.env:/app/.env
+  - ./alembic.ini:/app/alembic.ini
+  - ./config.py:/app/config.py
+  - ./serve.py:/app/serve.py
   - ./.chainlit:/app/.chainlit
-  - ./app_table_gen:/app/app_table_gen
-  - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
+  - ./app_data_gen:/app/app_data_gen
   - ./app_fmdb_insert_sql_gen:/app/app_fmdb_insert_sql_gen
+  - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
+  - ./app_table_gen:/app/app_table_gen
 
 x-common-user-privileged: &common-user-privileged
   user: "1000:1000"
