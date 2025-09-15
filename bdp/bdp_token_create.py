@@ -21,7 +21,7 @@ def create_bdp_token(
         user_id (int, optional): _description_. Defaults to -1.
         bdp_port (int, optional): _description_. Defaults to 8090.
     """
-    logger.info("获取DG规则预览数据")
+    logger.info(f"创建BDPToken: bdp_ip={bdp_ip} app_id={app_id}")
     url = f"http://{bdp_ip}:{bdp_port}/cas/api/v1/token/create"
     message = "ok"
     payload = {

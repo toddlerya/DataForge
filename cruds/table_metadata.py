@@ -24,6 +24,7 @@ def table_metadata_query_by_entity_id(
 
     """
     try:
+        entity_id = str(entity_id)
         result = (
             db_manager.get_session()
             .query(TableMetaDataInfo)

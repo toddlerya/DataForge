@@ -391,20 +391,33 @@ class PanGuWebCrawler:
         self.crawl_resource()
         # template_id_slice 去重
         self.template_id_slice = list(set(self.template_id_slice))
-        logger.info(f"盘古去重后一共有{len(self.template_id_slice)}个资源")
+        total_template_id_count = len(self.template_id_slice)
+        logger.info(f"盘古去重后一共有{total_template_id_count}个资源")
         logger.info("正在获取资源实体信息, 请等待...")
-        for template_id in self.template_id_slice:
+        print_step = max(1, total_template_id_count // 10)
+        for index, template_id in enumerate(self.template_id_slice):
             self.crawl_resource_entity_list(template_id=template_id)
+            if (index + 1) % print_step == 0:
+                progress = (index + 1) / total_template_id_count * 100
+                logger.info(
+                    f"已获取{index + 1}/{total_template_id_count}个资源, "
+                    f"进度{progress:.1f}%"
+                )
         logger.info(f"盘古实体清单获取到{len(self.entity_elements)}个实体信息")
         for entity_info in self.entity_elements:
-            entity_id = entity_info.get("entityId", -1)
-            if entity_id in []:
+            entity_id = entity_info.get("entityId")
+            if entity_id is None:
                 continue
             if not need_overwrite:
+                logger.debug(f"检查数据是否已存在: {entity_id} ")
                 query_status, query_msg, entity_data = (
                     table_metadata_query_by_entity_id(
                         entity_id=entity_id, db_manager=self.inner_db_manager
                     )
+                )
+                logger.debug(
+                    f"检查数据是否已存在结果: {entity_id} query_status: {query_status} "
+                    f"query_msg: {query_msg} entity_data: {entity_data}"
                 )
                 if query_status and entity_data:
                     # 数据已存在则跳过
@@ -472,6 +485,7 @@ class PanGuWebCrawler:
                         f"样例数据入库异常: {example_data.model_dump_json()} "
                         f"ERROR: {save_ex_message}"
                     )
+        logger.info("完成盘古web数据采集入库")
         return True
 
 
