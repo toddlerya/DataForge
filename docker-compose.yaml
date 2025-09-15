@@ -42,7 +42,7 @@ x-common-volumes: &common-volumes
   - ./app_table_gen:/app/app_table_gen
 
 x-common-user-privileged: &common-user-privileged
-  user: "1000:1000"
+  user: "1000:999"
   privileged: true
 
 services:
