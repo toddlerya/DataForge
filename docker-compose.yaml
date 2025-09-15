@@ -33,8 +33,13 @@ x-common-volumes: &common-volumes
   - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
   - ./app_fmdb_insert_sql_gen:/app/app_fmdb_insert_sql_gen
 
+x-common-user-privileged: &common-user-privileged
+  user: "1000:1000"
+  privileged: true
+
 services:
   db:
+    <<: *common-user-privileged
     image: postgres:14.2
     container_name: DataForgeDB
     hostname: DataForgeDB
@@ -59,11 +64,11 @@ services:
       POSTGRES_PASSWORD: data_forge_2590
 
   crond_task:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: DataForgeCrondTask
     hostname: DataForgeCrondTask
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m tasks.crond_task"
     networks:
@@ -75,11 +80,11 @@ services:
       <<: *common-envs
 
   server:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: DataForgeServer
     hostname: DataForgeServer
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m serve"
     networks:
@@ -94,11 +99,11 @@ services:
       <<: *common-envs
 
   data_gen_chat:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: DFDataGenApp
     hostname: DFDataGenApp
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m app_data_gen.run"
     networks:
@@ -113,11 +118,11 @@ services:
       <<: *common-envs
 
   table_gen_chat:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: DFTableGenApp
     hostname: DFTableGenApp
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m app_table_gen.run"
     networks:
@@ -128,16 +133,15 @@ services:
       - db
       - crond_task
     volumes: *common-volumes
-
     environment:
       <<: *common-envs
 
   sql_mode_data_gen_chat:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: SQLModeDFDataGenApp
     hostname: DFDataGenApp
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m app_sql_mode_data_gen.run"
     networks:
@@ -152,11 +156,11 @@ services:
       <<: *common-envs
 
   fmdb_insert_sql_gen_chat:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: FMDBInsertSQLGenApp
     hostname: FMDBInsertSQLGenApp
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m app_fmdb_insert_sql_gen.run"
     networks:
