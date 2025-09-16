@@ -6,7 +6,7 @@
 # @Project  : DataForge
 
 
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from utils.db_manager import DatabaseManager
 
@@ -19,12 +19,12 @@ def sliding_window_query(
     step_size: int = 10,
     order_by_field: str = "id",
     filters: Optional[Dict[str, List[str]]] = None,
-    callback: Optional[callable] = None,
+    callback: Optional[Callable] = None,
 ):
     """
     执行滑动窗口查询
     Args:
-        db_handler: SQLAlchemy数据库操作对象
+        db_manager:
         model_class: 要查询的模型类
         fields: 要查询的字段列表
         window_size: 窗口大小，默认50
@@ -52,15 +52,15 @@ def sliding_window_query(
 
     while offset < total_count:
         # 构建查询
-        query = db_handler.session.query(
+        query = db_manager.get_session().query(
             *[getattr(model_class, field) for field in fields]
         )
-
-        # 应用过滤条件
-        for field, value_slice in filters.items():
-            total_count_query = total_count_query.filter(
-                getattr(model_class, field).in_(value_slice)
-            )
+        if filters:
+            # 应用过滤条件
+            for field, value_slice in filters.items():
+                total_count_query = total_count_query.filter(
+                    getattr(model_class, field).in_(value_slice)
+                )
 
         # 排序、分页
         query = query.order_by(getattr(model_class, order_by_field))

@@ -1621,12 +1621,6 @@
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-105" value="待重构" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fff2cc;strokeColor=#d6b656;gradientColor=#ffd966;" vertex="1" parent="1">
           <mxGeometry x="1975" y="1310.76" width="60" height="16.25" as="geometry" />
         </mxCell>
-        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-106" value="待重构" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fff2cc;strokeColor=#d6b656;gradientColor=#ffd966;" vertex="1" parent="1">
-          <mxGeometry x="1800" y="1004.63" width="60" height="16.25" as="geometry" />
-        </mxCell>
-        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-107" value="待重构" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fff2cc;strokeColor=#d6b656;gradientColor=#ffd966;" vertex="1" parent="1">
-          <mxGeometry x="2072.5" y="1102.5" width="60" height="16.25" as="geometry" />
-        </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-108" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0;exitY=0;exitDx=0;exitDy=20;exitPerimeter=0;" edge="1" parent="1" source="8BKQ6smGp7mpiVvBxwpZ-64" target="lh7MWCvUa6AfuKzgNIM6-85">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="290" y="1199" as="sourcePoint" />
@@ -1767,6 +1761,12 @@
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-155" value="天梭构造测试数据" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffff88;strokeColor=#36393d;" vertex="1" parent="1">
           <mxGeometry x="1511" y="110" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-156" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="1770" y="1004.63" width="90" height="16.25" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-158" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="2070" y="1102.5" width="90" height="16.25" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
