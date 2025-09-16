@@ -41,6 +41,7 @@ class TableMetadataSchema(BaseModel):
     raw_fields_info: List[TableRawFieldSchema] = Field(
         description="原始字段信息", alias="raw_fields_info", default=[]
     )
+    source: str = Field(default="", description="来源")
 
 
 class DGCategoryConfig:

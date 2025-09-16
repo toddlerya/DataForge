@@ -147,6 +147,7 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
                 raw_fields_data.append(TableRawFieldSchema())
 
     table_metadata.raw_fields_info = raw_fields_data
+    table_metadata.source = str(query_result.source) if query_result else ""
 
     state["table_metadata_info"] = table_metadata
     db_manager.close()

@@ -32,6 +32,7 @@ from utils.log import logger
 def cache_dg_rule(
     db_manager: DatabaseManager,
     field_info: TableRawFieldSchema,
+    scope: str,
     pydantic_data_genius_rule: PydanticDataGeniusRule,
     ttl: int = 86400 * 7,
 ):
@@ -40,6 +41,7 @@ def cache_dg_rule(
     Args:
         db_manager:
         field_info:
+        scope:
         pydantic_data_genius_rule:
         ttl:
     Returns:
@@ -54,6 +56,7 @@ def cache_dg_rule(
     )
     field_dg_rule_cache_data = {
         "uuid": rule_uuid,
+        "scope": scope,
         "ename": field_info.en_name,
         "cname": field_info.cn_name,
         "description": field_info.desc,
@@ -204,6 +207,7 @@ def dg_rule_processor(
             logger.info("所有字段已处理完毕，结束DataGenius分类推荐")
             break
         field_info = table_metadata.raw_fields_info[field_index]
+        table_metadata_source = table_metadata.source
         # 优先查询缓存的DG规则
         query_status, query_message, query_result = query_field_dg_rule(
             db_manager=db_manager,
@@ -293,6 +297,7 @@ def dg_rule_processor(
                     cache_dg_rule(
                         db_manager=db_manager,
                         field_info=field_info,
+                        scope=table_metadata_source,
                         pydantic_data_genius_rule=pydantic_data_genius_rule,
                         ttl=86400 * 3,
                     )
@@ -304,6 +309,7 @@ def dg_rule_processor(
                 cache_dg_rule(
                     db_manager=db_manager,
                     field_info=field_info,
+                    scope=table_metadata_source,
                     pydantic_data_genius_rule=pydantic_data_genius_rule,
                 )
                 break
