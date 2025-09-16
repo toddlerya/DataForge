@@ -41,7 +41,7 @@ class CrondTask:
                 func=load_all_env_config_from_yaml_and_update_db,
                 trigger="interval",
                 # 每30分钟运行一次
-                minutes=6,
+                minutes=30,
             )
 
     def crond_update_pangu_web_data(self):
