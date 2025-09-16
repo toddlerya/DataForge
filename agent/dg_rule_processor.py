@@ -24,13 +24,13 @@ from agent.state import (
 from config import DG_PLAN_CONFIG_PREFIX
 from cruds.dg_rule_cache import query_field_dg_rule, save_field_dg_rule
 from database_models.schema import RecommendPanGuDictSchema
-from utils.db import Database
+from utils.db_manager import DatabaseManager
 from utils.file import get_md5
 from utils.log import logger
 
 
 def cache_dg_rule(
-    db_handler: Database,
+    db_manager: DatabaseManager,
     field_info: TableRawFieldSchema,
     pydantic_data_genius_rule: PydanticDataGeniusRule,
     ttl: int = 86400 * 7,
@@ -38,7 +38,7 @@ def cache_dg_rule(
     """
     缓存DG规则到数据库
     Args:
-        db_handler:
+        db_manager:
         field_info:
         pydantic_data_genius_rule:
         ttl:
@@ -63,7 +63,8 @@ def cache_dg_rule(
         "ttl": ttl,
     }
     save_status, save_message = save_field_dg_rule(
-        db_handler=db_handler, field_dg_rule_cache_data=field_dg_rule_cache_data
+        db_manager=db_manager,
+        field_dg_rule_cache_data=field_dg_rule_cache_data,
     )
     if save_status is False:
         logger.error(
@@ -71,10 +72,6 @@ def cache_dg_rule(
             f"field_dg_rule_cache_data: {field_dg_rule_cache_data} "
             f"ERROR: {save_message}"
         )
-        db_handler.session.rollback()
-    else:
-        db_handler.session.flush()
-        db_handler.session.commit()
 
 
 def recommend_dg_rule_by_llm(
@@ -197,7 +194,7 @@ def dg_rule_processor(
     stop_flag = False
     rules: list[PydanticDataGeniusRule] = []
 
-    db_handler = Database()
+    db_manager = DatabaseManager()
 
     while True:
         col_index = field_index + 1
@@ -209,7 +206,7 @@ def dg_rule_processor(
         field_info = table_metadata.raw_fields_info[field_index]
         # 优先查询缓存的DG规则
         query_status, query_message, query_result = query_field_dg_rule(
-            db_handler=db_handler,
+            db_manager=db_manager,
             ename=field_info.en_name,
             cname=field_info.cn_name,
             field_type_name=field_info.field_type,
@@ -220,7 +217,17 @@ def dg_rule_processor(
                 f"字段 {field_info.en_name} 命中DG规则缓存 "
                 f"cache_result: {query_result.to_dict()}"
             )
-            cached_dg_rule = PydanticDataGeniusRule(**query_result.dg_rule)
+            dg_rule_dict = query_result.dg_rule
+            cached_dg_rule = PydanticDataGeniusRule(
+                col=dg_rule_dict.get("col", 1),
+                category=dg_rule_dict.get("category", "unknown"),
+                name=dg_rule_dict.get("name", ""),
+                ename=dg_rule_dict.get("ename", field_info.en_name),
+                cname=dg_rule_dict.get("cname", field_info.cn_name),
+                preview=dg_rule_dict.get("preview", ""),
+                value=dg_rule_dict.get("value", ""),
+                args=dg_rule_dict.get("args", {}),
+            )
             # 更新字段的DG规则配置
             cached_dg_rule.col = col_index
             cached_dg_rule.value = field_info.example
@@ -284,7 +291,7 @@ def dg_rule_processor(
                     last_error_message = ""
                     # 存储当前推荐的字段DG规则到缓存中
                     cache_dg_rule(
-                        db_handler=db_handler,
+                        db_manager=db_manager,
                         field_info=field_info,
                         pydantic_data_genius_rule=pydantic_data_genius_rule,
                         ttl=86400 * 3,
@@ -295,7 +302,7 @@ def dg_rule_processor(
                 field_index += 1
                 # 存储当前推荐的字段DG规则到缓存中
                 cache_dg_rule(
-                    db_handler=db_handler,
+                    db_manager=db_manager,
                     field_info=field_info,
                     pydantic_data_genius_rule=pydantic_data_genius_rule,
                 )
@@ -314,5 +321,5 @@ def dg_rule_processor(
         cols=len(table_metadata.raw_fields_info),
     )
     state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
-    db_handler.session.close()
+    db_manager.close()
     return state

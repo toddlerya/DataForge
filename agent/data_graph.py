@@ -70,6 +70,7 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
     logger.info(f"user_intent: {user_intent} type: {type(user_intent)}")
     if isinstance(user_intent, DataGenUserIntentSchema):
         state["user_intent"] = user_intent
+        state["env_name"] = user_intent.env_name
     return state
 
 
@@ -102,14 +103,14 @@ def should_table_raw_field_info_continue(state: DataGenState):
 def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     if "table_metadata_info" not in state:
         state["table_metadata_error"] = []
-
-    table_en_name = state.get("user_intent", {}).table_en_name
+    env_name = state["user_intent"].env_name
+    state["env_name"] = env_name
+    table_en_name = state["user_intent"].table_en_name
     # 查询知识库获取表的字段配置信息
-
     table_metadata = TableMetadataSchema(table_en_name=table_en_name)
     db_manager = DatabaseManager()
     query_status, query_message, query_result = table_metadata_query(
-        table_en_name=table_en_name, db_manager=db_manager
+        table_en_name=table_en_name, env_name=env_name, db_manager=db_manager
     )
     if query_status is False:
         logger.error(f"查询{table_en_name}元数据异常: {query_result}")

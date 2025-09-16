@@ -56,9 +56,7 @@ def query_sql(
     """
     try:
         result = db_manager.get_session().execute(text(sql_text))
-        db_manager.get_session().commit()
     except Exception as err:
-        db_manager.get_session().rollback()
         message = f"动态查询SQL执行错误! SQL: {sql_text}, 错误信息: {err}"
         return False, message, []
     else:

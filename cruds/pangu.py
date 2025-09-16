@@ -222,10 +222,8 @@ FROM ((SELECT name AS cname, COUNT(*) AS cname_count
         if len(temp_field_info) == 1:
             field_info = temp_field_info[0]
             field_info.update({"ename": field_en_name})
-        db_manager.get_session().commit()
     except Exception as err:
         message = f"数据库读操作异常: {err}"
-        db_manager.get_session().rollback()
         return False, message, field_info
     else:
         return True, "ok", field_info
@@ -357,10 +355,8 @@ def query_field_recommend_info_by_ename(
                 max_identifier_percentage = (
                     row_recommend_field_data.identifier_percentage
                 )
-        db_manager.get_session().commit()
     except Exception as err:
         message = f"数据库查询异常: {err}"
-        db_manager.get_session().rollback()
         return False, message, recommend_field_data
     return True, "ok", recommend_field_data
 
@@ -387,10 +383,8 @@ def query_dict_items_info_by_dictkey(
             row_data.pop("remark")
             row_dict_data = RecommendPanGuDictSchema(**row_data)
             data.append(row_dict_data)
-        db_manager.get_session().commit()
     except Exception as err:
         message = f"数据库查询异常: {err}"
-        db_manager.get_session().rollback()
         return False, message, data
     return True, "ok", data
 
@@ -417,10 +411,8 @@ def query_dict_items_info_by_dict_category(
             row_data.pop("remark")
             row_dict_data = RecommendPanGuDictSchema(**row_data)
             data.append(row_dict_data)
-        db_manager.get_session().commit()
     except Exception as err:
         message = f"数据库查询异常: {err}"
-        db_manager.get_session().rollback()
         return False, message, data
     return True, "ok", data
 

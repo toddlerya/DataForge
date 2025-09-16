@@ -26,6 +26,8 @@ class DataGenUserIntentSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_en_name: str = Field(..., description="表英文名称, 不可为空")
     data_count: int = Field(..., ge=1, description="期望数据条数")
+    # TODO: 考虑让env_name是枚举类型，根据数据库信息动态更新
+    env_name: str = Field(default="", description="环境名称")
 
 
 class TableMetadataSchema(BaseModel):
@@ -147,6 +149,7 @@ class DataGenBaseState(TypedDict):
     error_message: Annotated[List[AnyMessage], add_messages]
     max_retries: int
     task_data: TaskDataSchema
+    env_name: str
 
 
 class DataGenState(DataGenBaseState):

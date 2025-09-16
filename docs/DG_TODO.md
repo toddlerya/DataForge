@@ -8,8 +8,9 @@ http://172.16.108.3:25702/data_gen_agent/run
 POST
 
 {
-"table_en_name": "massdata.ADM_REL_MOBILE",
-"data_count": 100
+    "table_en_name": "fmdbmeta.ODS_POL_PRI_RECPER_BASINF",
+    "data_count": 100,
+    "env_name": "测试部仿真测试环境"
 }
 ```
 
@@ -23,6 +24,15 @@ POST
 "sql": "select \* from table_meta_data_info tmdi where table_cn_name like '%用户%' limit 100;",
 "max_count": 10
 }
+
+## 查询 SQL
+
+```sql
+-- 查询有哪些环境名称
+select * from environment_info ei ;
+-- 查询有哪些表元数据信息，英文名、中文名、环境名称
+select table_en_name , table_cn_name, env_name from table_meta_data_info tmdi
+```
 
 # DG 对接待办事项
 

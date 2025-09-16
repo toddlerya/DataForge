@@ -47,6 +47,7 @@ def detect_input_type(state: SQLModeDataGenState):
     :return:
     """
     user_intent: DataGenSQLModeUserIntentSchema = state.get("user_intent")
+    state["mode"] = 2
     if user_intent:
         return "sql_parse_to_table_info"
     else:
@@ -74,7 +75,6 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     if isinstance(user_intent, DataGenSQLModeUserIntentSchema):
         state["user_intent"] = user_intent
     logger.debug(f"user_intent: {user_intent}")
-    state["mode"] = 2
     return state
 
 
