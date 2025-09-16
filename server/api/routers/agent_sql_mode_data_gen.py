@@ -6,20 +6,20 @@
 # @Project  : DataForge
 
 import json
-import uuid
 
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Depends, Request
+from langchain_core.runnables.config import RunnableConfig
 from loguru import logger
 
-from server.api.utils import extract_client_ip
-from server.api.depends import get_transaction_logger
-from server.api.schemas.base_schema import ResponseBaseSchema
-from server.api.schemas.agent_data_gen import (
-    InitDataGenSchema,
-    HumanIntentFeedBackSchema,
-)
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import DataGenSQLModeUserIntentSchema
+from server.api.depends import get_transaction_logger
+from server.api.schemas.agent_data_gen import (
+    HumanIntentFeedBackSchema,
+    InitDataGenSchema,
+)
+from server.api.schemas.base_schema import ResponseBaseSchema
+from server.api.utils import extract_client_ip
 from utils.err_code import error_code
 
 router = APIRouter(
@@ -31,7 +31,9 @@ router = APIRouter(
 
 @router.post("/set_intent", response_model=ResponseBaseSchema)
 async def init_sql_mode_data_gen_graph(
-        init_data_gen: InitDataGenSchema, request: Request, traced_logger=Depends(get_transaction_logger)
+    init_data_gen: InitDataGenSchema,
+    request: Request,
+    traced_logger=Depends(get_transaction_logger),
 ):
     """
     设置用户意图，初始化图
@@ -45,7 +47,8 @@ async def init_sql_mode_data_gen_graph(
 
     client_ip = extract_client_ip(request)
     logger.info(
-        f"[数据生成Graph] 初始化, client_ip={client_ip}, 分析用户意图: init_data_gen={init_data_gen.model_dump_json()}"
+        f"[数据生成Graph] 初始化, client_ip={client_ip}, "
+        f"分析用户意图: init_data_gen={init_data_gen.model_dump_json()}"
     )
     resp_data = ResponseBaseSchema(description="[数据生成Graph] 初始化，分析用户意图")
     resp_data.session_id = session_id
@@ -57,11 +60,11 @@ async def init_sql_mode_data_gen_graph(
         "client_ip": client_ip,
     }
 
-    thread = {"configurable": {"thread_id": session_id}}
+    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
     event = await sql_mode_data_gen_graph.ainvoke(
         init_state, thread, stream_mode="values"
     )
-    user_intent: DataGenSQLModeUserIntentSchema = event.get("user_intent")
+    user_intent: DataGenSQLModeUserIntentSchema | None = event.get("user_intent")
 
     if user_intent:
         resp_data.data = user_intent.model_dump()
@@ -70,12 +73,14 @@ async def init_sql_mode_data_gen_graph(
             f"session_id={session_id} "
             f"user_intent={user_intent.model_dump_json()}"
         )
-    return resp_data.dict()
+    return resp_data.model_dump()
 
 
 @router.post("/human_intent_feedback", response_model=ResponseBaseSchema)
-async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema,
-                                    traced_logger=Depends(get_transaction_logger)):
+async def set_human_intent_feedback(
+    feedback_data: HumanIntentFeedBackSchema,
+    traced_logger=Depends(get_transaction_logger),
+):
     """
     用户反馈确认
     :param feedback_data:
@@ -89,24 +94,28 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema,
         description="[数据生成Graph] 确认用户反馈并开始生成数据"
     )
     resp_data.session_id = feedback_data.session_id
-    thread = {"configurable": {"thread_id": feedback_data.session_id}}
+    thread: RunnableConfig = {"configurable": {"thread_id": feedback_data.session_id}}
     state_snapshot = sql_mode_data_gen_graph.get_state(thread)
     if not state_snapshot.next:
         logger.debug(f"[数据生成Graph] state_snapshot: {state_snapshot}")
-        message = f"[数据生成Graph] 用户提供的session_id={feedback_data.session_id}错误，没有初始化的Graph应用."
+        message = (
+            f"[数据生成Graph] 用户提供的session_id={feedback_data.session_id}错误, "
+            "没有初始化的Graph应用."
+        )
         logger.error(message)
         resp_data.message = message
         resp_data.code = error_code.ARGS_VALUE_ERROR.get("code")
-        return resp_data.dict()
+        return resp_data.model_dump()
     if feedback_data.human_intent_feedback.strip() != "正确":
         message = (
             f"用户反馈: {feedback_data.human_intent_feedback} "
-            f"{error_code.FEEDBACK_STOP_GRAPH.get('description')}, 若用户反馈human_intent_feedback=正确，Graph将继续运行。"
+            f"{error_code.FEEDBACK_STOP_GRAPH.get('description')}, "
+            "若用户反馈human_intent_feedback=正确, Graph将继续运行。"
         )
         logger.warning(f"[数据生成Graph] {message}")
         resp_data.message = message
         resp_data.code = error_code.FEEDBACK_STOP_GRAPH.get("code")
-        return resp_data.dict()
+        return resp_data.model_dump()
 
     sql_mode_data_gen_graph.update_state(
         thread,
@@ -126,7 +135,7 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema,
                 f"{error_code.GRAPH_NODE_ERROR.get('description')} {event.get(error)}"
             )
             resp_data.code = error_code.GRAPH_NODE_ERROR.get("code")
-            return resp_data.dict()
+            return resp_data.model_dump()
     if event.get("data_genius_plan_output_url"):
         result = {
             "table_info_data": event["table_info_data"].model_dump(),
@@ -140,12 +149,15 @@ async def set_human_intent_feedback(feedback_data: HumanIntentFeedBackSchema,
         }
         logger.info(f"[数据生成Graph] 结果: {json.dumps(result)}")
         resp_data.data = event
-    return resp_data.dict()
+    return resp_data.model_dump()
 
 
 @router.post("/run", response_model=ResponseBaseSchema)
-async def run_graph(user_intent: DataGenSQLModeUserIntentSchema, request: Request,
-                    traced_logger=Depends(get_transaction_logger)):
+async def run_graph(
+    user_intent: DataGenSQLModeUserIntentSchema,
+    request: Request,
+    traced_logger=Depends(get_transaction_logger),
+):
     """
     用户反馈确认
     :param user_intent:
@@ -167,7 +179,7 @@ async def run_graph(user_intent: DataGenSQLModeUserIntentSchema, request: Reques
         "client_ip": client_ip,
     }
 
-    thread = {"configurable": {"thread_id": session_id}}
+    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
     event = await sql_mode_data_gen_graph.ainvoke(
         init_state, thread, stream_mode="values"
     )
@@ -197,4 +209,4 @@ async def run_graph(user_intent: DataGenSQLModeUserIntentSchema, request: Reques
         }
         logger.info(f"[数据生成Graph] 结果: {json.dumps(result)}")
         resp_data.data = event
-    return resp_data.dict()
+    return resp_data.model_dump()

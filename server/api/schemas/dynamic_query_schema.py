@@ -8,7 +8,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class DynamicQuery(BaseModel):
+class DynamicQuerySchema(BaseModel):
     """
     工具任务运行结果概览信息定义
     """

@@ -10,7 +10,7 @@ from loguru import logger
 from cruds.dynamic_query import query_safe_check, query_sql
 from server.api.depends import get_db_manager
 from server.api.schemas.base_schema import ResponseBaseSchema
-from server.api.schemas.dynamic_query import DynamicQuery
+from server.api.schemas.dynamic_query_schema import DynamicQuerySchema
 from utils.db_manager import DatabaseManager
 from utils.err_code import error_code
 
@@ -23,7 +23,7 @@ router = APIRouter(
 
 @router.post("/dynamic_query", response_model=ResponseBaseSchema, tags=["dynamic"])
 def dynamic_query(
-    data: DynamicQuery, db_manager: DatabaseManager = Depends(get_db_manager)
+    data: DynamicQuerySchema, db_manager: DatabaseManager = Depends(get_db_manager)
 ):
     resp_data = ResponseBaseSchema(description="动态查询")
     logger.debug(
