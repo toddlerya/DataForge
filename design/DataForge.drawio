@@ -944,7 +944,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="guOFScwehbqAZZKThWlF" name="第 3 页">
-    <mxGraphModel dx="1969" dy="1005" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+    <mxGraphModel dx="1395" dy="712" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1655,7 +1655,7 @@
             <mxPoint x="1" y="1" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-112" value="人工修正DG规则信息" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-112" value="人工修正DG规则信息&lt;br&gt;比对分析(改、增、删)" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
           <mxGeometry x="2190" y="1650.63" width="140" height="40" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-117" value="仿真测试环境数据扩充&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;【未开始】&lt;/span&gt;&lt;/div&gt;" style="shape=step;perimeter=stepPerimeter;whiteSpace=wrap;html=1;fixedSize=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffff88;strokeColor=#36393d;" vertex="1" parent="1">
@@ -1767,6 +1767,9 @@
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-162" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
           <mxGeometry x="2055" y="1690.63" width="90" height="16.25" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-165" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="2240" y="1690.63" width="90" height="16.25" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
