@@ -1,4 +1,4 @@
-# 接口服务
+# 数据银行提供的接口服务
 
 ## 表元数据-数据生成服务
 
@@ -36,7 +36,17 @@ select table_en_name , table_cn_name, env_name from table_meta_data_info tmdi
 
 # DG 对接待办事项
 
-## AI 生成的任务规则经人工修改后的派生任务记录回调录入
+## 提供 DG 规则查询接口服务
+
+## 提供 DG 规则录入接口服务
+
+## 规则数据预览接口需要改造
+
+http://172.17.55.30/genius/get-preview/
+
+现在是个 form 表单，改成 json/application 请求
+
+## AI 生成的任务规则经人工修改后的派生任务记录回调录入流程
 
 ### 场景
 
@@ -44,18 +54,14 @@ select table_en_name , table_cn_name, env_name from table_meta_data_info tmdi
 
 ### 逻辑
 
-AI 创建的任务，然后用户对这个任务进行了修改，新建了任务，回调一下服务接口。
-给我这些信息：
+AI 创建的任务，然后用户对这个任务进行了修改，新建了任务，回调一下数据银行的服务接口 http://10.0.23.57:25702/task/add。
 
-1. parent_task_id, parent_rule_name
-2. child_task_id, child_rule_name, new_dg_rule, modified_filed_rule
-
-## 规则数据预览接口需要改造
-
-http://172.17.55.30/genius/get-preview/ 现在是个 form 表单，改成 json/application 请求
+详情见接口文档 http://10.0.23.57:25702/docs#/%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86/add_task_info_task_add_post
 
 ## 仅在 DG 新建任务记录同步
 
-DG 创建的任务信息没有统计到这里
+调用 http://10.0.23.57:25702/task/add 不需传递
 
-## 支持类似 PG、MYSQL 这种库的字段长度 比如 varchar(30)生成的数据符合长度要求
+详情见接口文档 http://10.0.23.57:25702/docs#/%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86/add_task_info_task_add_post
+
+## 支持类似 PG、MYSQL 这种库的字段长度 比如 varchar(30)生成的数据符合长度要求的规则

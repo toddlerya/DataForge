@@ -4,6 +4,7 @@
 # @Author   : guoqun X2590
 # @Desc     : 任务信息结构
 
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,6 +16,14 @@ class TaskSchmea(BaseModel):
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
+    parent_dg_task_id: Optional[str] = Field(
+        default="",
+        description="父任务DG的任务ID, 针对AI创建任务人工修改派生新任务的情况",
+    )
+    parent_rule_name: Optional[str] = Field(
+        default="",
+        description="父任务DG的任务规则名称, 针对AI创建任务人工修改派生新任务的情况",
+    )
     task_uuid: str = Field(
         ..., description="任务唯一ID, 与session_uuid, trace_uuid一致"
     )

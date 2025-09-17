@@ -6,17 +6,12 @@
 # @Project  : DataForge
 
 
-import logging
-import os.path
-import sys
-
 from uvicorn import Config, Server
 
-from server.api.base import app
-from utils.log import LogManager, logger
-from config import ENV_LOG_LEVEL, ENV_PORT, PROJECT_PATH
-
 from common.initialization import setup_logging
+from config import ENV_LOG_LEVEL, ENV_PORT, PROJECT_PATH
+from server.api.base import app
+from utils.log import LogManager
 
 
 class Serve:

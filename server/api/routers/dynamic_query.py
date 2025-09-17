@@ -21,7 +21,7 @@ router = APIRouter(
 )
 
 
-@router.post("/dynamic_query", response_model=ResponseBaseSchema, tags=["dynamic"])
+@router.post("/dynamic_query", response_model=ResponseBaseSchema)
 def dynamic_query(
     data: DynamicQuerySchema, db_manager: DatabaseManager = Depends(get_db_manager)
 ):
