@@ -944,7 +944,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="guOFScwehbqAZZKThWlF" name="第 3 页">
-    <mxGraphModel dx="1674" dy="854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+    <mxGraphModel dx="1969" dy="1005" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1522,15 +1522,6 @@
             <mxPoint x="3" y="9" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-55" value="待集成" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
-          <mxGeometry x="2040" y="1692.5100000000002" width="60" height="16.25" as="geometry" />
-        </mxCell>
-        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-58" value="待重构" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fff2cc;strokeColor=#d6b656;gradientColor=#ffd966;" vertex="1" parent="1">
-          <mxGeometry x="2070" y="838.75" width="60" height="16.25" as="geometry" />
-        </mxCell>
-        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-59" value="待重构" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fff2cc;strokeColor=#d6b656;gradientColor=#ffd966;" vertex="1" parent="1">
-          <mxGeometry x="1880" y="838.75" width="60" height="16.25" as="geometry" />
-        </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-60" value="&lt;font&gt;需要支持区分&lt;/font&gt;&lt;div&gt;&lt;font&gt;不同的环境资源&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font&gt;env_name&lt;/font&gt;&lt;/div&gt;" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fontColor=#FF3333;position2=0.29;" vertex="1" parent="1">
           <mxGeometry x="2090" y="684.38" width="140" height="91" as="geometry" />
         </mxCell>
@@ -1566,9 +1557,6 @@
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-75" value="未开始" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fa6800;fontColor=#000000;strokeColor=#C73500;" vertex="1" parent="1">
           <mxGeometry x="1650" y="931.88" width="60" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-76" value="未开始" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#fa6800;fontColor=#000000;strokeColor=#C73500;" vertex="1" parent="1">
-          <mxGeometry x="2260" y="1600.63" width="60" height="20" as="geometry" />
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-77" value="DG规则管理&lt;div&gt;服务&lt;/div&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="2580" y="1195.0100000000002" width="120" height="68.75" as="geometry" />
@@ -1767,6 +1755,18 @@
         </mxCell>
         <mxCell id="8BKQ6smGp7mpiVvBxwpZ-158" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
           <mxGeometry x="2070" y="1102.5" width="90" height="16.25" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-159" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="2070" y="838.75" width="90" height="16.25" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-160" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="1880" y="838.75" width="90" height="16.25" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-161" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="2260" y="1600.63" width="90" height="16.25" as="geometry" />
+        </mxCell>
+        <mxCell id="8BKQ6smGp7mpiVvBxwpZ-162" value="已集成，待测试" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#ffcd28;strokeColor=#d79b00;gradientColor=#ffa500;" vertex="1" parent="1">
+          <mxGeometry x="2055" y="1690.63" width="90" height="16.25" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
