@@ -6,10 +6,12 @@
 
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field, model_validator
+
+from database_models.schema import TaskDataSchema
 
 
-class TaskSchmea(BaseModel):
+class TaskPayloadSchmea(TaskDataSchema):
     """
     任务信息定义
     """
@@ -24,28 +26,33 @@ class TaskSchmea(BaseModel):
         default="",
         description="父任务DG的任务规则名称, 针对AI创建任务人工修改派生新任务的情况",
     )
-    task_uuid: str = Field(
-        ..., description="任务唯一ID, 与session_uuid, trace_uuid一致"
-    )
-    table_en_name: str = Field(..., description="表英文名称")
-    data_row_count: int = Field(default=0, description="任务生成的数据条数")
-    user_intent: dict = Field(default={}, description="用户意图")
-    mode: int = Field(
-        default=0, description="任务模式[0:未知 1: 元数据模式 2: SQL解析模式]"
-    )
-    client_ip: str = Field(default="127.0.0.1", description="客户端IP")
-    task_payload: dict = Field(default={}, description="创建任务请求的请求体JSON")
-    rule_name: str = Field(default="", description="任务规则名称")
-    task_rule: dict = Field(default={}, description="任务规则配置JSON")
-    dg_task_status: int = Field(
-        default=-1, description="DG任务状态: 0正常,1异常,-1未知"
-    )
-    dg_task_message: str = Field(default="", description="DG任务状态信息")
-    dg_task_id: str = Field(default="", description="DG的任务ID")
-    dg_task_edit_url: str = Field(default="", description="DG任务的编辑URL")
-    dg_task_rule_data_preview: list[dict] = Field(
-        default=[{}], description="DG规则的预览数据"
-    )
-    dg_task_duration: str = Field(default="", description="DG任务耗时")
-    user_modified_rules: dict = Field(default={}, description="用户修改的字段规则")
-    env_name: str = Field(default="", description="环境名称")
+
+    @model_validator(mode="after")
+    def validate_all(self) -> "TaskPayloadSchmea":
+        # 1. 非空校验
+        non_empty_fields = {
+            "table_en_name",
+            "rule_name",
+            "task_rule",
+            "parent_dg_task_id",
+            "parent_rule_name",
+        }
+        for field_name in non_empty_fields:
+            value = getattr(self, field_name, None)
+            if value is None:
+                raise ValueError(f"{field_name} 不可为空")
+            if isinstance(value, (str, dict, list)):
+                if len(value) == 0:
+                    raise ValueError(f"{field_name} 不可为空 {type(value).__name__}")
+        # 2. 长度校验
+        if self.parent_dg_task_id and len(self.parent_dg_task_id) < 32:
+            raise ValueError("parent_dg_task_id 长度必须大于等于 32 位")
+        if self.task_uuid and len(self.task_uuid) < 32:
+            raise ValueError("task_uuid 长度必须大于等于 32 位")
+        # 3. task_rule 内容校验（可选）
+        if len(self.task_rule) == 0:
+            raise ValueError("task_rule 不可为空数组")
+        for i, rule in enumerate(self.task_rule):
+            if not rule:
+                raise ValueError(f"task_rule 中第 {i + 1} 个规则不可为空")
+        return self

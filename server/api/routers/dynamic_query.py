@@ -26,9 +26,7 @@ def dynamic_query(
     data: DynamicQuerySchema, db_manager: DatabaseManager = Depends(get_db_manager)
 ):
     resp_data = ResponseBaseSchema(description="动态查询")
-    logger.debug(
-        f"router.dynamic_query ==> sql: {data.sql} max_count: {data.max_count}"
-    )
+    logger.debug(f"dynamic_query ==> sql: {data.sql} max_count: {data.max_count}")
     check_status, check_result = query_safe_check(sql=data.sql)
     if not check_status:
         resp_data.code = error_code.DB_SAFE_CHECK_ERROR.get("code")
@@ -52,4 +50,4 @@ def dynamic_query(
                 + db_message
             )
         resp_data.data = db_result
-    return resp_data.dict()
+    return resp_data.model_dump()

@@ -12,8 +12,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
-
-# from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 
 from common.initialization import init_env
@@ -66,25 +64,6 @@ app.include_router(agent_data_gen.router)
 app.include_router(agent_sql_mode_data_gen.router)
 app.include_router(dynamic_query.router)
 app.include_router(task.router)
-
-
-# def custion_openapi():
-#     if app.openapi_schema:
-#         return app.openapi_schema
-
-#     openapi_schema = get_openapi(
-#         title="My API",
-#         version="1.0.0",
-#         description="API文档",
-#         routes=app.routes,
-#     )
-
-#     openapi_schema["openapi"] = "3.0.1"
-#     app.openapi_schema = openapi_schema
-#     return app.openapi_schema
-
-
-# app.openapi = custion_openapi
 
 
 @app.get("/docs", include_in_schema=False)
