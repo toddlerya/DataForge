@@ -60,7 +60,7 @@ AI 创建的任务，然后用户对这个任务进行了修改，新建了任�
 
 ## 仅在 DG 新建任务记录同步
 
-调用 http://10.0.23.57:25702/task/add 不需传递
+调用 http://10.0.23.57:25702/task/add 不需传递 parent_dg_task_id, parent_rule_name
 
 详情见接口文档 http://10.0.23.57:25702/docs#/%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86/add_task_info_task_add_post
 
