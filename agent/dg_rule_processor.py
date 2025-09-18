@@ -138,9 +138,12 @@ def recommend_dg_rule_by_llm(
             name=name,
             ename=field_info.en_name,
             cname=field_info.cn_name,
-            preview=f"score: {llm_dg_field_category_recommendation.score}, "
-            f"reason: {llm_dg_field_category_recommendation.reason}",
-            value=field_info.example,
+            preview="",
+            value=(
+                f"example: {field_info.example} "
+                f"score: {llm_dg_field_category_recommendation.score}, "
+                f"reason: {llm_dg_field_category_recommendation.reason}"
+            ),
             args=args,
         )
         logger.trace(
