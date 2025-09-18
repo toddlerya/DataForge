@@ -47,7 +47,6 @@ def detect_input_type(state: SQLModeDataGenState):
     :return:
     """
     user_intent: DataGenSQLModeUserIntentSchema = state.get("user_intent")
-    state["mode"] = 2
     if user_intent:
         return "sql_parse_to_table_info"
     else:
@@ -102,6 +101,7 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     :return:
     """
     logger.info("[+] 解析SQL为表结构JSON")
+    state["mode"] = 2
     user_intent = state.get("user_intent")
     user_sql = user_intent.sql
     logger.info(f"用户提供的SQL: {user_sql}")
