@@ -28,6 +28,9 @@ class DataGenUserIntentSchema(BaseModel):
     data_count: int = Field(..., ge=1, description="期望数据条数")
     # TODO: 考虑让env_name是枚举类型，根据数据库信息动态更新
     env_name: str = Field(default="", description="环境名称")
+    dont_run_dg_task: bool = Field(
+        default=False, description="只进行AI推荐不创建DG任务"
+    )
 
 
 class TableMetadataSchema(BaseModel):
@@ -157,6 +160,7 @@ class DataGenState(DataGenBaseState):
     user_intent: DataGenUserIntentSchema
     pre_heat_mode: bool
     mode: Literal[1]
+    dont_run_dg_task: bool
 
 
 class DataGenSQLModeUserIntentSchema(BaseModel):

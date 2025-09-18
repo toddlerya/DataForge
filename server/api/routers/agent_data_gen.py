@@ -170,13 +170,13 @@ async def run_graph(
     client_ip = extract_client_ip(request)
     resp_data.session_id = session_id
     init_state = {
-        "user_input": user_intent.model_dump_json(),
         "user_intent": user_intent,
         "human_intent_feedback": "正确",
         "max_retries": 3,
         "session_id": session_id,
         "client_ip": client_ip,
         "mode": 1,
+        "dont_run_dg_task": user_intent.dont_run_dg_task,
     }
 
     thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
@@ -210,5 +210,5 @@ async def run_graph(
             "data_genius_plan_edit_url": event["data_genius_plan_edit_url"],
         }
         logger.info(f"[数据生成Graph] 结果: {json.dumps(result)}")
-        resp_data.data = event
+    resp_data.data = event
     return resp_data.model_dump()

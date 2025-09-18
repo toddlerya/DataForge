@@ -23,7 +23,6 @@ from agent.dg_configs import (
 from agent.state import DataGenState, SQLModeDataGenState, TableMetadataSchema
 from config import DG_PAYLOAD_PATH
 from cruds.task import save_task_info
-from database_models.schema import TaskDataSchema
 from utils.db_manager import DatabaseManager
 from utils.file import save_dict2jl
 
@@ -153,17 +152,8 @@ def create_dg_task(
             state["create_data_genius_task_error"] = (
                 f"创建任务异常{create_task_url}, error: {info}"
             )
-    task_data = TaskDataSchema(
-        task_uuid=state["session_id"],
-        table_en_name=table_en_name,
-        data_row_count=pydantic_data_genius_plan.rows,
-        user_intent=state["user_intent"].model_dump(),
-        client_ip=client_ip,
-        task_payload=payload,
-        rule_name=pydantic_data_genius_plan.rule_name,
-        task_rule=pydantic_data_genius_plan_dict["rules"],
-        env_name=state.get("env_name", ""),
-    )
+    task_data = state["task_data"]
+    task_data.task_payload = payload
     state["task_data"] = task_data
     return state
 

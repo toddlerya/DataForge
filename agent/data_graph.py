@@ -47,7 +47,7 @@ def detect_input_type(state: DataGenState):
     """
 
     user_intent: DataGenUserIntentSchema = state.get("user_intent")
-    state["mode"] = 1
+
     if user_intent:
         return "query_table_raw_field_info"
     else:
@@ -101,6 +101,7 @@ def should_table_raw_field_info_continue(state: DataGenState):
 
 
 def query_table_raw_field_info(state: DataGenState) -> DataGenState:
+    state["mode"] = 1
     if "table_metadata_info" not in state:
         state["table_metadata_error"] = []
     env_name = state["user_intent"].env_name
@@ -272,12 +273,25 @@ def is_pre_heat_dg_rule_mode(state: DataGenState):
         return "save_dg_plan2json"
 
 
+def is_only_dg_rule_gen_mode(state: DataGenState):
+    """如果是DG规则生成模式,则不需要创建DG任务,但需要存储此次调用的任务规则信息
+
+    Args:
+        state (DataGenState): _description_
+    """
+    dont_run_dg_task = state.get("dont_run_dg_task", False)
+    if dont_run_dg_task is True:
+        return "save_task_info2db"
+    else:
+        return "create_dg_task"
+
+
 data_gen_builder = StateGraph(DataGenState)
 data_gen_builder.add_node("analyze_intent", analyze_data_intent)
 data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
-data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
+data_gen_builder.add_node("dg_rule_processor", dg_rule_processor)
 data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
 data_gen_builder.add_node("create_dg_task", create_dg_task)
 data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
@@ -297,11 +311,15 @@ data_gen_builder.add_conditional_edges(
     should_table_raw_field_info_continue,
     ["rag_sql_table_filed_info", END],
 )
-data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_recommend")
+data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_rule_processor")
 data_gen_builder.add_conditional_edges(
-    "dg_category_recommend", is_pre_heat_dg_rule_mode, ["save_dg_plan2json", END]
+    "dg_rule_processor", is_pre_heat_dg_rule_mode, ["save_dg_plan2json", END]
 )
-data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
+data_gen_builder.add_conditional_edges(
+    "save_dg_plan2json",
+    is_only_dg_rule_gen_mode,
+    ["save_task_info2db", "create_dg_task"],
+)
 data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
 data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
 data_gen_builder.add_edge("save_task_info2db", END)
@@ -334,25 +352,22 @@ if __name__ == "__main__":
     if traced_logger.get_trace_uuid() is None:
         traced_logger.set_trace_uuid(session_id)
 
-    user_input = """数据库表名称：
-fmdbmeta.DWD_BEH_TRANS_ENTRY
-期望生成数据条数：
-fmdbmeta.DWD_BEH_TRANS_ENTRY：100"""
+    user_input = """数据库表名称: fmdbmeta.DWD_BEH_TRANS_ENTRY 期望生成数据条数： 100"""
     thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
     init_state = {
-        # "DG_FIELD_CATEGORY_CONFIG": DG_FIELD_CATEGORY_CONFIG,
         "user_input": user_input,
         "user_intent": DataGenUserIntentSchema(
             **{
-                "table_en_names": ["fmdbmeta.DWD_BEH_TRANS_ENTRY"],
-                "table_data_count": {"fmdbmeta.DWD_BEH_TRANS_ENTRY": 100},
+                "table_en_name": "fmdbmeta.DWD_BEH_TRANS_ENTRY",
+                "data_count": 100,
             }
         ),
         "human_intent_feedback": "正确",
         "max_retries": 5,
         "session_id": session_id,
         "client_ip": "10.0.23.57",
+        "dont_run_dg_task": True,
     }
 
     for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):

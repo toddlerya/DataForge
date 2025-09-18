@@ -20,6 +20,7 @@ from agent.state import (
     SQLModeDataGenState,
     TableMetadataSchema,
     TableRawFieldSchema,
+    TaskDataSchema,
 )
 from config import DG_PLAN_CONFIG_PREFIX
 from cruds.dg_rule_cache import query_field_dg_rule, save_field_dg_rule
@@ -327,5 +328,16 @@ def dg_rule_processor(
         cols=len(table_metadata.raw_fields_info),
     )
     state["pydantic_data_genius_plan"] = pydantic_data_genius_plan
+    task_data = TaskDataSchema(
+        task_uuid=session_id,
+        table_en_name=table_en_name,
+        data_row_count=pydantic_data_genius_plan.rows,
+        user_intent=state["user_intent"].model_dump(),
+        client_ip=client_ip,
+        rule_name=pydantic_data_genius_plan.rule_name,
+        task_rule=pydantic_data_genius_plan.model_dump().get("rules", []),
+        env_name=state.get("env_name", ""),
+    )
+    state["task_data"] = task_data
     db_manager.close()
     return state
