@@ -10,7 +10,8 @@ POST
 {
     "table_en_name": "fmdbmeta.ODS_POL_PRI_RECPER_BASINF",
     "data_count": 100,
-    "env_name": "测试部仿真测试环境"
+    "env_name": "测试部仿真测试环境",
+    "dont_run_dg_task": true
 }
 ```
 
