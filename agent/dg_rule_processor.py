@@ -140,9 +140,9 @@ def recommend_dg_rule_by_llm(
             cname=field_info.cn_name,
             preview="",
             value=(
-                f"example: {field_info.example} "
-                f"score: {llm_dg_field_category_recommendation.score}, "
-                f"reason: {llm_dg_field_category_recommendation.reason}"
+                f"【样例】: {field_info.example}<br>"
+                f"【得分】: {llm_dg_field_category_recommendation.score},<br>"
+                f"【理由】: {llm_dg_field_category_recommendation.reason}"
             ),
             args=args,
         )
@@ -238,7 +238,6 @@ def dg_rule_processor(
             )
             # 更新字段的DG规则配置
             cached_dg_rule.col = col_index
-            cached_dg_rule.value = field_info.example
             rules.append(cached_dg_rule)
             # 字段序号+1
             field_index += 1
