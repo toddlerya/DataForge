@@ -35,6 +35,14 @@ select * from environment_info ei ;
 select table_en_name , table_cn_name, env_name from table_meta_data_info tmdi
 ```
 
+# 新增单字段 AI 推荐 DG 规则能力
+
+给定字段名称信息（英文名、中文名、数据类型、样例数据等），直接触发 AI 推荐，生成单个的 DG 规则字典对象。
+
+# 新增外部表结构信息推荐完整 DG 规则能力
+
+外部传入表结构元数据，直接触发 AI 推荐，生成完整的 DG 规则配置信息。
+
 # DG 对接待办事项
 
 ## 提供 DG 规则查询接口服务
