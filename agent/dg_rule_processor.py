@@ -140,9 +140,8 @@ def recommend_dg_rule_by_llm(
             cname=field_info.cn_name,
             preview="",
             value=(
-                f"【样例】: {field_info.example}, "
-                f"【得分】: {llm_dg_field_category_recommendation.score}, "
-                f"【理由】: {llm_dg_field_category_recommendation.reason}"
+                f"【SCORE】: {llm_dg_field_category_recommendation.score}, "
+                f"【THINK】: {llm_dg_field_category_recommendation.reason}"
             ),
             args=args,
         )
