@@ -1,4 +1,4 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.17 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.17" pages="3">
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.17 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.17" pages="4">
   <diagram name="第 1 页" id="K-cl1vzY9knZKWMjM1jg">
     <mxGraphModel dx="5506" dy="1314" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
@@ -944,7 +944,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="guOFScwehbqAZZKThWlF" name="第 3 页">
-    <mxGraphModel dx="2390" dy="1423" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+    <mxGraphModel dx="2049" dy="1220" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -1770,6 +1770,188 @@
         </mxCell>
         <mxCell id="VCQbw9R7b9KDrU6sRqoc-14" value="待上线" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=LXGW WenKai GB Screen R;fillColor=#d5e8d4;strokeColor=#82b366;gradientColor=#97d077;" vertex="1" parent="1">
           <mxGeometry x="1190" y="1252.5000000000002" width="90" height="16.25" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="GKzT1NgKLuGR8p0lrGtF" name="chat app">
+    <mxGraphModel dx="1434" dy="854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="d8VCogVvzDEVADAFptCI-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-1" target="d8VCogVvzDEVADAFptCI-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-41" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-1" target="d8VCogVvzDEVADAFptCI-40">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-1" value="&lt;font&gt;意图解析&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="360" y="290" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-2" target="d8VCogVvzDEVADAFptCI-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-2" value="&lt;div&gt;&lt;font&gt;根据输入文本&lt;/font&gt;&lt;/div&gt;&lt;font&gt;查看有哪些表&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="150" y="580" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-4" target="d8VCogVvzDEVADAFptCI-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-4" value="包含XX字段的表有哪些" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="355" y="580" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-6" target="d8VCogVvzDEVADAFptCI-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-6" value="&lt;font&gt;使用XX表构造测试数据&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="760" y="480" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-8" target="d8VCogVvzDEVADAFptCI-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-8" value="用户" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="405" y="40" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-9" target="d8VCogVvzDEVADAFptCI-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-9" value="用户输入" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="360" y="180" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-13" target="d8VCogVvzDEVADAFptCI-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-13" target="d8VCogVvzDEVADAFptCI-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-13" value="&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;表查询工具&lt;/span&gt;&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="150" y="670" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0;entryY=0;entryDx=0;entryDy=30;entryPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-17" target="d8VCogVvzDEVADAFptCI-29">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="130" y="890" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-17" value="&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;表名称模糊查询&lt;/span&gt;&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="70" y="770" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-20" target="d8VCogVvzDEVADAFptCI-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-20" value="&lt;div&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;表名称精确查询&lt;/span&gt;&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="210" y="770" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-22" target="d8VCogVvzDEVADAFptCI-24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-22" value="字段关系查询工具" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="355" y="660" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-34" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0;entryY=0;entryDx=120;entryDy=50;entryPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-24" target="d8VCogVvzDEVADAFptCI-29">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="890" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-24" value="查询包含XX字段的SQL" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="355" y="770" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-26" value="&lt;font&gt;DataGenLangGraph&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="760" y="590" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-36" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0;entryY=0;entryDx=0;entryDy=25;entryPerimeter=0;exitX=0;exitY=0;exitDx=70;exitDy=80;exitPerimeter=0;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-29" target="d8VCogVvzDEVADAFptCI-9">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="920" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="280" y="980" />
+              <mxPoint x="40" y="980" />
+              <mxPoint x="40" y="205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-60" value="会话展示、加入会话上下文" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" connectable="0" parent="d8VCogVvzDEVADAFptCI-36">
+          <mxGeometry x="0.7802" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-29" value="XX表元数据信息展示控件" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="210" y="870" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-49" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-37" target="d8VCogVvzDEVADAFptCI-51">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="625" y="700" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-37" value="动态SQL查询" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="560" y="580" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-42" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-40" target="d8VCogVvzDEVADAFptCI-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-46" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-40" target="d8VCogVvzDEVADAFptCI-37">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="565" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-47" value="否" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" connectable="0" parent="d8VCogVvzDEVADAFptCI-46">
+          <mxGeometry x="-0.5931" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-40" value="SQL意图是否&lt;div&gt;匹配固定模板&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="355" y="390" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-43" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-40" target="d8VCogVvzDEVADAFptCI-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="430" y="480" as="sourcePoint" />
+            <mxPoint x="430" y="560" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="420" y="530" />
+              <mxPoint x="210" y="530" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-44" value="是" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" connectable="0" parent="d8VCogVvzDEVADAFptCI-43">
+          <mxGeometry x="-0.8562" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-59" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0;entryY=0;entryDx=120;entryDy=25;entryPerimeter=0;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-50" target="d8VCogVvzDEVADAFptCI-9">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="780" y="1060" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="970" y="940" />
+              <mxPoint x="970" y="205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-61" value="会话展示、加入会话上下文" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" connectable="0" parent="d8VCogVvzDEVADAFptCI-59">
+          <mxGeometry x="0.7151" y="-5" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-50" value="其他统计维度" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="720" y="900" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-54" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;entryX=0;entryY=0;entryDx=120;entryDy=50;entryPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-51" target="d8VCogVvzDEVADAFptCI-29">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="625" y="910" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-55" value="是" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" connectable="0" parent="d8VCogVvzDEVADAFptCI-54">
+          <mxGeometry x="-0.6727" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-56" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=LXGW WenKai GB Screen R;" edge="1" parent="1" source="d8VCogVvzDEVADAFptCI-51" target="d8VCogVvzDEVADAFptCI-50">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-57" value="否" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" connectable="0" parent="d8VCogVvzDEVADAFptCI-56">
+          <mxGeometry x="0.0815" y="-2" relative="1" as="geometry">
+            <mxPoint x="2" y="19" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d8VCogVvzDEVADAFptCI-51" value="结果符合&lt;div&gt;表元数据信息结构&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=LXGW WenKai GB Screen R;" vertex="1" parent="1">
+          <mxGeometry x="552.5" y="750" width="145" height="80" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
