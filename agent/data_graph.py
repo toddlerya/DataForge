@@ -33,10 +33,25 @@ from cruds.pangu import (
     query_dict_items_info_by_dict_category,
     query_dict_items_info_by_dictkey,
 )
-from cruds.table_metadata import table_metadata_query
+from cruds.table_metadata import table_metadata_fuzzy_query, table_metadata_query
 from database_models.schema import RecommendPanGuDictSchema, TableRawFieldSchema
 from utils.db_manager import DatabaseManager
 from utils.file import save_dict2jl
+
+
+def reset_input_and_intent(state: DataGenState) -> DataGenState:
+    """重置输入和意图
+
+    Args:
+        state (DataGenState): _description_
+
+    Returns:
+        DataGenState: _description_
+    """
+    new_state = deepcopy(state)
+    new_state["user_input"] = ""
+    new_state["user_intent"] = None  # type: ignore
+    return new_state
 
 
 def detect_input_type(state: DataGenState):
@@ -51,7 +66,7 @@ def detect_input_type(state: DataGenState):
     if user_intent:
         return "query_table_raw_field_info"
     else:
-        return "analyze_intent"
+        return "analyze_data_intent"
 
 
 def analyze_data_intent(state: DataGenState) -> DataGenState:
@@ -61,16 +76,19 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
         f"analyze_data_intent => user_input: {user_input} "
         f"human_intent_feedback: {human_intent_feedback}"
     )
-    structured_llm = chat_llm.with_structured_output(DataGenUserIntentSchema)
-    chat_prompt = data_intent_prompt.format_messages(
-        user_input=user_input, human_intent_feedback=human_intent_feedback
-    )
-    logger.trace(f"analyze_intent chat_prompt: {chat_prompt}")
-    user_intent = structured_llm.invoke(chat_prompt)
-    logger.info(f"user_intent: {user_intent} type: {type(user_intent)}")
-    if isinstance(user_intent, DataGenUserIntentSchema):
-        state["user_intent"] = user_intent
-        state["env_name"] = user_intent.env_name
+    if user_input:
+        structured_llm = chat_llm.with_structured_output(DataGenUserIntentSchema)
+        chat_prompt = data_intent_prompt.format_messages(
+            user_input=user_input, human_intent_feedback=human_intent_feedback
+        )
+        logger.trace(f"analyze_data_intent chat_prompt: {chat_prompt}")
+        user_intent = structured_llm.invoke(chat_prompt)
+        logger.info(
+            f"user_input: {user_input} user_intent: {user_intent} type: {type(user_intent)}"
+        )
+        if isinstance(user_intent, DataGenUserIntentSchema):
+            state["user_intent"] = user_intent
+            state["env_name"] = user_intent.env_name
     return state
 
 
@@ -83,24 +101,37 @@ def should_data_intent_continue(state: DataGenState):
     """Return the next node to execute"""
 
     # Check if human feedback
+    logger.info(f"should_data_intent_continue: {state}")
     human_intent_feedback = state.get("human_intent_feedback", "").strip()
     if human_intent_feedback == "正确" or human_intent_feedback == "Y":
+        logger.info(
+            "should_data_intent_continue -> query_table_raw_field_info "
+            f"human_intent_feedback: {human_intent_feedback}"
+        )
         return "query_table_raw_field_info"
+    else:
+        # Otherwise proceed to create table info
+        logger.info("should_data_intent_continue -> reset_input_and_intent")
+        # 重新开始意图识别
+        logger.info("重置state的user_input和user_intent")
 
-    # Otherwise proceed to create table info
-    return "analyze_intent"
+        return "reset_input_and_intent"
 
 
 def should_table_raw_field_info_continue(state: DataGenState):
+    logger.info("should_table_raw_field_info_continue start")
     table_metadata_error = state.get("table_metadata_error", [])
     if len(table_metadata_error) >= 1:
-        logger.error(f"存在table_metadata_error: {' '.join(table_metadata_error)}")
-        return END
+        logger.info(f"存在table_metadata_error: {' '.join(table_metadata_error)}")
+        # 查询表元数据有错误, 重新开始意图识别
+        logger.info("重置state的user_input和user_intent")
+        return "reset_input_and_intent"
     else:
         return "rag_sql_table_filed_info"
 
 
 def query_table_raw_field_info(state: DataGenState) -> DataGenState:
+    logger.info("query_table_raw_field_info start")
     state["mode"] = 1
     if "table_metadata_info" not in state:
         state["table_metadata_error"] = []
@@ -114,7 +145,7 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
         table_en_name=table_en_name, env_name=env_name, db_manager=db_manager
     )
     if query_status is False:
-        logger.error(f"查询{table_en_name}元数据异常: {query_result}")
+        logger.error(f"查询{table_en_name}元数据异常: {query_message}")
         state["table_metadata_error"].append(
             f"查询{table_en_name}元数据异常: {query_message}"
         )
@@ -122,6 +153,30 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     elif query_result is None:
         logger.error(f"未查询到{table_en_name}元数据!")
         state["table_metadata_error"].append(f"未查询到{table_en_name}元数据!")
+        logger.info(
+            f"尝试模糊查询, 提供更好的错误信息, input table_en_name: {table_en_name}"
+        )
+        # 预处理table_en_name，去除数据库作用域
+        if "." in table_en_name:
+            table_en_name = table_en_name.split(".")[1]
+        fuzzy_status, fuzzy_message, fuzzy_result = table_metadata_fuzzy_query(
+            table_name=table_en_name, env_name=env_name, db_manager=db_manager
+        )
+        if fuzzy_status is False:
+            logger.error(f"模糊查询表元数据异常: {fuzzy_message}")
+        else:
+            fuzzy_table_en_name_list = [
+                str(ele.table_en_name) for ele in fuzzy_result if fuzzy_result
+            ]
+            if fuzzy_table_en_name_list:
+                state["table_metadata_error"].append(
+                    f"您想要查询的表可能是:\n {'\n'.join(fuzzy_table_en_name_list)}"
+                )
+            else:
+                logger.error(
+                    f"input table_en_name: {table_en_name}"
+                    f"模糊查询结果为空: fuzzy_result={fuzzy_result}"
+                )
         raw_fields_data = [TableRawFieldSchema()]
     else:
         # 重要：从 ORM 对象中提取字段值，而不是直接传 ColumnElement
@@ -287,7 +342,8 @@ def is_only_dg_rule_gen_mode(state: DataGenState):
 
 
 data_gen_builder = StateGraph(DataGenState)
-data_gen_builder.add_node("analyze_intent", analyze_data_intent)
+data_gen_builder.add_node("reset_input_and_intent", reset_input_and_intent)
+data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
 data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
@@ -298,19 +354,20 @@ data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
 data_gen_builder.add_node("save_task_info2db", save_task_info2db)
 
 data_gen_builder.add_conditional_edges(
-    START, detect_input_type, ["query_table_raw_field_info", "analyze_intent"]
+    START, detect_input_type, ["query_table_raw_field_info", "analyze_data_intent"]
 )
-data_gen_builder.add_edge("analyze_intent", "intent_human_feedback_node")
+data_gen_builder.add_edge("analyze_data_intent", "intent_human_feedback_node")
 data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
     should_data_intent_continue,
-    ["analyze_intent", "query_table_raw_field_info"],
+    ["query_table_raw_field_info", "reset_input_and_intent"],
 )
 data_gen_builder.add_conditional_edges(
     "query_table_raw_field_info",
     should_table_raw_field_info_continue,
-    ["rag_sql_table_filed_info", END],
+    ["rag_sql_table_filed_info", "reset_input_and_intent"],
 )
+data_gen_builder.add_edge("reset_input_and_intent", "analyze_data_intent")
 data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_rule_processor")
 data_gen_builder.add_conditional_edges(
     "dg_rule_processor", is_pre_heat_dg_rule_mode, ["save_dg_plan2json", END]
@@ -352,39 +409,49 @@ if __name__ == "__main__":
     if traced_logger.get_trace_uuid() is None:
         traced_logger.set_trace_uuid(session_id)
 
-    user_input = """数据库表名称: fmdbmeta.DWD_BEH_TRANS_ENTRY 期望生成数据条数： 100"""
+    user_input = (
+        """数据库表名称: Afmdbmeta.DWD_BEH_TRANS_ENTRY 期望生成数据条数： 100"""
+    )
     thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
     init_state = {
         "user_input": user_input,
-        "user_intent": DataGenUserIntentSchema(
-            **{
-                "table_en_name": "fmdbmeta.DWD_BEH_TRANS_ENTRY",
-                "data_count": 100,
-            }
-        ),
-        "human_intent_feedback": "正确",
+        # "user_intent": DataGenUserIntentSchema(
+        #     **{
+        #         "table_en_name": "fmdbmeta.DWD_BEH_TRANS_ENTRY",
+        #         "data_count": 100,
+        #     }
+        # ),
+        # "human_intent_feedback": "正确",
         "max_retries": 5,
         "session_id": session_id,
         "client_ip": "10.0.23.57",
-        "dont_run_dg_task": True,
+        # "dont_run_dg_task": True,
     }
 
+    # 1. 先流式执行到中断点
     for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):
         # Review
         # user_intent: DataGenUserIntentSchema = event.get("user_intent")
         # if user_intent:
         #     logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
 
-        # 模拟用户意图识别的研判反馈
-        # data_gen_graph.update_state(thread,
-        # {"human_intent_feedback": "正确"}, as_node="intent_human_feedback_node")
-
         # for event in data_gen_graph.stream(None, thread, stream_mode="values"):
         # Review
         # human_intent_feedback = event.get("human_intent_feedback")
         # if human_intent_feedback:
         #     logger.info(f"human_intent_feedback: {human_intent_feedback}")
+        logger.info(f"event: {event}")
+
+    # 2. 模拟用户意图识别的研判反馈
+    data_gen_graph.update_state(
+        thread,
+        {"human_intent_feedback": "正确"},
+        as_node="intent_human_feedback_node",
+    )
+
+    # 3. 从中断点继续执行
+    for event in data_gen_graph.stream(None, thread, stream_mode="values"):
         table_dict_category_code_map = event.get("table_dict_category_code_map")
         if table_dict_category_code_map:
             logger.info(f"table_dict_category_code_map: {table_dict_category_code_map}")

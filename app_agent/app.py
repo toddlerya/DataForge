@@ -94,9 +94,9 @@ async def process_step(event, graph):
     """
     for node, state in event.items():
         logger.debug(f"node: {node} state: {state} ")
-        if node == "analyze_intent":
+        if node == "analyze_data_intent":
             with cl.Step(name=node, show_input="json", type="tool") as step:
-                logger.info("[process] analyze_intent")
+                logger.info("[process] analyze_data_intent")
                 user_intent: DataGenUserIntentSchema = state.get("user_intent")
                 step.output = user_intent.model_dump_json(indent=2)
                 await cl.Message(

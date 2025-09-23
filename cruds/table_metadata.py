@@ -83,11 +83,47 @@ def table_metadata_query(
             query = query.filter(TableMetaDataInfo.env_name == env_name.strip())
         result = query.one_or_none()
     except Exception as err:
-        print(f"commit 异常: {err}")
         message = f"数据库读操作异常: {err}"
         return False, message, None
     else:
         return True, "ok", result
+
+
+def table_metadata_fuzzy_query(
+    table_name: str, env_name: str, db_manager: DatabaseManager
+) -> tuple[bool, str, list[TableMetaDataInfo]]:
+    """模糊查询表名称
+
+    Args:
+        table_name (str): _description_
+        env_name (str): _description_
+        db_manager (DatabaseManager): _description_
+
+    Returns:
+        tuple[bool,str, list[TableMetaDataInfo]]: _description_
+    """
+    try:
+        query = db_manager.get_session().query(TableMetaDataInfo)
+        env_name = env_name.strip()
+        if env_name:
+            # 如果 env_name 不为空字符串，则添加 env_name 条件
+            query = query.filter(TableMetaDataInfo.env_name == env_name)
+
+        # 模糊查询条件：支持表英文名或中文名的模糊匹配
+        table_name = table_name.strip()
+        if table_name:
+            # 构造模糊查询条件：table_en_name 或 table_cn_name 包含 table_name
+            like_condition = TableMetaDataInfo.table_en_name.ilike(
+                f"%{table_name}%"
+            ) | TableMetaDataInfo.table_cn_name.ilike(f"%{table_name}%")
+            query = query.filter(like_condition)
+        # 执行查询
+        results = query.all()
+    except Exception as err:
+        message = f"数据库读操作异常: {err}"
+        return False, message, []
+    else:
+        return True, "ok", results
 
 
 if __name__ == "__main__":

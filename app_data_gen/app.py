@@ -72,8 +72,8 @@ async def process_step(event, graph):
     """
     for node, state in event.items():
         logger.debug(f"node: {node} state: {state} ")
-        if node == "analyze_intent":
-            logger.info("[process] analyze_intent")
+        if node == "analyze_data_intent":
+            logger.info("[process] analyze_data_intent")
             user_intent: DataGenUserIntentSchema = state.get("user_intent")
             await cl.Message(
                 author="AI",
@@ -110,7 +110,9 @@ async def process_step(event, graph):
             table_metadata_error = state.get("table_metadata_error")
             if table_metadata_error:
                 logger.error(f"table_metadata_error: {table_metadata_error}")
-                await cl.Message(content=table_metadata_error).send()
+                await cl.Message(
+                    author="Tool", content="\n".join(table_metadata_error)
+                ).send()
             else:
                 df = pd.DataFrame(
                     [ele.model_dump() for ele in table_metadata.raw_fields_info]
