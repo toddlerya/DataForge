@@ -10,7 +10,7 @@ import random
 import re
 from typing import List, Tuple
 
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
@@ -561,7 +561,7 @@ table_gen_builder.add_edge("gen_dimension_table_config", "save_dimension_table_c
 table_gen_builder.add_edge("save_dimension_table_config", "archive_table_data")
 table_gen_builder.add_edge("archive_table_data", END)
 
-memory = MemorySaver()
+memory = InMemorySaver()
 table_gen_graph = table_gen_builder.compile(
     interrupt_before=["table_intent_human_feedback"], checkpointer=memory
 )

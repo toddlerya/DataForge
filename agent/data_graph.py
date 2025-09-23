@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from langchain_core.messages import ToolMessage
 from langchain_core.runnables.config import RunnableConfig
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
@@ -83,9 +83,7 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
         )
         logger.trace(f"analyze_data_intent chat_prompt: {chat_prompt}")
         user_intent = structured_llm.invoke(chat_prompt)
-        logger.info(
-            f"user_input: {user_input} user_intent: {user_intent} type: {type(user_intent)}"
-        )
+        logger.info(f"user_input: {user_input} user_intent: {user_intent}")
         if isinstance(user_intent, DataGenUserIntentSchema):
             state["user_intent"] = user_intent
             state["env_name"] = user_intent.env_name
@@ -381,7 +379,7 @@ data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
 data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
 data_gen_builder.add_edge("save_task_info2db", END)
 
-memory = MemorySaver()
+memory = InMemorySaver()
 data_gen_graph = data_gen_builder.compile(
     interrupt_before=["intent_human_feedback_node"], checkpointer=memory
 )

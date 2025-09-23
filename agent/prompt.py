@@ -221,3 +221,21 @@ table_fields_fill_human_prompt = HumanMessagePromptTemplate.from_template(
 table_fields_fill_prompt = ChatPromptTemplate.from_messages(
     [table_fields_fill_system_prompt, table_fields_fill_human_prompt]
 )
+
+
+# 定义模板
+explore_intent_system_prompt = SystemMessagePromptTemplate.from_template(
+    "你是数仓专家, 分析用户的输入, 识别出以下信息\n"
+    "1. 需要查询的表名称(对应table_name_condition), 若用户没提供表名称则填写空字符串\n"
+    "2. 需要查询的字段名称(对应tablie_field_condition), 若用户没提供段名称则填写空字符串\n"  # noqa: E501
+    "3. 需要查询的环境(对应env_name), 若用户没提供环境名称则填写空字符串\n"
+    "按照要求输出结构化数据。"
+)
+
+explore_intent_human_prompt = HumanMessagePromptTemplate.from_template(
+    "分析如下信息并结构化输出: {user_input}\n"
+)
+
+explore_intent_prompt = ChatPromptTemplate.from_messages(
+    [explore_intent_system_prompt, explore_intent_human_prompt]
+)

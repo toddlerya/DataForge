@@ -11,7 +11,7 @@ import uuid
 from copy import deepcopy
 
 from langchain_core.runnables.config import RunnableConfig
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
@@ -272,7 +272,7 @@ sql_mode_data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
 sql_mode_data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
 sql_mode_data_gen_builder.add_edge("save_task_info2db", END)
 
-memory = MemorySaver()
+memory = InMemorySaver()
 sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(
     interrupt_before=["intent_human_feedback_node"], checkpointer=memory
 )

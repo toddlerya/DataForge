@@ -128,12 +128,16 @@ class PydanticDataGeniusPlan(BaseModel):
     cols: int = Field(1, gt=0, description="需要生成的列数")
 
 
-# 基类：公共字段
-class DataGenBaseState(TypedDict):
+class CommonState(TypedDict):
     messages: Annotated[List[AnyMessage], add_messages]
-    user_input: str
     session_id: str
     client_ip: str
+    max_retries: int
+
+
+# 基类：公共字段
+class DataGenBaseState(CommonState):
+    user_input: str
     human_intent_feedback: str
     table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
@@ -151,7 +155,6 @@ class DataGenBaseState(TypedDict):
     data_genius_plan_output_filesize: str
     data_genius_plan_edit_url: str
     error_message: Annotated[List[AnyMessage], add_messages]
-    max_retries: int
     task_data: TaskDataSchema
     env_name: str
 
@@ -270,21 +273,33 @@ class DimensionTableFillFieldResult(BaseModel):
     )
 
 
-class TableGenState(TypedDict):
-    messages: Annotated[List[AnyMessage], add_messages]
+class TableGenState(CommonState):
     user_input: str
-    session_id: str
-    client_ip: str
     user_intent: TableGenUserIntentSchema
     human_intent_feedback: str
     material_table_groups: List[List[Dict]]
     mapping_dimension_table_info_slice: List[StructuredDimensionMappingSchema]
     dimension_table_config_slice: List[DimensionTableFillFieldResult]
-    max_retries: int
     session_temp_data_path: Path
     create_session_temp_data_path_message: str
     session_archive_file_path: Path
     archive_message: str
+
+
+class ExploreUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    tool_name: str = Field(..., description="需要调用的工具名称, 必须是已知的工具之一")
+    parameters: dict[str, str | int | list[str]] = Field(
+        ..., description="工具所需的参数, 根据不同工具类型提供对应的参数"
+    )
+
+
+class ExploreState(CommonState):
+    user_intent: ExploreUserIntentSchema
+
+
+class MainAppState(TypedDict):
+    message: Annotated[List[AnyMessage], add_messages]
 
 
 if __name__ == "__main__":
