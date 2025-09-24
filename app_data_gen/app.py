@@ -75,6 +75,8 @@ async def process_step(event, graph):
         if node == "analyze_data_intent":
             logger.info("[process] analyze_data_intent")
             user_intent: DataGenUserIntentSchema = state.get("user_intent")
+            if not user_intent:
+                continue
             await cl.Message(
                 author="AI",
                 content=user_intent.model_dump_json(indent=2),

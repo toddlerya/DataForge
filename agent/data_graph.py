@@ -149,7 +149,7 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
         )
         raw_fields_data = [TableRawFieldSchema()]
     elif query_result is None:
-        logger.error(f"未查询到{table_en_name}元数据!")
+        logger.warning(f"未查询到{table_en_name}元数据!")
         state["table_metadata_error"].append(f"未查询到{table_en_name}元数据!")
         logger.info(
             f"尝试模糊查询, 提供更好的错误信息, input table_en_name: {table_en_name}"
@@ -171,7 +171,7 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
                     f"您想要查询的表可能是:\n {'\n'.join(fuzzy_table_en_name_list)}"
                 )
             else:
-                logger.error(
+                logger.warning(
                     f"input table_en_name: {table_en_name}"
                     f"模糊查询结果为空: fuzzy_result={fuzzy_result}"
                 )
