@@ -100,7 +100,7 @@ def should_data_intent_continue(state: DataGenState):
 
     # Check if human feedback
     logger.info(f"should_data_intent_continue: {state}")
-    human_intent_feedback = state.get("human_intent_feedback", "").strip()
+    human_intent_feedback = state.get("human_intent_feedback", "").strip().upper()
     if human_intent_feedback == "正确" or human_intent_feedback == "Y":
         logger.info(
             "should_data_intent_continue -> query_table_raw_field_info "
