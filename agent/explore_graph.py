@@ -2,10 +2,10 @@
 # coding: utf-8
 # @Time     : 2025/09/23 15:08
 # @Author   : guoqun X2590
-# @Desc     : 探索
+# @Desc     : 自由探索
 
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
@@ -14,54 +14,81 @@ from langgraph.prebuilt import ToolNode
 from loguru import logger
 
 from agent.llm import chat_llm
-from agent.prompt import explore_intent_prompt
-from agent.state import ExploreState, ExploreUserIntentSchema
+from agent.prompt import expolore_chat_prompt
+from agent.state import ExploreState
 from cruds.dynamic_query import query_sql
+from cruds.table_metadata import table_metadata_fuzzy_query
 from utils.db_manager import DatabaseManager
 
 
 @tool
 def metadata_table_statistic_tool():
     """查询当前已经有多少元数据表"""
-    db_manager = DatabaseManager()
-    sql = """select count(*) as total_number, "source", env_name 
-    from table_meta_data_info tmdi group by "source" ,env_name ;"""
-    status, message, result = query_sql(db_manager=db_manager, sql_text=sql)
-    if status is False:
-        message = f"查询当前已经有多少元数据表异常: {message}"
+    db_manager = None
+    try:
+        db_manager = DatabaseManager()
+        sql = """select count(*) as total_number, "source", env_name
+        from table_meta_data_info tmdi group by "source" ,env_name ;"""
+        status, message, result = query_sql(db_manager=db_manager, sql_text=sql)
+        if status is False:
+            message = f"查询当前已经有多少元数据表异常: {message}"
+            logger.error(message)
+            return message
+        else:
+            logger.info(f"查询当前已经有多少元数据表: result={result}")
+            return result
+    except Exception as err:
+        message = f"初始化数据库链接失败: {err}"
         logger.error(message)
         return message
-    else:
-        logger.info(f"查询当前已经有多少元数据表: result={result}")
-        return result
+    finally:
+        if db_manager:
+            db_manager.close()
 
 
-llm_with_tool = chat_llm.bind_tools(tools=[metadata_table_statistic_tool])
+@tool
+def metadata_table_filter_tool(table_name: str, env_name: str = ""):
+    """根据表名称模糊查询符合条件的表的元数据信息,
+    如果有环境名称可以根据环境名称缩小查询范围
 
-
-def analyze_explore_intent(state: ExploreState) -> ExploreState:
-    messages = state.get("messages")
-    logger.trace(f"messages: {messages}")
-    last_message = messages[-1]
-    if last_message and isinstance(last_message, HumanMessage):
-        logger.debug(f"latest human message: content={last_message.content}")
-        structured_llm = chat_llm.with_structured_output(ExploreUserIntentSchema)
-        chat_promt = explore_intent_prompt.format_messages(user_input=last_message)
-        logger.trace(f"analyze_explore_intent chat_prompt: {chat_promt}")
-        try:
-            user_intent = structured_llm.invoke(chat_promt)
-        except Exception as err:
-            err_message = f"意图解析异常: {err}"
-            logger.error(err_message)
-            messages.append(AIMessage(err_message))
+    Args:
+        table_name (str): 表名称,可以是英文名或中文名
+        env_name (str): 环境名称
+    """
+    db_manager = None
+    try:
+        db_manager = DatabaseManager()
+        status, message, result = table_metadata_fuzzy_query(
+            table_name=table_name, env_name=env_name, db_manager=db_manager
+        )
+        if status is False:
+            message = (
+                f"根据条件table_name={table_name}, env_name={env_name},"
+                f"模糊查询表元数据异常: {message}"
+            )
+            logger.error(message)
+            return message
         else:
-            logger.info(f"last_message: {last_message} user_intent: {user_intent}")
-    return state
+            data = [ele.to_dict() for ele in result]
+            logger.info(
+                f"根据条件table_name={table_name}, env_name={env_name},"
+                f"模糊查询表元数据结果共计{len(data)}个,"
+                f"表名分别是: {[ele.table_en_name for ele in result]}"
+            )
+            return data
+    except Exception as err:
+        message = f"初始化数据库链接失败: {err}"
+        logger.error(message)
+        return message
+    finally:
+        if db_manager:
+            db_manager.close()
 
 
-def intent_human_feedback_node(state: ExploreState):
-    """No-op node that should be interrupted on"""
-    return state
+tool_register = [metadata_table_statistic_tool, metadata_table_filter_tool]
+
+llm_with_tool = chat_llm.bind_tools(tools=tool_register)
+tool_node = ToolNode(tool_register)
 
 
 def explore_chat(state: ExploreState) -> ExploreState:
@@ -74,10 +101,38 @@ def explore_chat(state: ExploreState) -> ExploreState:
         ExploreState: _description_
     """
     messages = state["messages"]
-
-    response = llm_with_tool.invoke(input=messages)
-    logger.info(f"response: {type(response)} {response}")
-    return {"messages": response}
+    last_message = messages[-1]
+    logger.debug(f"last_message: {type(last_message)} {last_message}")
+    if last_message and isinstance(last_message, HumanMessage):
+        logger.debug(f"latest human message: content={last_message.content}")
+        state["question"] = str(last_message.content)
+        chat_prompt = expolore_chat_prompt.format_messages(question=last_message)
+        response = llm_with_tool.invoke(input=chat_prompt)
+        logger.info(f"response: {type(response)} {response}")
+        state["messages"].append(response)
+        if (
+            isinstance(response, AIMessage)
+            and response.tool_calls
+            and len(response.tool_calls) > 0
+        ):
+            logger.debug(f"AI message: tool_calls={response.tool_calls}")
+            state["tool_name"] = response.tool_calls[0]["name"]
+            state["tool_args"] = response.tool_calls[0]["args"]
+    elif (
+        last_message and isinstance(last_message, ToolMessage) and last_message.content
+    ) and last_message.name:
+        logger.debug(
+            f"last tool message: "
+            f"tool_name={last_message.name} content={last_message.content}"
+        )
+        if last_message.name == state.get("tool_name"):
+            state["tool_call_result"] = last_message.content
+        else:
+            logger.warning(
+                f"当前获取的是工具{last_message.name}执行结果, "
+                f"与上一轮AI调用的工具名称{state.get('tool_name')}不同"
+            )
+    return state
 
 
 def should_continue(state: ExploreState):
@@ -85,31 +140,65 @@ def should_continue(state: ExploreState):
     messages = state["messages"]
     last_message = messages[-1]
     logger.debug(f"last_message: {type(last_message)} {last_message}")
-    if isinstance(last_message, AIMessage):
-        if last_message.tool_calls and len(last_message.tool_calls) > 0:
-            return "tool_node"
-    return END
+    if (
+        isinstance(last_message, AIMessage)
+        and last_message.tool_calls
+        and len(last_message.tool_calls) > 0
+    ):
+        return "tool_node"
+    else:
+        return "summary_node"
 
 
-tool_node = ToolNode([metadata_table_statistic_tool])
+def summary_node(state: ExploreState) -> ExploreState:
+    logger.info("summary_node running...")
+    messages = state["messages"]
+    last_message = messages[-1]
+    question = state.get("question", "")
+    logger.debug(f"question: {question}")
+    logger.debug(f"last_message: {type(last_message)} {last_message}")
+    summary_result = chat_llm.invoke(
+        [
+            SystemMessage("按照用户的提问, 总结以下信息, 遵循事实"),
+            HumanMessage(content=question),
+            last_message,
+        ]
+    )
+    if summary_result.content:
+        logger.info(f"summary_result: {type(summary_result)} {summary_result}")
+        state["summary"] = summary_result.content
+        state["messages"].append(summary_result)
+    else:
+        # 取上一轮的AI输出作为结果
+        logger.info("总结AI的结果是空的, 取上一轮AI的结果")
+        not_none_ai_messages = [
+            ele
+            for ele in messages
+            if (isinstance(ele, AIMessage) and ele.content != "")
+        ]
+        if not_none_ai_messages:
+            last_ai_message = not_none_ai_messages[-1]
+            logger.info(f"最后一轮非空AI的结果: {last_ai_message}")
+            state["summary"] = last_ai_message.content
+            state["messages"].append(last_ai_message)
+    return state
+
 
 explore_builder = StateGraph(ExploreState)
-explore_builder.add_node("analyze_explore_intent", analyze_explore_intent)
-explore_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
 explore_builder.add_node("tool_node", tool_node)
 explore_builder.add_node("explore_chat", explore_chat)
+explore_builder.add_node("summary_node", summary_node)
 
 
 explore_builder.add_edge(START, "explore_chat")
 explore_builder.add_conditional_edges(
-    "explore_chat", should_continue, ["tool_node", END]
+    "explore_chat", should_continue, ["tool_node", "summary_node"]
 )
 explore_builder.add_edge("tool_node", "explore_chat")
+explore_builder.add_edge("summary_node", END)
 
 memory = InMemorySaver()
-data_gen_graph = explore_builder.compile(
-    interrupt_before=["intent_human_feedback_node"], checkpointer=memory
-)
+expolore_graph = explore_builder.compile(checkpointer=memory)
 
 
 if __name__ == "__main__":
@@ -122,14 +211,14 @@ if __name__ == "__main__":
     log_config = LogManager(
         base_path=str(PROJECT_PATH.absolute()),
         log_path="logs",
-        log_name="DataForgeDataGenApp.log",
+        log_name="Explore.log",
         console_log_level="DEBUG",
         file_log_level="TRACE",
     )
     setup_logging(log_config.get_config().get("handlers"))
 
     init_env()
-    print(data_gen_graph.get_graph(xray=True).draw_mermaid())
+    print(expolore_graph.get_graph(xray=True).draw_mermaid())
 
     session_id = uuid.uuid4().hex
 
@@ -138,15 +227,44 @@ if __name__ == "__main__":
     if traced_logger.get_trace_uuid() is None:
         traced_logger.set_trace_uuid(session_id)
 
-    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
+    run_config = RunnableConfig(configurable={"thread_id": session_id})
 
     init_state = {
-        "messages": HumanMessage(content="现在有多少元数据表？"),
+        "messages": HumanMessage(content="当前有多少元数据表"),
         "max_retries": 5,
         "session_id": session_id,
         "client_ip": "10.0.23.57",
     }
 
-    # 1. 先流式执行到中断点
-    for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):
-        logger.info(f"event: {event}")
+    for index, event in enumerate(
+        expolore_graph.stream(init_state, run_config, stream_mode="values")
+    ):
+        logger.debug(f"event ==> index={index} {event}")
+        if summary := event.get("summary"):
+            logger.info(f"summary={summary}")
+        if tool_name := event.get("tool_name"):
+            logger.info(f"tool_name={tool_name}")
+        if tool_call_result := event.get("tool_call_result"):
+            logger.info(f"tool_call_result={tool_call_result}")
+
+    logger.info("===============新的问题开始了===============")
+
+    # 2. 再次提问
+    expolore_graph.update_state(
+        run_config,
+        {"messages": HumanMessage("给我 NB_APP_SKE_BINDPHONE 表的字段信息")},
+        as_node="explore_chat",
+    )
+
+    for index, event in enumerate(
+        expolore_graph.stream(init_state, run_config, stream_mode="values")
+    ):
+        logger.debug(f"event ==> index={index} {event}")
+        if summary := event.get("summary"):
+            logger.info(f"summary={summary}")
+        if tool_name := event.get("tool_name"):
+            logger.info(f"tool_name={tool_name}")
+        if tool_args := event.get("tool_args"):
+            logger.info(f"tool_args={tool_args}")
+        if tool_call_result := event.get("tool_call_result"):
+            logger.info(f"tool_call_result={tool_call_result}")

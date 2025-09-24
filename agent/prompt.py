@@ -223,19 +223,36 @@ table_fields_fill_prompt = ChatPromptTemplate.from_messages(
 )
 
 
+explore_chat_system_prompt = SystemMessagePromptTemplate.from_template(
+    "你是数据洞察助手, 根据用户的问题, 选择合适的工具进行调用。"
+    "若没有合适的工具可以调用, 请告诉用户你不暂时还不具备这个能力, 无需进行其他回答。"
+)
+
+expolore_chat_human_prompt = HumanMessagePromptTemplate.from_template(
+    "用户的问题: \n{question}"
+)
+
+expolore_chat_prompt = ChatPromptTemplate.from_messages(
+    [explore_chat_system_prompt, expolore_chat_human_prompt]
+)
+
+
 # 定义模板
-explore_intent_system_prompt = SystemMessagePromptTemplate.from_template(
-    "你是数仓专家, 分析用户的输入, 识别出以下信息\n"
-    "1. 需要查询的表名称(对应table_name_condition), 若用户没提供表名称则填写空字符串\n"
-    "2. 需要查询的字段名称(对应tablie_field_condition), 若用户没提供段名称则填写空字符串\n"  # noqa: E501
-    "3. 需要查询的环境(对应env_name), 若用户没提供环境名称则填写空字符串\n"
+main_intent_system_prompt = SystemMessagePromptTemplate.from_template(
+    "你是数据智能助手, 分析用户的输入, 识别出以下信息\n"
+    "1. 用户任务需要使用的子图(对应graph_name). \n"
+    "- 如果是基于提供的明确表名称构造测试数据则填写data_gen_graph\n"
+    "- 如果是基于提供的SQL构造测试数据则填写sql_mode_data_gen_graph\n"
+    "- 如果都不是则填写expolore_graph\n"
+    "- 没有第4种情况, 只能从给定的清单"
+    "中[data_gen_graph,sql_mode_data_gen_graph,expolore_graph]3选1\n"
     "按照要求输出结构化数据。"
 )
 
-explore_intent_human_prompt = HumanMessagePromptTemplate.from_template(
+main_intent_human_prompt = HumanMessagePromptTemplate.from_template(
     "分析如下信息并结构化输出: {user_input}\n"
 )
 
-explore_intent_prompt = ChatPromptTemplate.from_messages(
-    [explore_intent_system_prompt, explore_intent_human_prompt]
+main_intent_prompt = ChatPromptTemplate.from_messages(
+    [main_intent_system_prompt, main_intent_human_prompt]
 )

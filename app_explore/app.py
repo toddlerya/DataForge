@@ -20,8 +20,9 @@ from utils.log import LogManager, TracedLogger
 log_config = LogManager(
     base_path=str(PROJECT_PATH.absolute()),
     log_path="logs",
-    log_name="AgentApp.log",
+    log_name="ExploreApp.log",
     file_log_level="INFO",
+    console_log_level="DEBUG",
 )
 setup_logging(log_config.get_config().get("handlers"))
 traced_logger = TracedLogger()
@@ -67,13 +68,6 @@ async def chat_profile(current_user: cl.User):
                     message="哪些表包含身份证号码字段?",
                     icon="public/icons/table.svg",
                 ),
-                cl.Starter(
-                    label="生成5条ADM_REL_MOBILE表的测试数据",
-                    message=(
-                        "数据库表名称: massdata.ADM_REL_MOBILE\n期望生成数据条数: 5"
-                    ),
-                    icon="public/icons/mobile-phone.svg",
-                ),
             ],
         )
     ]
@@ -101,37 +95,41 @@ async def on_message(message: cl.Message):
         f"message: {message.content}"
     )
 
-    config: RunnableConfig = {
-        "configurable": {"thread_id": cl.context.session.id},
-        "recursion_limit": 50,
+    init_state = {
+        "messages": HumanMessage(content=message.content.strip()),
+        "max_retries": 5,
+        "session_id": cl.context.session.id,
+        "client_ip": cl.user_session.get("client_ip"),
+        "tool_call_result": None,
     }
-    cl.user_session.set("configs", config)
 
-    current_state = expolore_graph.get_state(config)
-
-    cb = cl.LangchainCallbackHandler()
-
-    final_answer = cl.Message(content="")
-
-    logger.debug(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
-        f"current_state: {current_state}"
+    run_config = RunnableConfig(
+        configurable={"thread_id": cl.context.session.id},
+        recursion_limit=50,
     )
 
-    for message, metadata in expolore_graph.stream(
-        {"messages": [HumanMessage(content=message.content)]},
-        stream_mode="messages",
-        config=RunnableConfig(
-            callbacks=[cb],
-            **{
-                "configurable": {"thread_id": cl.context.session.id},
-                "recursion_limit": 50,
-            },
-        ),
-    ):
-        if message.content and not isinstance(message, HumanMessage):
-            await final_answer.stream_token(message.content)
-    await final_answer.send()
+    async for event in expolore_graph.astream(init_state, run_config):
+        for node, state in event.items():
+            if node == "explore_chat":
+                tool_name = state.get("tool_name")
+                tool_args = state.get("tool_args")
+                tool_call_result = state.get("tool_call_result")
+                if tool_call_result:
+                    with cl.Step(
+                        name=f"🛠️ tool_name={tool_name} tool_args={tool_args}",
+                        type="tool",
+                    ) as step:
+                        step.elements = [
+                            cl.Text(
+                                content=tool_call_result,
+                            )
+                        ]
+                        step.language = "json"
+                        step.output = tool_call_result
+            if node == "summary_node":
+                logger.info("[process] summary_node")
+                summary = state.get("summary")
+                await cl.Message(author="AI", content=summary).send()
 
     # 完成会话清空trace_uuid
     trace_token = cl.user_session.get("trace_token")

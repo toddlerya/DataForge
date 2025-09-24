@@ -6,9 +6,19 @@
 # @Desc    :   None
 
 from pathlib import Path
-from typing import Annotated, ClassVar, Dict, List, Literal, Optional, Set, TypedDict
+from typing import (
+    Annotated,
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    TypedDict,
+)
 
-from langchain_core.messages import AnyMessage
+from langchain_core.messages import AnyMessage, BaseMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -129,7 +139,7 @@ class PydanticDataGeniusPlan(BaseModel):
 
 
 class CommonState(TypedDict):
-    messages: Annotated[List[AnyMessage], add_messages]
+    messages: Annotated[List[AnyMessage | BaseMessage], add_messages]
     session_id: str
     client_ip: str
     max_retries: int
@@ -286,20 +296,25 @@ class TableGenState(CommonState):
     archive_message: str
 
 
-class ExploreUserIntentSchema(BaseModel):
+class ExploreState(CommonState):
+    question: str
+    summary: str | list[str | dict]
+    tool_name: str
+    tool_args: dict
+    tool_call_result: Any
+
+
+class AppUserIntentSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    tool_name: str = Field(..., description="需要调用的工具名称, 必须是已知的工具之一")
-    parameters: dict[str, str | int | list[str]] = Field(
-        ..., description="工具所需的参数, 根据不同工具类型提供对应的参数"
+    graph_name: str = Field(
+        ..., description="需要调用的子图的名称, 必须是已知的子图之一"
     )
 
 
-class ExploreState(CommonState):
-    user_intent: ExploreUserIntentSchema
-
-
-class MainAppState(TypedDict):
-    message: Annotated[List[AnyMessage], add_messages]
+class MainAppState(CommonState):
+    user_intent: AppUserIntentSchema
+    sub_graph_name: str
+    explore_result: str
 
 
 if __name__ == "__main__":
