@@ -302,6 +302,7 @@ class ExploreState(CommonState):
     tool_name: str
     tool_args: dict
     tool_call_result: Any
+    format_tool_call_result: Any
 
 
 class AppUserIntentSchema(BaseModel):

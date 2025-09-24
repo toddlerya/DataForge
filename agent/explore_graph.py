@@ -4,6 +4,7 @@
 # @Author   : guoqun X2590
 # @Desc     : 自由探索
 
+import json
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.runnables.config import RunnableConfig
@@ -72,7 +73,7 @@ def metadata_table_filter_tool(table_name: str, env_name: str = ""):
             data = [ele.to_dict() for ele in result]
             logger.info(
                 f"根据条件table_name={table_name}, env_name={env_name},"
-                f"模糊查询表元数据结果共计{len(data)}个,"
+                f"模糊查询表元数据结果共计{len(result)}个,"
                 f"表名分别是: {[ele.table_en_name for ele in result]}"
             )
             return data
@@ -147,23 +148,57 @@ def should_continue(state: ExploreState):
     ):
         return "tool_node"
     else:
-        return "summary_node"
+        return "format_db_data"
+
+
+def format_db_data(state: ExploreState):
+    """精简数据"""
+    tool_name = ""
+    # tool_args = {}
+    tool_call_result = None
+    if tool_call_result := state.get("tool_call_result"):
+        logger.debug(f"tool_call_result={tool_call_result}")
+        if tool_call_result:
+            logger.info(f"tool_call_result: type: {type(tool_call_result)}")
+            if tool_name := state.get("tool_name"):
+                if tool_name == "metadata_table_filter_tool":
+                    format_data = [
+                        {
+                            "table_en_name": ele.get("table_en_name"),
+                            "table_cn_name": ele.get("table_cn_name"),
+                        }
+                        for ele in json.loads(tool_call_result)
+                    ]
+                    state["format_tool_call_result"] = format_data
 
 
 def summary_node(state: ExploreState) -> ExploreState:
     logger.info("summary_node running...")
     messages = state["messages"]
     last_message = messages[-1]
+
     question = state.get("question", "")
     logger.debug(f"question: {question}")
     logger.debug(f"last_message: {type(last_message)} {last_message}")
-    summary_result = chat_llm.invoke(
-        [
-            SystemMessage("按照用户的提问, 总结以下信息, 遵循事实"),
-            HumanMessage(content=question),
-            last_message,
-        ]
-    )
+    format_tool_call_result = state.get("format_tool_call_result")
+    tool_call_result = state.get("tool_call_result")
+    tool_result = format_tool_call_result or tool_call_result
+    if tool_result:
+        summary_result = chat_llm.invoke(
+            [
+                SystemMessage("按照用户的提问, 总结以下信息, 遵循事实"),
+                HumanMessage(content=question),
+                tool_result,
+            ]
+        )
+    else:
+        summary_result = chat_llm.invoke(
+            [
+                SystemMessage("按照用户的提问, 总结以下信息, 遵循事实"),
+                HumanMessage(content=question),
+                last_message,
+            ]
+        )
     if summary_result.content:
         logger.info(f"summary_result: {type(summary_result)} {summary_result}")
         state["summary"] = summary_result.content
@@ -187,14 +222,16 @@ def summary_node(state: ExploreState) -> ExploreState:
 explore_builder = StateGraph(ExploreState)
 explore_builder.add_node("tool_node", tool_node)
 explore_builder.add_node("explore_chat", explore_chat)
+explore_builder.add_node("format_db_data", format_db_data)
 explore_builder.add_node("summary_node", summary_node)
 
 
 explore_builder.add_edge(START, "explore_chat")
 explore_builder.add_conditional_edges(
-    "explore_chat", should_continue, ["tool_node", "summary_node"]
+    "explore_chat", should_continue, ["tool_node", "format_db_data"]
 )
 explore_builder.add_edge("tool_node", "explore_chat")
+explore_builder.add_edge("format_db_data", "summary_node")
 explore_builder.add_edge("summary_node", END)
 
 memory = InMemorySaver()
@@ -268,3 +305,5 @@ if __name__ == "__main__":
             logger.info(f"tool_args={tool_args}")
         if tool_call_result := event.get("tool_call_result"):
             logger.info(f"tool_call_result={tool_call_result}")
+        if format_tool_call_result := event.get("format_tool_call_result"):
+            logger.info(f"format_tool_call_result={format_tool_call_result}")
