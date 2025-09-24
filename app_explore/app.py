@@ -108,7 +108,9 @@ async def on_message(message: cl.Message):
         recursion_limit=50,
     )
 
-    async for event in expolore_graph.astream(init_state, run_config):
+    async for event in expolore_graph.astream(
+        init_state, run_config, stream_mode="values"
+    ):
         for node, state in event.items():
             if node == "explore_chat":
                 tool_name = state.get("tool_name")
