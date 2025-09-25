@@ -297,15 +297,17 @@ class ExploreState(CommonState):
 
 class AppUserIntentSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    graph_name: str = Field(
+    sub_graph_name: str = Field(
         ..., description="需要调用的子图的名称, 必须是已知的子图之一"
     )
+    user_input: str = Field(..., description="用户意图输入文本")
 
 
 class MainAppState(CommonState):
     user_intent: AppUserIntentSchema
-    sub_graph_name: str
-    explore_result: str
+    next_sub_graph_name: str
+    user_input: str
+    human_intent_feedback: str
 
 
 if __name__ == "__main__":

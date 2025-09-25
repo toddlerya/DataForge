@@ -70,7 +70,7 @@ async def create_table_metadata_dataframe_element_array(
             data=df,
             display="side",
             name=f"{each_table_metadata.get('table_en_name', 'not_tb_en_name')}"
-            f"({each_table_metadata.get('table_cn_name', 'no_tb_cn_name')})表",
+            f"  {each_table_metadata.get('table_cn_name', 'no_tb_cn_name')}",
         )
         elements.append(each_table_metadata_elements)
     return elements

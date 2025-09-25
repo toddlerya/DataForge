@@ -90,7 +90,7 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
     return state
 
 
-def data_intent_human_feedback_node(state: DataGenState):
+def intent_human_feedback_node(state: DataGenState):
     """No-op node that should be interrupted on"""
     return state
 
@@ -342,7 +342,7 @@ def is_only_dg_rule_gen_mode(state: DataGenState):
 data_gen_builder = StateGraph(DataGenState)
 data_gen_builder.add_node("reset_input_and_intent", reset_input_and_intent)
 data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
-data_gen_builder.add_node("intent_human_feedback_node", data_intent_human_feedback_node)
+data_gen_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
 data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
 data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
 data_gen_builder.add_node("dg_rule_processor", dg_rule_processor)

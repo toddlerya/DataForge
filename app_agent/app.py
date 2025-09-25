@@ -4,8 +4,9 @@
 # @FileName: app.py
 # @Project:  DataForge
 
-
+import asyncio
 import json
+from typing import cast
 
 import chainlit as cl
 import pandas as pd
@@ -14,16 +15,17 @@ from langchain_core.messages import HumanMessage
 from langchain_core.runnables.config import RunnableConfig
 from loguru import logger
 
-from agent.explore_graph import expolore_graph
+from agent.agent_graph import main_graph
 from agent.llm import chat_llm
+from agent.state import DataGenUserIntentSchema, PydanticDataGeniusPlan
 from common.initialization import init_env, setup_logging
-from config import PROJECT_PATH
+from config import DG_PLAN_PATH, PROJECT_PATH
 from utils.log import LogManager, TracedLogger
 
 log_config = LogManager(
     base_path=str(PROJECT_PATH.absolute()),
     log_path="logs",
-    log_name="AppAgent.log",
+    log_name="AgentApp.log",
     file_log_level="TRACE",
     console_log_level="DEBUG",
 )
@@ -33,6 +35,13 @@ init_env()
 
 # 加载 .env 文件
 load_dotenv(PROJECT_PATH.absolute())
+
+
+next_sub_graph_name_map = {
+    "data_gen_graph": "元数据模式测试数据生成",
+    "expolore_graph": "文档表元数据信息",
+    "sql_mode_data_gen_graph": "SQL模式测试数据生成",
+}
 
 
 async def create_simple_dataframe_element(data: list[dict]) -> list[cl.Dataframe]:
@@ -71,7 +80,7 @@ async def create_table_metadata_dataframe_element_array(
             data=df,
             display="side",
             name=f"{each_table_metadata.get('table_en_name', 'not_tb_en_name')}"
-            f"({each_table_metadata.get('table_cn_name', 'no_tb_cn_name')})表字段信息",
+            f"  {each_table_metadata.get('table_cn_name', 'no_tb_cn_name')}",
         )
         elements.append(each_table_metadata_elements)
     return elements
@@ -103,11 +112,16 @@ async def chat_profile(current_user: cl.User):
                     message="与VPN相关的表有哪些?",
                     icon="public/icons/mobile-phone.svg",
                 ),
-                # cl.Starter(
-                #     label="哪些表包含身份证号码字段",
-                #     message="哪些表包含身份证号码字段?",
-                #     icon="public/icons/fingerprint.svg",
-                # ),
+                cl.Starter(
+                    label="生成10条massdata.ADM_REL_MOBILE表的测试数据",
+                    message="生成10条massdata.ADM_REL_MOBILE表的测试数据?",
+                    icon="public/icons/table.svg",
+                ),
+                cl.Starter(
+                    label="哪些表包含身份证号码字段",
+                    message="哪些表包含身份证号码字段?",
+                    icon="public/icons/fingerprint.svg",
+                ),
             ],
         )
     ]
@@ -148,13 +162,32 @@ async def on_message(message: cl.Message):
         recursion_limit=50,
     )
 
-    async for event in expolore_graph.astream(init_state, run_config):
-        for node, state in event.items():
-            if node == "filter_and_summarize_data":
+    async for event in main_graph.astream(
+        init_state, run_config, stream_mode="updates", subgraphs=True
+    ):
+        # logger.info(f"current_event: type={type(event)} value={event}")
+        event = cast(tuple[tuple, dict], event)
+        for node, state in event[1].items():
+            logger.info(f"current_node={node} current_state={state}")
+            if node == "analyze_intent":
+                logger.info("[entry] analyze_intent")
+                await cl.Message(content="意图分析中").send()
+                next_sub_graph_name = state.get("next_sub_graph_name")
+                if next_sub_graph_name:
+                    await cl.Message(
+                        content=(
+                            f"### 意图路由: 使用"
+                            f"{
+                                next_sub_graph_name_map.get(
+                                    next_sub_graph_name, '未知意图'
+                                )
+                            }"
+                        ),
+                    ).send()
+            elif node == "filter_and_summarize_data":
                 logger.info("[entry] filter_and_summarize_data")
-                await cl.Message(author="AI", content="正在处理, 请稍等...").send()
+                await cl.Message(content="正在收集整理信息...").send()
                 tool_name = state.get("tool_name")
-                tool_args = state.get("tool_args")
                 tool_call_result = state.get("tool_call_result")
                 if tool_call_result and tool_name == "metadata_table_statistic_tool":
                     with cl.Step(
@@ -177,7 +210,7 @@ async def on_message(message: cl.Message):
                             )
                             step.output = tool_call_result
                             step.language = "json"
-                if tool_call_result and tool_name == "metadata_table_filter_tool":
+                elif tool_call_result and tool_name == "metadata_table_filter_tool":
                     dataframe_elements = (
                         await create_table_metadata_dataframe_element_array(
                             data=json.loads(tool_call_result)
@@ -189,7 +222,10 @@ async def on_message(message: cl.Message):
                     )
                     if dataframe_elements:
                         await cl.Message(
-                            content=f"查询到{len(dataframe_elements)}个结果如下",
+                            content=(
+                                f"查询到{len(dataframe_elements)}个结果如下, "
+                                f"可点击展开查看详情"
+                            ),
                         ).send()
                         for each_table_element in dataframe_elements:
                             await cl.Message(
@@ -202,10 +238,219 @@ async def on_message(message: cl.Message):
                             author="Tool",
                             content="工具查询到的表字段信息文本: \n" + tool_call_result,
                         ).send()
-            if node == "summary_node":
+                # else:
+                #     await cl.Message(
+                #         author="Tool",
+                #         content="未查询到相关信息",
+                #     ).send()
+            elif node == "summary_node":
                 logger.info("[entry] summary_node")
                 summary = state.get("summary")
-                await cl.Message(author="AI", content=summary).send()
+                await cl.Message(content=summary).send()
+            elif node == "analyze_data_intent":
+                logger.info("[process] analyze_data_intent")
+                user_intent: DataGenUserIntentSchema = state.get("user_intent")
+                if not user_intent:
+                    continue
+                await cl.Message(
+                    author="AI",
+                    content=user_intent.model_dump_json(indent=2),
+                    language="python",
+                ).send()
+                res = await cl.AskUserMessage(
+                    author="Assistant",
+                    content=(
+                        "上述意图识别结果是否正确？"
+                        "若不正确请调整输入信息再次尝试意图识别; "
+                        "若正确, 请输入“正确“或”Y”, 将开始数据生成任务。"
+                    ),
+                    timeout=300,
+                ).send()
+                if res and "output" in res:
+                    res_text = res["output"].strip()
+                    logger.info(f"human_intent_feedback: {res_text}")
+                    cl.user_session.set("human_intent_feedback", res_text)
+                    main_graph.update_state(
+                        config=run_config,
+                        values={"human_intent_feedback": res_text},
+                        as_node="intent_human_feedback_node",
+                    )
+                    start_time = asyncio.get_event_loop().time()
+                    cl.user_session.set("start_time", start_time)
+                    await cl.Message(content="正在获取表元数据信息...").send()
+                    main_graph.astream(
+                        None, run_config, stream_mode="updates", subgraphs=True
+                    )
+            elif node == "query_table_raw_field_info":
+                logger.info("[process] query_table_raw_field_info")
+                end_time = asyncio.get_event_loop().time()
+                cl.user_session.set("end_time", end_time)
+                await cl.Message(content="已获取表元数据信息...").send()
+                table_metadata = state.get("table_metadata_info")
+                table_metadata_error = state.get("table_metadata_error")
+                if table_metadata_error:
+                    logger.error(f"table_metadata_error: {table_metadata_error}")
+                    await cl.Message(
+                        author="Tool", content="\n".join(table_metadata_error)
+                    ).send()
+                else:
+                    # df = pd.DataFrame(
+                    #     [ele.model_dump() for ele in table_metadata.raw_fields_info]
+                    # )[
+                    #     [
+                    #         "cn_name",
+                    #         "en_name",
+                    #         "desc",
+                    #         "field_type",
+                    #         "dict_key",
+                    #         "example",
+                    #     ]
+                    # ].rename(
+                    #     columns={
+                    #         "cn_name": "中文名称",
+                    #         "en_name": "英文名称",
+                    #         "desc": "描述",
+                    #         "field_type": "字段类型",
+                    #         "dict_key": "字典",
+                    #         "example": "样例数据",
+                    #     }
+                    # )
+                    # table_metadata_elements = [
+                    #     cl.Dataframe(
+                    #         data=df,
+                    #         display="side",
+                    #         name=f"{table_metadata.table_en_name}表字段信息",
+                    #     )
+                    # ]
+                    table_metadata_elements = (
+                        await create_table_metadata_dataframe_element_array(
+                            data=[
+                                ele.model_dump()
+                                for ele in table_metadata.raw_fields_info
+                            ]
+                        )
+                    )
+                    if table_metadata_elements:
+                        await cl.Message(
+                            content=f"{table_metadata.table_en_name}表字段信息",
+                            elements=table_metadata_elements,
+                        ).send()
+                    await cl.Message(content="正在生成DataGenius执行计划...").send()
+            elif node == "dg_category_recommend":
+                logger.info("[process] dg_category_recommend")
+                pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
+                    "pydantic_data_genius_plan"
+                )
+                await cl.Message(
+                    content=(
+                        "当前生成的DataGenius数据生成计划配置如下, 将开始数据生成任务"
+                    ),
+                ).send()
+                await cl.Message(
+                    content=pydantic_data_genius_plan.model_dump_json(indent=2),
+                    language="python",
+                ).send()
+            elif node == "save_dg_plan2json":
+                logger.info("[process] save_dg_plan2json")
+                pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
+                    "pydantic_data_genius_plan"
+                )
+                dg_plan_json_path = DG_PLAN_PATH.joinpath(
+                    f"{pydantic_data_genius_plan.rule_name}.json"
+                ).absolute()
+                logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
+                download_dg_plan_json_elements = [
+                    cl.File(
+                        name=f"{pydantic_data_genius_plan.rule_name}.json",
+                        path=str(dg_plan_json_path),
+                        display="inline",
+                    ),
+                ]
+                await cl.Message(
+                    content=(
+                        "可下载DataGenius计划配置备用, 比如上传到DataGenius二次修改"
+                    ),
+                    elements=download_dg_plan_json_elements,
+                ).send()
+
+                # 表元数据文件信息
+                dg_plan_table_metadata_json_path = DG_PLAN_PATH.joinpath(
+                    f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
+                ).absolute()
+                logger.info(
+                    f"dg_plan_table_metadata_json_path: "
+                    f"{dg_plan_table_metadata_json_path}"
+                )
+                download_dg_plan_table_metadata_json_elements = [
+                    cl.File(
+                        name=f"{pydantic_data_genius_plan.rule_name}_table_metadata.json",
+                        path=str(dg_plan_table_metadata_json_path),
+                        display="inline",
+                    ),
+                ]
+                await cl.Message(
+                    author="Assistant",
+                    content="可下载表的元数据配置信息，入库测试数据时可能会用到",
+                    elements=download_dg_plan_table_metadata_json_elements,
+                ).send()
+            elif node == "create_dg_task":
+                logger.info("[process] create_dg_task")
+                pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
+                    "pydantic_data_genius_plan"
+                )
+                await cl.Message(
+                    author="Assistant",
+                    content=f"已在DataGenius创建任务，任务名称：{pydantic_data_genius_plan.rule_name}",
+                ).send()
+            elif node == "query_dg_task_status":
+                logger.info("[process] query_dg_task_status")
+
+                pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
+                    "pydantic_data_genius_plan"
+                )
+                data_genius_plan_task_id = state.get("data_genius_plan_task_id")
+                data_genius_plan_edit_url = state.get("data_genius_plan_edit_url")
+                data_genius_plan_run_duration = state.get(
+                    "data_genius_plan_run_duration"
+                )
+                data_genius_plan_output_filesize = state.get(
+                    "data_genius_plan_output_filesize"
+                )
+                data_genius_plan_output_url = state.get("data_genius_plan_output_url")
+                query_data_genius_task_error = state.get("query_data_genius_task_error")
+                if query_data_genius_task_error:
+                    done_message = query_data_genius_task_error
+                    logger.error(query_data_genius_task_error)
+                else:
+                    done_message = (
+                        "DataGenius任务已完成。\n"
+                        f"- **DG任务名称**: {pydantic_data_genius_plan.rule_name}\n"
+                        f"- **DG运行耗时**: {data_genius_plan_run_duration}\n"
+                        f"- **生成数据大小**: {data_genius_plan_output_filesize}\n"
+                        f"- **数据下载地址**: {data_genius_plan_output_url}\n"
+                        f"- **DG任务编辑地址**: "
+                        f"[{data_genius_plan_task_id}]({data_genius_plan_edit_url})"
+                    )
+                    logger.info(done_message)
+                await cl.Message(author="Assistant", content=done_message).send()
+            elif node == "END":
+                start_time = cl.user_session.get("start_time") or 0.0
+                end_time = cl.user_session.get("end_time") or 0.0
+                # 确保是 float 类型
+                if isinstance(start_time, (int, float)) and isinstance(
+                    end_time, (int, float)
+                ):
+                    elapsed_time = end_time - start_time
+                    logger.info(f"Total execution time: {elapsed_time:.2f} seconds")
+                else:
+                    logger.warning("Invalid time values in session.")
+                    elapsed_time = 0.0
+                cost_msg = f"{elapsed_time: .2f} 秒"
+                final_message = (
+                    f"本次任务运行完成，总计耗时: {cost_msg}, 如需再次使用请开启新会话."
+                )
+                logger.info(final_message)
+                await cl.Message(author="Assistant", content=final_message).send()
 
     # 完成会话清空trace_uuid
     trace_token = cl.user_session.get("trace_token")

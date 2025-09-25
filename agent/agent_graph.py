@@ -11,9 +11,11 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from loguru import logger
 
+from agent.data_graph import data_gen_graph
 from agent.explore_graph import expolore_graph
 from agent.llm import chat_llm
 from agent.prompt import main_intent_prompt
+from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import AppUserIntentSchema, MainAppState
 
 
@@ -35,61 +37,54 @@ def analyze_intent(state: MainAppState) -> MainAppState:
         else:
             logger.info(f"last_message: {last_message} user_intent: {user_intent}")
             if isinstance(user_intent, AppUserIntentSchema):
-                state["sub_graph_name"] = user_intent.graph_name
+                state["next_sub_graph_name"] = user_intent.sub_graph_name
+                state["user_input"] = user_intent.user_input
     return state
 
 
-def run_expolore_graph(state: MainAppState) -> MainAppState:
-    """运行自由探索子图
-
-    Args:
-        state (MainAppState): _description_
-
-    Returns:
-        MainAppState: _description_
-    """
-    messages = state.get("messages")
-    logger.trace(f"messages: {messages}")
-    last_message = messages[-1]
-    if last_message and isinstance(last_message, HumanMessage):
-        logger.debug(f"latest human message: content={last_message.content}")
-        init_state = {
-            "messages": last_message,
-            "max_retries": state.get("max_retries"),
-            "session_id": state.get("session_id"),
-            "client_ip": state.get("client_ip"),
-        }
-        result = expolore_graph.invoke(init_state)
-        logger.info(f"result: {result}")
+def intent_human_feedback_node(state):
+    """No-op node that should be interrupted on"""
     return state
 
 
-def decide_next_step(state: MainAppState):
-    """选择下一步的节点
+def sub_graph_route(state: MainAppState):
+    """子图路由器
 
     Args:
         state (MainAppState): _description_
     """
-    if state.get("sub_graph_name").strip() == "expolore_graph":
-        return "run_expolore_graph"
+    if next_sub_graph_name := state.get("next_sub_graph_name").strip():
+        if next_sub_graph_name == "expolore_graph":
+            return "expolore_graph"
+        elif next_sub_graph_name == "data_gen_graph":
+            return "data_gen_graph"
+        elif next_sub_graph_name == "sql_mode_data_gen_graph":
+            return "sql_mode_data_gen_graph"
+        else:
+            return END
     else:
         return END
 
 
 main_builder = StateGraph(MainAppState)
 main_builder.add_node("analyze_intent", analyze_intent)
-main_builder.add_node("run_expolore_graph", run_expolore_graph)
+main_builder.add_node("expolore_graph", expolore_graph)
+main_builder.add_node("data_gen_graph", data_gen_graph)
+main_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
+main_builder.add_node("sql_mode_data_gen_graph", sql_mode_data_gen_graph)
 
 
 main_builder.add_edge(START, "analyze_intent")
 main_builder.add_conditional_edges(
     "analyze_intent",
-    decide_next_step,
-    {"run_expolore_graph": "run_expolore_graph", END: END},
+    sub_graph_route,
+    ["expolore_graph", "data_gen_graph", "sql_mode_data_gen_graph", END],
 )
 
 memory = InMemorySaver()
-main_graph = main_builder.compile(checkpointer=memory)
+main_graph = main_builder.compile(
+    interrupt_before=["intent_human_feedback_node"], checkpointer=memory
+)
 
 
 if __name__ == "__main__":
@@ -121,12 +116,12 @@ if __name__ == "__main__":
     thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
     init_state = {
-        "messages": HumanMessage(content="与手机号相关的表有哪些 "),
+        "messages": HumanMessage(content="当前有多少表"),
         "max_retries": 5,
         "session_id": session_id,
         "client_ip": "10.0.23.57",
     }
 
-    # 1. 先流式执行到中断点
+    # 先流式执行到中断点
     for event in main_graph.stream(init_state, thread, stream_mode="values"):
         logger.info(f"event: {event}")
