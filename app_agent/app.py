@@ -1,11 +1,14 @@
 # coding: utf-8
-# @Time:     2025/5/7 16:48
+# @Time:     2025/09/25 11:39
 # @Author:   toddlerya
-# @FileName: chatbot.py
+# @FileName: app.py
 # @Project:  DataForge
 
 
+import json
+
 import chainlit as cl
+import pandas as pd
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables.config import RunnableConfig
@@ -20,8 +23,9 @@ from utils.log import LogManager, TracedLogger
 log_config = LogManager(
     base_path=str(PROJECT_PATH.absolute()),
     log_path="logs",
-    log_name="AgentApp.log",
-    file_log_level="INFO",
+    log_name="AppAgent.log",
+    file_log_level="TRACE",
+    console_log_level="DEBUG",
 )
 setup_logging(log_config.get_config().get("handlers"))
 traced_logger = TracedLogger()
@@ -29,6 +33,48 @@ init_env()
 
 # 加载 .env 文件
 load_dotenv(PROJECT_PATH.absolute())
+
+
+async def create_simple_dataframe_element(data: list[dict]) -> list[cl.Dataframe]:
+    """将嵌套的JSON数据展示为DataFrame"""
+    df = pd.DataFrame(data=data)
+    element = cl.Dataframe(name="表格信息", data=df, display="inline")
+    return [element]
+
+
+async def create_table_metadata_dataframe_element_array(
+    data: list[dict],
+) -> list[cl.Dataframe]:
+    """将多个表元数据JSON展示为DataFrame"""
+    elements = []
+    for each_table_metadata in data:
+        df = pd.DataFrame(each_table_metadata.get("table_fields", [{}]))[
+            [
+                "cn_name",
+                "en_name",
+                "desc",
+                "field_type",
+                "dict_key",
+                "example",
+            ]
+        ].rename(
+            columns={
+                "cn_name": "中文名称",
+                "en_name": "英文名称",
+                "desc": "描述",
+                "field_type": "字段类型",
+                "dict_key": "字典",
+                "example": "样例数据",
+            }
+        )
+        each_table_metadata_elements = cl.Dataframe(
+            data=df,
+            display="side",
+            name=f"{each_table_metadata.get('table_en_name', 'not_tb_en_name')}"
+            f"({each_table_metadata.get('table_cn_name', 'no_tb_cn_name')})表字段信息",
+        )
+        elements.append(each_table_metadata_elements)
+    return elements
 
 
 @cl.set_chat_profiles  # type: ignore
@@ -53,27 +99,15 @@ async def chat_profile(current_user: cl.User):
                     icon="public/icons/setting.svg",
                 ),
                 cl.Starter(
-                    label="与手机号相关的表有哪些",
-                    message="与手机号相关的表有哪些?",
+                    label="与VPN相关的表有哪些",
+                    message="与VPN相关的表有哪些?",
                     icon="public/icons/mobile-phone.svg",
                 ),
-                cl.Starter(
-                    label="哪些表包含身份证号码字段",
-                    message="哪些表包含身份证号码字段?",
-                    icon="public/icons/fingerprint.svg",
-                ),
-                cl.Starter(
-                    label="哪些表包含身份证号码字段",
-                    message="哪些表包含身份证号码字段?",
-                    icon="public/icons/table.svg",
-                ),
-                cl.Starter(
-                    label="生成5条ADM_REL_MOBILE表的测试数据",
-                    message=(
-                        "数据库表名称: massdata.ADM_REL_MOBILE\n期望生成数据条数: 5"
-                    ),
-                    icon="public/icons/mobile-phone.svg",
-                ),
+                # cl.Starter(
+                #     label="哪些表包含身份证号码字段",
+                #     message="哪些表包含身份证号码字段?",
+                #     icon="public/icons/fingerprint.svg",
+                # ),
             ],
         )
     ]
@@ -101,37 +135,77 @@ async def on_message(message: cl.Message):
         f"message: {message.content}"
     )
 
-    config: RunnableConfig = {
-        "configurable": {"thread_id": cl.context.session.id},
-        "recursion_limit": 50,
+    init_state = {
+        "messages": HumanMessage(content=message.content.strip()),
+        "max_retries": 5,
+        "session_id": cl.context.session.id,
+        "client_ip": cl.user_session.get("client_ip"),
+        "tool_call_result": None,
     }
-    cl.user_session.set("configs", config)
 
-    current_state = expolore_graph.get_state(config)
-
-    cb = cl.LangchainCallbackHandler()
-
-    final_answer = cl.Message(content="")
-
-    logger.debug(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
-        f"current_state: {current_state}"
+    run_config = RunnableConfig(
+        configurable={"thread_id": cl.context.session.id},
+        recursion_limit=50,
     )
 
-    for message, metadata in expolore_graph.stream(
-        {"messages": [HumanMessage(content=message.content)]},
-        stream_mode="messages",
-        config=RunnableConfig(
-            callbacks=[cb],
-            **{
-                "configurable": {"thread_id": cl.context.session.id},
-                "recursion_limit": 50,
-            },
-        ),
-    ):
-        if message.content and not isinstance(message, HumanMessage):
-            await final_answer.stream_token(message.content)
-    await final_answer.send()
+    async for event in expolore_graph.astream(init_state, run_config):
+        for node, state in event.items():
+            if node == "filter_and_summarize_data":
+                logger.info("[entry] filter_and_summarize_data")
+                await cl.Message(author="AI", content="正在处理, 请稍等...").send()
+                tool_name = state.get("tool_name")
+                tool_args = state.get("tool_args")
+                tool_call_result = state.get("tool_call_result")
+                if tool_call_result and tool_name == "metadata_table_statistic_tool":
+                    with cl.Step(
+                        type="tool",
+                    ) as step:
+                        step.input = tool_call_result
+                        step.language = "json"
+                        dataframe_elements = await create_simple_dataframe_element(
+                            data=json.loads(tool_call_result)
+                        )
+                        if dataframe_elements:
+                            logger.info(
+                                f"use {create_simple_dataframe_element} created "
+                                f"dataframe element count: {len(dataframe_elements)} "
+                            )
+                            step.elements = dataframe_elements  # type: ignore
+                        else:
+                            logger.warning(
+                                "dataframe_elements is None, just show raw json"
+                            )
+                            step.output = tool_call_result
+                            step.language = "json"
+                if tool_call_result and tool_name == "metadata_table_filter_tool":
+                    dataframe_elements = (
+                        await create_table_metadata_dataframe_element_array(
+                            data=json.loads(tool_call_result)
+                        )
+                    )
+                    logger.info(
+                        f"create_table_metadata_dataframe_element_array created "
+                        f"dataframe_elements count: {len(dataframe_elements)}"
+                    )
+                    if dataframe_elements:
+                        await cl.Message(
+                            content=f"查询到{len(dataframe_elements)}个结果如下",
+                        ).send()
+                        for each_table_element in dataframe_elements:
+                            await cl.Message(
+                                author="Tool",
+                                content=each_table_element.name,
+                                elements=[each_table_element],
+                            ).send()
+                    else:
+                        await cl.Message(
+                            author="Tool",
+                            content="工具查询到的表字段信息文本: \n" + tool_call_result,
+                        ).send()
+            if node == "summary_node":
+                logger.info("[entry] summary_node")
+                summary = state.get("summary")
+                await cl.Message(author="AI", content=summary).send()
 
     # 完成会话清空trace_uuid
     trace_token = cl.user_session.get("trace_token")

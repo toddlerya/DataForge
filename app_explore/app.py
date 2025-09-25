@@ -70,7 +70,7 @@ async def create_table_metadata_dataframe_element_array(
             data=df,
             display="side",
             name=f"{each_table_metadata.get('table_en_name', 'not_tb_en_name')}"
-            f"({each_table_metadata.get('table_cn_name', 'no_tb_cn_name')})表字段信息",
+            f"({each_table_metadata.get('table_cn_name', 'no_tb_cn_name')})表",
         )
         elements.append(each_table_metadata_elements)
     return elements
@@ -149,15 +149,16 @@ async def on_message(message: cl.Message):
 
     async for event in expolore_graph.astream(init_state, run_config):
         for node, state in event.items():
+            # if node == "explore_chat":
+            #     logger.info("[entry] explore_chat")
+            #     await cl.Message(content="正在处理, 请稍等...").send()
             if node == "filter_and_summarize_data":
                 logger.info("[entry] filter_and_summarize_data")
-                await cl.Message(author="AI", content="正在处理, 请稍等...").send()
+                await cl.Message(content="正在收集整理信息...").send()
                 tool_name = state.get("tool_name")
-                tool_args = state.get("tool_args")
                 tool_call_result = state.get("tool_call_result")
                 if tool_call_result and tool_name == "metadata_table_statistic_tool":
                     with cl.Step(
-                        name=f"🛠️ {tool_name}(kwargs=**{tool_args})",
                         type="tool",
                     ) as step:
                         step.input = tool_call_result
@@ -170,14 +171,14 @@ async def on_message(message: cl.Message):
                                 f"use {create_simple_dataframe_element} created "
                                 f"dataframe element count: {len(dataframe_elements)} "
                             )
-                            step.elements = dataframe_elements
+                            step.elements = dataframe_elements  # type: ignore
                         else:
                             logger.warning(
                                 "dataframe_elements is None, just show raw json"
                             )
                             step.output = tool_call_result
                             step.language = "json"
-                if tool_call_result and tool_name == "metadata_table_filter_tool":
+                elif tool_call_result and tool_name == "metadata_table_filter_tool":
                     dataframe_elements = (
                         await create_table_metadata_dataframe_element_array(
                             data=json.loads(tool_call_result)
@@ -187,10 +188,12 @@ async def on_message(message: cl.Message):
                         f"create_table_metadata_dataframe_element_array created "
                         f"dataframe_elements count: {len(dataframe_elements)}"
                     )
-
                     if dataframe_elements:
                         await cl.Message(
-                            content=f"查询到{len(dataframe_elements)}个结果如下",
+                            content=(
+                                f"查询到{len(dataframe_elements)}个结果如下, "
+                                f"可点击展开查看详情"
+                            ),
                         ).send()
                         for each_table_element in dataframe_elements:
                             await cl.Message(
@@ -203,10 +206,15 @@ async def on_message(message: cl.Message):
                             author="Tool",
                             content="工具查询到的表字段信息文本: \n" + tool_call_result,
                         ).send()
-            if node == "summary_node":
+                # else:
+                #     await cl.Message(
+                #         author="Tool",
+                #         content="未查询到相关信息",
+                #     ).send()
+            elif node == "summary_node":
                 logger.info("[entry] summary_node")
                 summary = state.get("summary")
-                await cl.Message(author="AI", content=summary).send()
+                await cl.Message(content=summary).send()
 
     # 完成会话清空trace_uuid
     trace_token = cl.user_session.get("trace_token")

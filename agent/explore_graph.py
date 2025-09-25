@@ -58,7 +58,7 @@ def metadata_table_filter_tool(table_name: str, env_name: str = ""):
 
     Args:
         table_name (str): 表名称,可以是英文名或中文名
-        env_name (str): 环境名称
+        env_name (str): 环境名称, 默认为空字符串
     """
     db_manager = None
     try:
@@ -185,7 +185,6 @@ def summary_node(state: ExploreState) -> ExploreState:
     logger.info("summary_node running...")
     messages = state["messages"]
     last_message = messages[-1]
-
     question = state.get("question", "")
     logger.debug(f"question: {question}")
     # logger.debug(f"last_message: {type(last_message)} {last_message}")
@@ -206,14 +205,19 @@ def summary_node(state: ExploreState) -> ExploreState:
         ]
         logger.info(f"with tool result summary prompt: {prompt}")
         summary_result = chat_llm.invoke(prompt)
+    elif last_message.content:
+        prompt = [
+            SystemMessage(
+                "按照用户的提问, 总结以下信息, 遵循事实, 不知道的就告诉用户说你不知道"
+            ),
+            HumanMessage(content=question),
+            last_message,
+        ]
+        logger.info(f"without tool result summary prompt: {prompt}")
+        summary_result = chat_llm.invoke(prompt)
     else:
-        summary_result = chat_llm.invoke(
-            [
-                SystemMessage("按照用户的提问, 总结以下信息, 遵循事实"),
-                HumanMessage(content=question),
-                last_message,
-            ]
-        )
+        # 工具查询没结果，兜底逻辑，不知道就是不知道
+        summary_result = AIMessage(content="对不起, 我不知道。")
     if summary_result.content:
         logger.info(f"summary_result: {type(summary_result)} {summary_result}")
         state["summary"] = summary_result.content

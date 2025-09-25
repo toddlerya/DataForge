@@ -224,7 +224,7 @@ table_fields_fill_prompt = ChatPromptTemplate.from_messages(
 
 
 explore_chat_system_prompt = SystemMessagePromptTemplate.from_template(
-    "你是数据洞察助手, 根据用户的问题, 选择合适的工具进行调用。"
+    "你是测试数据智能助手, 根据用户的问题, 选择合适的工具进行调用。"
     "若没有合适的工具可以调用, 请告诉用户你不暂时还不具备这个能力, 无需进行其他回答。"
 )
 
@@ -239,7 +239,7 @@ expolore_chat_prompt = ChatPromptTemplate.from_messages(
 
 # 定义模板
 main_intent_system_prompt = SystemMessagePromptTemplate.from_template(
-    "你是数据智能助手, 分析用户的输入, 识别出以下信息\n"
+    "你是测试数据智能助手, 分析用户的输入, 识别出以下信息\n"
     "1. 用户任务需要使用的子图(对应graph_name). \n"
     "- 如果是基于提供的明确表名称构造测试数据则填写data_gen_graph\n"
     "- 如果是基于提供的SQL构造测试数据则填写sql_mode_data_gen_graph\n"
