@@ -6,6 +6,7 @@
 
 import json
 
+from fastapi.encoders import jsonable_encoder
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.runnables.config import RunnableConfig
 from langchain_core.tools import tool
@@ -36,8 +37,11 @@ def metadata_table_statistic_tool():
             logger.error(message)
             return message
         else:
-            logger.info(f"查询当前已经有多少元数据表: result={result}")
-            return result
+            logger.info(
+                f"查询当前已经有多少元数据表: "
+                f"type(result)={type(result)} result={result}"
+            )
+            return jsonable_encoder(result)
     except Exception as err:
         message = f"初始化数据库链接失败: {err}"
         logger.error(message)
@@ -47,7 +51,7 @@ def metadata_table_statistic_tool():
             db_manager.close()
 
 
-@tool
+@tool(return_direct=True)
 def metadata_table_filter_tool(table_name: str, env_name: str = ""):
     """根据表名称模糊查询符合条件的表的元数据信息,
     如果有环境名称可以根据环境名称缩小查询范围
@@ -70,13 +74,13 @@ def metadata_table_filter_tool(table_name: str, env_name: str = ""):
             logger.error(message)
             return message
         else:
-            data = [ele.to_dict() for ele in result]
+            # data = [ele.to_dict() for ele in result]
             logger.info(
                 f"根据条件table_name={table_name}, env_name={env_name},"
                 f"模糊查询表元数据结果共计{len(result)}个,"
                 f"表名分别是: {[ele.table_en_name for ele in result]}"
             )
-            return data
+            return jsonable_encoder(result)
     except Exception as err:
         message = f"初始化数据库链接失败: {err}"
         logger.error(message)
@@ -148,28 +152,33 @@ def should_continue(state: ExploreState):
     ):
         return "tool_node"
     else:
-        return "format_db_data"
+        return "filter_and_summarize_data"
 
 
-def format_db_data(state: ExploreState):
-    """精简数据"""
+def filter_and_summarize_data(state: ExploreState) -> ExploreState:
+    """根据数据库查询工具类型精简数据库查询结果，保留必要字段，为大模型总结准备。"""
     tool_name = ""
-    # tool_args = {}
     tool_call_result = None
     if tool_call_result := state.get("tool_call_result"):
-        logger.debug(f"tool_call_result={tool_call_result}")
-        if tool_call_result:
-            logger.info(f"tool_call_result: type: {type(tool_call_result)}")
+        logger.trace(
+            f"tool_call_result => type={type(tool_call_result)} value={tool_call_result}"
+        )
+        if tool_call_result and isinstance(tool_call_result, str):
             if tool_name := state.get("tool_name"):
                 if tool_name == "metadata_table_filter_tool":
-                    format_data = [
+                    logger.info(
+                        "metadata_table_filter_tool工具调用结果, 只保留表的中文名和英文名"
+                    )
+                    # 只保留表的中文名和英文名
+                    summarize_data = [
                         {
                             "table_en_name": ele.get("table_en_name"),
                             "table_cn_name": ele.get("table_cn_name"),
                         }
                         for ele in json.loads(tool_call_result)
                     ]
-                    state["format_tool_call_result"] = format_data
+                    state["summarize_tool_call_result"] = summarize_data
+    return state
 
 
 def summary_node(state: ExploreState) -> ExploreState:
@@ -179,18 +188,24 @@ def summary_node(state: ExploreState) -> ExploreState:
 
     question = state.get("question", "")
     logger.debug(f"question: {question}")
-    logger.debug(f"last_message: {type(last_message)} {last_message}")
-    format_tool_call_result = state.get("format_tool_call_result")
+    # logger.debug(f"last_message: {type(last_message)} {last_message}")
     tool_call_result = state.get("tool_call_result")
-    tool_result = format_tool_call_result or tool_call_result
-    if tool_result:
-        summary_result = chat_llm.invoke(
-            [
-                SystemMessage("按照用户的提问, 总结以下信息, 遵循事实"),
-                HumanMessage(content=question),
-                tool_result,
-            ]
+    if tool_call_result:
+        logger.info(f"tool_call_result length: {len(tool_call_result)}")
+    summarize_tool_call_result = state.get("summarize_tool_call_result")
+    if summarize_tool_call_result:
+        logger.info(
+            f"summarize_tool_call_result length: {len(summarize_tool_call_result)}"
         )
+    tool_result = summarize_tool_call_result or tool_call_result
+    if tool_result:
+        prompt = [
+            SystemMessage("按照用户的提问, 总结以下信息, 遵循事实"),
+            HumanMessage(content=question),
+            json.dumps(tool_result, ensure_ascii=False),
+        ]
+        logger.info(f"with tool result summary prompt: {prompt}")
+        summary_result = chat_llm.invoke(prompt)
     else:
         summary_result = chat_llm.invoke(
             [
@@ -222,16 +237,16 @@ def summary_node(state: ExploreState) -> ExploreState:
 explore_builder = StateGraph(ExploreState)
 explore_builder.add_node("tool_node", tool_node)
 explore_builder.add_node("explore_chat", explore_chat)
-explore_builder.add_node("format_db_data", format_db_data)
+explore_builder.add_node("filter_and_summarize_data", filter_and_summarize_data)
 explore_builder.add_node("summary_node", summary_node)
 
 
 explore_builder.add_edge(START, "explore_chat")
 explore_builder.add_conditional_edges(
-    "explore_chat", should_continue, ["tool_node", "format_db_data"]
+    "explore_chat", should_continue, ["tool_node", "filter_and_summarize_data"]
 )
 explore_builder.add_edge("tool_node", "explore_chat")
-explore_builder.add_edge("format_db_data", "summary_node")
+explore_builder.add_edge("filter_and_summarize_data", "summary_node")
 explore_builder.add_edge("summary_node", END)
 
 memory = InMemorySaver()
@@ -281,8 +296,18 @@ if __name__ == "__main__":
             logger.info(f"summary={summary}")
         if tool_name := event.get("tool_name"):
             logger.info(f"tool_name={tool_name}")
+        if tool_args := event.get("tool_args"):
+            logger.info(f"tool_args={tool_args}")
         if tool_call_result := event.get("tool_call_result"):
-            logger.info(f"tool_call_result={tool_call_result}")
+            logger.info(
+                f"tool_call_result={tool_call_result} "
+                f"type(tool_call_result)={type(tool_call_result)}"
+            )
+        if summarize_tool_call_result := event.get("summarize_tool_call_result"):
+            logger.info(
+                f"summarize_tool_call_result={summarize_tool_call_result} "
+                f"type(summarize_tool_call_result)={type(summarize_tool_call_result)}"
+            )
 
     logger.info("===============新的问题开始了===============")
 
@@ -304,6 +329,12 @@ if __name__ == "__main__":
         if tool_args := event.get("tool_args"):
             logger.info(f"tool_args={tool_args}")
         if tool_call_result := event.get("tool_call_result"):
-            logger.info(f"tool_call_result={tool_call_result}")
-        if format_tool_call_result := event.get("format_tool_call_result"):
-            logger.info(f"format_tool_call_result={format_tool_call_result}")
+            logger.info(
+                f"tool_call_result={tool_call_result}"
+                f"type(tool_call_result)={type(tool_call_result)}"
+            )
+        if summarize_tool_call_result := event.get("summarize_tool_call_result"):
+            logger.info(
+                f"summarize_tool_call_result={summarize_tool_call_result} "
+                f"type(summarize_tool_call_result)={type(summarize_tool_call_result)}"
+            )

@@ -4,8 +4,10 @@
 # @FileName: chatbot.py
 # @Project:  DataForge
 
+import json
 
 import chainlit as cl
+import pandas as pd
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables.config import RunnableConfig
@@ -32,6 +34,47 @@ init_env()
 load_dotenv(PROJECT_PATH.absolute())
 
 
+async def create_simple_dataframe_element(data: list[dict]) -> list[cl.Dataframe]:
+    """将嵌套的JSON数据展示为DataFrame"""
+    df = pd.DataFrame(data=data)
+    element = cl.Dataframe(name="表格信息", data=df, display="inline")
+    return [element]
+
+
+async def create_table_metadata_dataframe_element_array(
+    data: list[dict],
+) -> list[cl.Dataframe]:
+    """将多个表元数据JSON展示为DataFrame"""
+    elements = []
+    for each_table_metadata in data:
+        df = pd.DataFrame(each_table_metadata.get("table_fields", [{}]))[
+            [
+                "cn_name",
+                "en_name",
+                "desc",
+                "field_type",
+                "dict_key",
+                "example",
+            ]
+        ].rename(
+            columns={
+                "cn_name": "中文名称",
+                "en_name": "英文名称",
+                "desc": "描述",
+                "field_type": "字段类型",
+                "dict_key": "字典",
+                "example": "样例数据",
+            }
+        )
+        each_table_metadata_elements = cl.Dataframe(
+            data=df,
+            display="side",
+            name=f"{each_table_metadata.get('table_en_name')}({each_table_metadata.get('table_cn_name')})表字段信息",
+        )
+        elements.append(each_table_metadata_elements)
+    return elements
+
+
 @cl.set_chat_profiles  # type: ignore
 async def chat_profile(current_user: cl.User):
     if current_user and current_user.metadata["role"]:
@@ -54,8 +97,8 @@ async def chat_profile(current_user: cl.User):
                     icon="public/icons/setting.svg",
                 ),
                 cl.Starter(
-                    label="与手机号相关的表有哪些",
-                    message="与手机号相关的表有哪些?",
+                    label="与VPN相关的表有哪些",
+                    message="与VPN相关的表有哪些?",
                     icon="public/icons/mobile-phone.svg",
                 ),
                 cl.Starter(
@@ -108,28 +151,64 @@ async def on_message(message: cl.Message):
         recursion_limit=50,
     )
 
-    async for event in expolore_graph.astream(
-        init_state, run_config, stream_mode="values"
-    ):
+    async for event in expolore_graph.astream(init_state, run_config):
         for node, state in event.items():
-            if node == "explore_chat":
+            if node == "filter_and_summarize_data":
+                logger.info("[entry] filter_and_summarize_data")
+                await cl.Message(author="AI", content="正在处理, 请稍等...").send()
                 tool_name = state.get("tool_name")
                 tool_args = state.get("tool_args")
                 tool_call_result = state.get("tool_call_result")
-                if tool_call_result:
+                if tool_call_result and tool_name == "metadata_table_statistic_tool":
                     with cl.Step(
-                        name=f"🛠️ tool_name={tool_name} tool_args={tool_args}",
+                        name=f"🛠️ {tool_name}(kwargs=**{tool_args})",
                         type="tool",
                     ) as step:
-                        step.elements = [
-                            cl.Text(
-                                content=tool_call_result,
-                            )
-                        ]
+                        step.input = tool_call_result
                         step.language = "json"
-                        step.output = tool_call_result
+                        dataframe_elements = await create_simple_dataframe_element(
+                            data=json.loads(tool_call_result)
+                        )
+                        if dataframe_elements:
+                            logger.info(
+                                f"use {create_simple_dataframe_element} created "
+                                f"dataframe element count: {len(dataframe_elements)} "
+                            )
+                            step.elements = dataframe_elements
+                        else:
+                            logger.warning(
+                                "dataframe_elements is None, just show raw json"
+                            )
+                            step.output = tool_call_result
+                            step.language = "json"
+                if tool_call_result and tool_name == "metadata_table_filter_tool":
+                    dataframe_elements = (
+                        await create_table_metadata_dataframe_element_array(
+                            data=json.loads(tool_call_result)
+                        )
+                    )
+                    logger.info(
+                        f"create_table_metadata_dataframe_element_array created "
+                        f"dataframe_elements count: {len(dataframe_elements)}"
+                    )
+
+                    if dataframe_elements:
+                        await cl.Message(
+                            content="查询到一些表字段信息如下",
+                        ).send()
+                        for each_table_element in dataframe_elements:
+                            await cl.Message(
+                                author="Tool",
+                                content=each_table_element.name,
+                                elements=[each_table_element],
+                            ).send()
+                    else:
+                        await cl.Message(
+                            author="Tool",
+                            content="工具查询到的表字段信息文本: \n" + tool_call_result,
+                        ).send()
             if node == "summary_node":
-                logger.info("[process] summary_node")
+                logger.info("[entry] summary_node")
                 summary = state.get("summary")
                 await cl.Message(author="AI", content=summary).send()
 

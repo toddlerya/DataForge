@@ -6,17 +6,7 @@
 # @Desc    :   None
 
 from pathlib import Path
-from typing import (
-    Annotated,
-    Any,
-    ClassVar,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    Set,
-    TypedDict,
-)
+from typing import Annotated, ClassVar, Dict, List, Literal, Optional, Set, TypedDict
 
 from langchain_core.messages import AnyMessage, BaseMessage
 from langgraph.graph.message import add_messages
@@ -298,11 +288,11 @@ class TableGenState(CommonState):
 
 class ExploreState(CommonState):
     question: str
-    summary: str | list[str | dict]
     tool_name: str
     tool_args: dict
-    tool_call_result: Any
-    format_tool_call_result: Any
+    tool_call_result: str | list[str | dict]
+    summarize_tool_call_result: list[dict]
+    summary: str | list[str | dict]
 
 
 class AppUserIntentSchema(BaseModel):
