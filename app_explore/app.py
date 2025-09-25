@@ -69,7 +69,8 @@ async def create_table_metadata_dataframe_element_array(
         each_table_metadata_elements = cl.Dataframe(
             data=df,
             display="side",
-            name=f"{each_table_metadata.get('table_en_name')}({each_table_metadata.get('table_cn_name')})表字段信息",
+            name=f"{each_table_metadata.get('table_en_name', 'not_tb_en_name')}"
+            f"({each_table_metadata.get('table_cn_name', 'no_tb_cn_name')})表字段信息",
         )
         elements.append(each_table_metadata_elements)
     return elements
@@ -101,16 +102,11 @@ async def chat_profile(current_user: cl.User):
                     message="与VPN相关的表有哪些?",
                     icon="public/icons/mobile-phone.svg",
                 ),
-                cl.Starter(
-                    label="哪些表包含身份证号码字段",
-                    message="哪些表包含身份证号码字段?",
-                    icon="public/icons/fingerprint.svg",
-                ),
-                cl.Starter(
-                    label="哪些表包含身份证号码字段",
-                    message="哪些表包含身份证号码字段?",
-                    icon="public/icons/table.svg",
-                ),
+                # cl.Starter(
+                #     label="哪些表包含身份证号码字段",
+                #     message="哪些表包含身份证号码字段?",
+                #     icon="public/icons/fingerprint.svg",
+                # ),
             ],
         )
     ]
@@ -194,7 +190,7 @@ async def on_message(message: cl.Message):
 
                     if dataframe_elements:
                         await cl.Message(
-                            content="查询到一些表字段信息如下",
+                            content=f"查询到{len(dataframe_elements)}个结果如下",
                         ).send()
                         for each_table_element in dataframe_elements:
                             await cl.Message(
