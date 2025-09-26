@@ -45,6 +45,32 @@ def analyze_intent(state: MainAppState) -> MainAppState:
     return state
 
 
+def clear_main_state(
+    state: MainAppState,
+) -> MainAppState:
+    if subgraph_control := state.get("subgraph_control", {}):
+        if not subgraph_control.get("clear_main_state"):
+            # 不需要清理
+            return state
+    # 需要保留的跨任务的状态
+    persistent_data = {
+        "session_id": state.get("session_id"),
+        "client_ip": state.get("client_ip"),
+        "max_retries": state.get("max_retries", 5),
+        # 只保留最新的消息
+        "messages": state.get("messages", [])[-1:],
+    }
+    clean_state: MainAppState = {
+        **persistent_data,
+        "user_intent": None,  # type: ignore
+        "next_sub_graph_name": "",
+        "user_input": "",
+        "human_intent_feedback": "",
+        "dont_run_dg_task": False,
+    }
+    return clean_state
+
+
 def invoke_expolore_graph(state: MainAppState):
     return expolore_graph.invoke(state)
 
@@ -77,13 +103,15 @@ def sub_graph_route(state: MainAppState):
 
 
 main_builder = StateGraph(MainAppState)
+main_builder.add_node("clear_main_state", clear_main_state)
 main_builder.add_node("analyze_intent", analyze_intent)
 main_builder.add_node("expolore_graph", invoke_expolore_graph)
 main_builder.add_node("data_gen_graph", invoke_data_gen_graph)
 main_builder.add_node("sql_mode_data_gen_graph", invoke_sql_mode_data_gen_graph)
 
 
-main_builder.add_edge(START, "analyze_intent")
+main_builder.add_edge(START, "clear_main_state")
+main_builder.add_edge("clear_main_state", "analyze_intent")
 main_builder.add_conditional_edges(
     "analyze_intent",
     sub_graph_route,

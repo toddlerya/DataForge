@@ -45,6 +45,45 @@ next_sub_graph_name_map = {
 }
 
 
+class SessionManager:
+    """会话管理器，为每个任务创建独立的线程"""
+
+    def __init__(self) -> None:
+        self.task_counter = 0
+
+    def get_new_thread_id(self, base_session_id: str) -> str:
+        """为新任务生成唯一的线程ID
+
+        Args:
+            base_session_id (str): _description_
+
+        Returns:
+            str: _description_
+        """
+        self.task_counter += 1
+        return f"{base_session_id[:-4]}_t_{self.task_counter}"
+
+    def clear_session_memory(self, thread_id: str):
+        """清空指定线程的内存
+
+        Args:
+            thread_id (str): _description_
+        """
+        try:
+            # 如果使用 InMemorySaver
+            if hasattr(main_graph.checkpointer, "storage"):
+                if thread_id in main_graph.checkpointer.storage:
+                    del main_graph.checkpointer.storage[thread_id]
+                    logger.info(f"已清空线程: {thread_id} 的内存")
+            else:
+                logger.info("main_graph.checkpointer不存在strorage属性")
+        except Exception as err:
+            logger.warning(f"清空线程内存失败: {err}")
+
+
+session_manager = SessionManager()
+
+
 async def create_simple_dataframe_element(data: list[dict]) -> list[cl.Dataframe]:
     """将嵌套的JSON数据展示为DataFrame"""
     df = pd.DataFrame(data=data)
@@ -478,9 +517,20 @@ async def chat_profile(current_user: cl.User):
 
 @cl.on_message
 async def on_message(message: cl.Message):
+    # 为每个新任务创建独立的线程ID
+    task_thread_id = session_manager.get_new_thread_id(
+        base_session_id=cl.context.session.id
+    )
+
+    # 如果需要清理上一个任务的状态
+    if last_thread_id := cl.user_session.get("last_thread_id"):
+        session_manager.clear_session_memory(last_thread_id)
+
+    cl.user_session.set("last_thread_id", task_thread_id)
+
     # 如果没有初始化trace_uuid则初始化trace_token
     if traced_logger.get_trace_uuid() is None:
-        trace_token = traced_logger.set_trace_uuid(trace_uuid=cl.context.session.id)
+        trace_token = traced_logger.set_trace_uuid(trace_uuid=task_thread_id)
         cl.user_session.set("trace_token", trace_token)
 
     if hasattr(cl.context.session, "environ") and cl.context.session.environ:
@@ -494,20 +544,20 @@ async def on_message(message: cl.Message):
         cl.user_session.set("client_ip", "127.0.0.1")
 
     logger.info(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
+        f"session_id={task_thread_id} ip={cl.user_session.get('client_ip')} "
         f"message: {message.content}"
     )
 
     init_state = {
         "messages": HumanMessage(content=message.content.strip()),
         "max_retries": 5,
-        "session_id": cl.context.session.id,
+        "session_id": task_thread_id,
         "client_ip": cl.user_session.get("client_ip"),
         "tool_call_result": None,
     }
 
     run_config = RunnableConfig(
-        configurable={"thread_id": cl.context.session.id},
+        configurable={"thread_id": task_thread_id},
         recursion_limit=50,
     )
 
@@ -516,7 +566,7 @@ async def on_message(message: cl.Message):
     ):
         event = cast(tuple[tuple, dict], event)
         for node, state in event[1].items():
-            logger.info(f"current_node={node} current_state={state}")
+            logger.trace(f"current_node={node} current_state={state}")
             processed = await handle_graph_event(
                 node=node, state=state, run_config=run_config
             )
@@ -528,7 +578,7 @@ async def on_message(message: cl.Message):
     trace_token = cl.user_session.get("trace_token")
     if trace_token is None:
         logger.warning(
-            f"session_id={cl.context.session.id} trace_token not found, skipping reset."
+            f"session_id={task_thread_id} trace_token not found, skipping reset."
         )
     else:
         # 这里 Pylance 知道 trace_token 是 Token 类型，且不是 None

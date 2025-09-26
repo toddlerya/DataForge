@@ -117,8 +117,12 @@ def should_data_intent_continue(state: DataGenState):
         # Otherwise proceed to create table info
         logger.info("should_data_intent_continue -> reset_input_and_intent")
         # 重新开始意图识别
-        logger.info("重置state的user_input和user_intent")
-
+        logger.info(
+            "需要重置state的user_input和user_intent, 如果有主图也许重置主图的意图状态"
+        )
+        if "subgraph_control" not in state:
+            state["subgraph_control"] = {}
+        state["subgraph_control"]["clear_main_state"] = True
         return "reset_input_and_intent"
 
 

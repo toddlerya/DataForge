@@ -5,8 +5,19 @@
 # @Author  :   toddlerya
 # @Desc    :   None
 
+
 from pathlib import Path
-from typing import Annotated, ClassVar, Dict, List, Literal, Optional, Set, TypedDict
+from typing import (
+    Annotated,
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    TypedDict,
+)
 
 from langchain_core.messages import AnyMessage, BaseMessage
 from langgraph.graph.message import add_messages
@@ -158,6 +169,7 @@ class DataGenBaseState(CommonState):
     task_data: TaskDataSchema
     env_name: str
     dont_run_dg_task: bool
+    subgraph_control: dict[str, Any]
 
 
 class DataGenState(DataGenBaseState):
@@ -310,6 +322,8 @@ class MainAppState(CommonState):
     user_input: str
     human_intent_feedback: str
     dont_run_dg_task: bool
+    # 子图控制字段
+    subgraph_control: dict[str, Any]
 
 
 if __name__ == "__main__":
