@@ -53,36 +53,19 @@ async def create_simple_dataframe_element(data: list[dict]) -> list[cl.Dataframe
 
 
 async def create_table_metadata_dataframe_element_array(
-    data: list[dict],
+    df_list: list[pd.DataFrame],
+    table_en_name_list: list[str],
+    table_cn_name_list: list[str],
 ) -> list[cl.Dataframe]:
     """将多个表元数据JSON展示为DataFrame"""
-    logger.info(f"data: type(data)={type(data)} value={data}")
+    logger.info(f"df_list count: {len(df_list)}")
     elements = []
-    for each_table_metadata in data:
-        df = pd.DataFrame(each_table_metadata.get("table_fields", [{}]))[
-            [
-                "cn_name",
-                "en_name",
-                "desc",
-                "field_type",
-                "dict_key",
-                "example",
-            ]
-        ].rename(
-            columns={
-                "cn_name": "中文名称",
-                "en_name": "英文名称",
-                "desc": "描述",
-                "field_type": "字段类型",
-                "dict_key": "字典",
-                "example": "样例数据",
-            }
-        )
+
+    for index, df in enumerate(df_list):
         each_table_metadata_elements = cl.Dataframe(
             data=df,
             display="side",
-            name=f"{each_table_metadata.get('table_en_name', 'not_tb_en_name')}"
-            f"  {each_table_metadata.get('table_cn_name', 'no_tb_cn_name')}",
+            name=(f"{table_en_name_list[index]} {table_cn_name_list[index]}"),
         )
         elements.append(each_table_metadata_elements)
     return elements
@@ -127,8 +110,40 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                     step.output = tool_call_result
                     step.language = "json"
         elif tool_call_result and tool_name == "metadata_table_filter_tool":
+            df_list: list[pd.DataFrame] = []
+            table_en_name_list: list[str] = []
+            table_cn_name_list: list[str] = []
+            for each_table_metadata in json.loads(tool_call_result):
+                df = pd.DataFrame(each_table_metadata.get("table_fields", [{}]))[
+                    [
+                        "cn_name",
+                        "en_name",
+                        "desc",
+                        "field_type",
+                        "dict_key",
+                        "example",
+                    ]
+                ].rename(
+                    columns={
+                        "cn_name": "中文名称",
+                        "en_name": "英文名称",
+                        "desc": "描述",
+                        "field_type": "字段类型",
+                        "dict_key": "字典",
+                        "example": "样例数据",
+                    }
+                )
+                df_list.append(df)
+                table_en_name_list.append(
+                    each_table_metadata.get("table_en_name", "not_tb_en_name")
+                )
+                table_cn_name_list.append(
+                    each_table_metadata.get("table_cn_name", "no_tb_cn_name")
+                )
             dataframe_elements = await create_table_metadata_dataframe_element_array(
-                data=json.loads(tool_call_result)
+                df_list=df_list,
+                table_en_name_list=table_en_name_list,
+                table_cn_name_list=table_cn_name_list,
             )
             logger.info(
                 f"create_table_metadata_dataframe_element_array created "
@@ -142,13 +157,11 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                 ).send()
                 for each_table_element in dataframe_elements:
                     await cl.Message(
-                        author="Tool",
                         content=each_table_element.name,
                         elements=[each_table_element],
                     ).send()
             else:
                 await cl.Message(
-                    author="Tool",
                     content="工具查询到的表字段信息文本: \n" + tool_call_result,
                 ).send()
         # else:
@@ -165,6 +178,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         user_intent: DataGenUserIntentSchema = state.get("user_intent")
         if not user_intent:
             logger.info("还没有出现意图呢...")
+            return False
         await cl.Message(
             author="AI",
             content=user_intent.model_dump_json(indent=2),
@@ -214,17 +228,59 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                     name=f"{table_metadata.table_en_name}表字段信息",
                 )
             ]
-            # table_metadata_elements = (
-            #     await create_table_metadata_dataframe_element_array(
-            #         data=[ele.model_dump() for ele in table_metadata.raw_fields_info]
-            #     )
-            # )
             if table_metadata_elements:
                 await cl.Message(
+                    author="Database",
                     content=f"{table_metadata.table_en_name}表字段信息",
                     elements=table_metadata_elements,
                 ).send()
+            else:
+                await cl.Message(
+                    content="工具查询到的表字段信息文本: \n"
+                    + json.dumps(
+                        [ele.model_dump() for ele in table_metadata.raw_fields_info],
+                        ensure_ascii=True,
+                    ),
+                ).send()
             await cl.Message(content="正在生成DataGenius执行计划...").send()
+    elif node == "sql_parse_to_table_info":
+        logger.info("[entry] sql_parse_to_table_info")
+        end_time = asyncio.get_event_loop().time()
+        cl.user_session.set("end_time", end_time)
+        await cl.Message(content="已解析SQL为表结构信息...").send()
+        table_info_error = state.get("table_info_error")
+        table_info_data = state.get("table_info_data")
+        if table_info_error:
+            logger.error(f"table_info_error: {table_info_error}")
+            await cl.Message(content=table_info_error).send()
+        else:
+            df = pd.DataFrame(
+                [ele.model_dump() for ele in table_info_data.fields_info]
+            )[
+                [
+                    "en_name",
+                    "alias_name",
+                    "comment",
+                ]
+            ].rename(
+                columns={
+                    "en_name": "字段英文名称",
+                    "alias_name": "字段别名",
+                    "comment": "字段注释",
+                }
+            )
+            table_metadata_elements = [
+                cl.Dataframe(
+                    data=df,
+                    display="side",
+                    name=f"{table_info_data.table_en_name}表字段信息",
+                )
+            ]
+            await cl.Message(
+                author="Database",
+                content=f"{table_info_data.table_en_name}表字段信息",
+                elements=table_metadata_elements,
+            ).send()
     elif node == "dg_category_recommend":
         logger.info("[process] dg_category_recommend")
         pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
@@ -333,6 +389,13 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
 
 async def handle_interrupt(run_config: RunnableConfig) -> bool:
     """处理中断, 返回还是继续运行"""
+    if human_intent_feedback := cl.user_session.get("human_intent_feedback"):
+        logger.warning(
+            f"用户已经反馈过并完成了一次任务, 清空用户反馈。"
+            f"human_intent_feedback={human_intent_feedback}"
+        )
+        cl.user_session.set("human_intent_feedback", None)
+        return True
     res = await cl.AskUserMessage(
         author="Assistant",
         content=(
@@ -347,14 +410,10 @@ async def handle_interrupt(run_config: RunnableConfig) -> bool:
         logger.info(f"human_intent_feedback: {res_text}")
         cl.user_session.set("human_intent_feedback", res_text)
         resume_map = {"human_intent_feedback": res_text}
-        # main_graph.update_state(
-        #     config=run_config,
-        #     values=resume_map,
-        # )
-
         start_time = asyncio.get_event_loop().time()
         cl.user_session.set("start_time", start_time)
-        await cl.Message(content="正在获取表元数据信息...").send()
+
+        # await cl.Message(content="正在获取表元数据信息...").send()
 
         # 继续运行
         async for event in main_graph.astream(
@@ -365,7 +424,7 @@ async def handle_interrupt(run_config: RunnableConfig) -> bool:
         ):
             event = cast(tuple[tuple, dict], event)
             for node, state in event[1].items():
-                logger.info(f"current_node={node} current_state={state}")
+                logger.trace(f"current_node={node} current_state={state}")
                 await handle_graph_event(node=node, state=state, run_config=run_config)
         return True
     return False
@@ -455,14 +514,15 @@ async def on_message(message: cl.Message):
     async for event in main_graph.astream(
         init_state, run_config, stream_mode="updates", subgraphs=True
     ):
-        # logger.info(f"current_event: type={type(event)} value={event}")
         event = cast(tuple[tuple, dict], event)
         for node, state in event[1].items():
             logger.info(f"current_node={node} current_state={state}")
             processed = await handle_graph_event(
                 node=node, state=state, run_config=run_config
             )
+            logger.info(f"processed: {processed} node={node}")
             if node == "__interrupt__" and processed:
+                logger.info(f"processed = {processed} node = {node} will break astream")
                 break
 
     # 完成会话清空trace_uuid

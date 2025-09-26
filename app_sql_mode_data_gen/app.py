@@ -69,8 +69,8 @@ async def process_step(event, graph):  # noqa: C901
     for node, state in event.items():
         logger.debug(f"node: {node} state: {state} ")
 
-        if node == "analyze_intent":
-            logger.info("[process] analyze_intent")
+        if node == "analyze_data_intent":
+            logger.info("[process] analyze_data_intent")
             user_intent: DataGenSQLModeUserIntentSchema = state.get("user_intent")
             await cl.Message(
                 author="AI",

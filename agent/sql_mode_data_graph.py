@@ -13,6 +13,7 @@ from copy import deepcopy
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import interrupt
 from loguru import logger
 
 from agent.dg_api_client import create_dg_task, query_dg_task_status, save_task_info2db
@@ -79,8 +80,10 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
 
 
 def data_intent_human_feedback_node(state: SQLModeDataGenState):
-    """No-op node that should be interrupted on"""
-    logger.info(f"state: {state}")
+    feedback: dict = interrupt("意图正确吗?")
+    logger.info(f"resume feedback: {feedback}")
+    human_intent_feedback = feedback.get("human_intent_feedback", "").strip().upper()
+    state["human_intent_feedback"] = human_intent_feedback
     return state
 
 
@@ -275,9 +278,7 @@ sql_mode_data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
 sql_mode_data_gen_builder.add_edge("save_task_info2db", END)
 
 memory = InMemorySaver()
-sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(
-    interrupt_before=["intent_human_feedback_node"], checkpointer=memory
-)
+sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(checkpointer=memory)
 
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging

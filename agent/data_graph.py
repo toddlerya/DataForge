@@ -385,10 +385,7 @@ data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
 data_gen_builder.add_edge("save_task_info2db", END)
 
 memory = InMemorySaver()
-data_gen_graph = data_gen_builder.compile(
-    # interrupt_before=["intent_human_feedback_node"],
-    checkpointer=memory
-)
+data_gen_graph = data_gen_builder.compile(checkpointer=memory)
 
 if __name__ == "__main__":
     from common.initialization import init_env, setup_logging

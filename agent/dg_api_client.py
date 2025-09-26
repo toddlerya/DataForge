@@ -282,4 +282,5 @@ def save_task_info2db(
     if save_status is False:
         logger.error(save_message)
     db_manager.close()
-    return state
+    # 清理state
+    return {"user_intent": None}  # type: ignore
