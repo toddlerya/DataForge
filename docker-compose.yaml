@@ -106,6 +106,26 @@ services:
     environment:
       <<: *common-envs
 
+  data_agent_chat:
+    <<: *common-user-privileged
+    image: llm_server_py313_env:1.0.0
+    container_name: DFAgentApp
+    hostname: DFAgentApp
+    restart: unless-stopped
+    working_dir: /app
+    command: bash -c "python -m app_agent.run"
+    networks:
+      harbor_net:
+    ports:
+      - "9800:9800"
+    depends_on:
+      - db
+      - crond_task
+    volumes: *common-volumes
+    environment:
+      <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_agent
+
   data_gen_chat:
     <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
