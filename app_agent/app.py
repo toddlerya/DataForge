@@ -13,6 +13,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables.config import RunnableConfig
+from langgraph.types import Command
 from loguru import logger
 
 from agent.agent_graph import main_graph
@@ -102,11 +103,11 @@ async def chat_profile(current_user: cl.User):
                     message="当前已对接多少元数据表?",
                     icon="public/icons/text.svg",
                 ),
-                cl.Starter(
-                    label="当前对接了哪些环境配置",
-                    message="当前对接了哪些环境配置?",
-                    icon="public/icons/setting.svg",
-                ),
+                # cl.Starter(
+                #     label="当前对接了哪些环境配置",
+                #     message="当前对接了哪些环境配置?",
+                #     icon="public/icons/setting.svg",
+                # ),
                 cl.Starter(
                     label="与VPN相关的表有哪些",
                     message="与VPN相关的表有哪些?",
@@ -114,8 +115,13 @@ async def chat_profile(current_user: cl.User):
                 ),
                 cl.Starter(
                     label="生成10条massdata.ADM_REL_MOBILE表的测试数据",
-                    message="生成10条massdata.ADM_REL_MOBILE表的测试数据?",
+                    message="生成10条massdata.ADM_REL_MOBILE表的测试数据",
                     icon="public/icons/table.svg",
+                ),
+                cl.Starter(
+                    label="使用select MD_ID from massdata.ADM_REL_MOBILE生成10条数据",
+                    message="使用select MD_ID from massdata.ADM_REL_MOBILE生成10条数据",
+                    icon="public/icons/database.svg",
                 ),
                 cl.Starter(
                     label="哪些表包含身份证号码字段",
@@ -173,6 +179,7 @@ async def on_message(message: cl.Message):
                 logger.info("[entry] analyze_intent")
                 await cl.Message(content="意图分析中").send()
                 next_sub_graph_name = state.get("next_sub_graph_name")
+                logger.info(f"next_sub_graph_name==>{next_sub_graph_name}")
                 if next_sub_graph_name:
                     await cl.Message(
                         content=(
@@ -248,21 +255,24 @@ async def on_message(message: cl.Message):
                 summary = state.get("summary")
                 await cl.Message(content=summary).send()
             elif node == "analyze_data_intent":
-                logger.info("[process] analyze_data_intent")
+                logger.info("[entry] analyze_data_intent")
                 user_intent: DataGenUserIntentSchema = state.get("user_intent")
                 if not user_intent:
+                    logger.info("还没有出现意图呢...")
                     continue
                 await cl.Message(
                     author="AI",
                     content=user_intent.model_dump_json(indent=2),
                     language="python",
                 ).send()
+            elif node == "__interrupt__":
+                logger.info("[entry] __interrupt__")
                 res = await cl.AskUserMessage(
                     author="Assistant",
                     content=(
                         "上述意图识别结果是否正确？"
                         "若不正确请调整输入信息再次尝试意图识别; "
-                        "若正确, 请输入“正确“或”Y”, 将开始数据生成任务。"
+                        "若正确, 请输入“正确“或”Y”, 将开始任务。"
                     ),
                     timeout=300,
                 ).send()
@@ -270,17 +280,22 @@ async def on_message(message: cl.Message):
                     res_text = res["output"].strip()
                     logger.info(f"human_intent_feedback: {res_text}")
                     cl.user_session.set("human_intent_feedback", res_text)
-                    main_graph.update_state(
-                        config=run_config,
-                        values={"human_intent_feedback": res_text},
-                        as_node="intent_human_feedback_node",
+                    resume_map = {"human_intent_feedback": res_text}
+                    # main_graph.update_state(
+                    #     config=run_config,
+                    #     values=resume_map,
+                    # )
+                    # 继续运行
+                    main_graph.invoke(
+                        Command(resume=resume_map),
+                        run_config,
+                        stream_mode="updates",
+                        subgraphs=True,
                     )
+
                     start_time = asyncio.get_event_loop().time()
                     cl.user_session.set("start_time", start_time)
                     await cl.Message(content="正在获取表元数据信息...").send()
-                    main_graph.astream(
-                        None, run_config, stream_mode="updates", subgraphs=True
-                    )
             elif node == "query_table_raw_field_info":
                 logger.info("[process] query_table_raw_field_info")
                 end_time = asyncio.get_event_loop().time()

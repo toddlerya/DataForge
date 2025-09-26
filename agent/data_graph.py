@@ -14,6 +14,7 @@ from langchain_core.messages import ToolMessage
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import interrupt
 from loguru import logger
 
 from agent.dg_api_client import create_dg_task, query_dg_task_status, save_task_info2db
@@ -91,7 +92,10 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
 
 
 def intent_human_feedback_node(state: DataGenState):
-    """No-op node that should be interrupted on"""
+    feedback: dict = interrupt("意图正确吗?")
+    logger.info(f"resume feedback: {feedback}")
+    human_intent_feedback = feedback.get("human_intent_feedback", "").strip().upper()
+    state["human_intent_feedback"] = human_intent_feedback
     return state
 
 
@@ -99,6 +103,7 @@ def should_data_intent_continue(state: DataGenState):
     """Return the next node to execute"""
 
     # Check if human feedback
+
     logger.info(f"should_data_intent_continue: {state}")
     human_intent_feedback = state.get("human_intent_feedback", "").strip().upper()
     if human_intent_feedback == "正确" or human_intent_feedback == "Y":
@@ -381,7 +386,8 @@ data_gen_builder.add_edge("save_task_info2db", END)
 
 memory = InMemorySaver()
 data_gen_graph = data_gen_builder.compile(
-    interrupt_before=["intent_human_feedback_node"], checkpointer=memory
+    # interrupt_before=["intent_human_feedback_node"],
+    checkpointer=memory
 )
 
 if __name__ == "__main__":

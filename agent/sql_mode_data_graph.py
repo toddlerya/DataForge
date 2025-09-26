@@ -50,7 +50,7 @@ def detect_input_type(state: SQLModeDataGenState):
     if user_intent:
         return "sql_parse_to_table_info"
     else:
-        return "analyze_intent"
+        return "analyze_data_intent"
 
 
 def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
@@ -63,7 +63,8 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
         f"analyze_data_intent => user_input: {user_input} "
-        f"human_intent_feedback: {human_intent_feedback}"
+        f"human_intent_feedback: {human_intent_feedback} "
+        f"state: {state}"
     )
     structured_llm = chat_llm.with_structured_output(DataGenSQLModeUserIntentSchema)
     chat_prompt = sql_mode_data_intent_prompt.format_messages(
@@ -79,6 +80,7 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
 
 def data_intent_human_feedback_node(state: SQLModeDataGenState):
     """No-op node that should be interrupted on"""
+    logger.info(f"state: {state}")
     return state
 
 
@@ -91,7 +93,7 @@ def should_data_intent_continue(state: SQLModeDataGenState):
         return "sql_parse_to_table_info"
 
     # Otherwise proceed to create table info
-    return "analyze_intent"
+    return "analyze_data_intent"
 
 
 def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
@@ -241,7 +243,7 @@ def save_dg_plan2json(state: SQLModeDataGenState):
 
 
 sql_mode_data_gen_builder = StateGraph(SQLModeDataGenState)
-sql_mode_data_gen_builder.add_node("analyze_intent", analyze_data_intent)
+sql_mode_data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
 sql_mode_data_gen_builder.add_node(
     "intent_human_feedback_node", data_intent_human_feedback_node
 )
@@ -254,13 +256,13 @@ sql_mode_data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
 sql_mode_data_gen_builder.add_node("save_task_info2db", save_task_info2db)
 
 sql_mode_data_gen_builder.add_conditional_edges(
-    START, detect_input_type, ["sql_parse_to_table_info", "analyze_intent"]
+    START, detect_input_type, ["sql_parse_to_table_info", "analyze_data_intent"]
 )
-sql_mode_data_gen_builder.add_edge("analyze_intent", "intent_human_feedback_node")
+sql_mode_data_gen_builder.add_edge("analyze_data_intent", "intent_human_feedback_node")
 sql_mode_data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
     should_data_intent_continue,
-    ["analyze_intent", "sql_parse_to_table_info"],
+    ["analyze_data_intent", "sql_parse_to_table_info"],
 )
 sql_mode_data_gen_builder.add_edge(
     "sql_parse_to_table_info", "rag_sql_table_filed_info"

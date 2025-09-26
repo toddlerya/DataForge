@@ -42,9 +42,16 @@ def analyze_intent(state: MainAppState) -> MainAppState:
     return state
 
 
-def intent_human_feedback_node(state):
-    """No-op node that should be interrupted on"""
-    return state
+def invoke_expolore_graph(state: MainAppState):
+    return expolore_graph.invoke(state)
+
+
+def invoke_data_gen_graph(state: MainAppState):
+    return data_gen_graph.invoke(state)
+
+
+def invoke_sql_mode_data_gen_graph(state: MainAppState):
+    return sql_mode_data_gen_graph.invoke(state)
 
 
 def sub_graph_route(state: MainAppState):
@@ -68,27 +75,31 @@ def sub_graph_route(state: MainAppState):
 
 main_builder = StateGraph(MainAppState)
 main_builder.add_node("analyze_intent", analyze_intent)
-main_builder.add_node("expolore_graph", expolore_graph)
-main_builder.add_node("data_gen_graph", data_gen_graph)
-main_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
-main_builder.add_node("sql_mode_data_gen_graph", sql_mode_data_gen_graph)
+main_builder.add_node("expolore_graph", invoke_expolore_graph)
+main_builder.add_node("data_gen_graph", invoke_data_gen_graph)
+main_builder.add_node("sql_mode_data_gen_graph", invoke_sql_mode_data_gen_graph)
 
 
 main_builder.add_edge(START, "analyze_intent")
 main_builder.add_conditional_edges(
     "analyze_intent",
     sub_graph_route,
-    ["expolore_graph", "data_gen_graph", "sql_mode_data_gen_graph", END],
+    [
+        "expolore_graph",
+        "data_gen_graph",
+        "sql_mode_data_gen_graph",
+        END,
+    ],
 )
 
 memory = InMemorySaver()
-main_graph = main_builder.compile(
-    interrupt_before=["intent_human_feedback_node"], checkpointer=memory
-)
+main_graph = main_builder.compile(checkpointer=memory)
 
 
 if __name__ == "__main__":
     import uuid
+
+    from langgraph.types import Command
 
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
@@ -97,7 +108,7 @@ if __name__ == "__main__":
     log_config = LogManager(
         base_path=str(PROJECT_PATH.absolute()),
         log_path="logs",
-        log_name="MainAPp.log",
+        log_name="AgentGraph.log",
         console_log_level="DEBUG",
         file_log_level="TRACE",
     )
@@ -113,15 +124,32 @@ if __name__ == "__main__":
     if traced_logger.get_trace_uuid() is None:
         traced_logger.set_trace_uuid(session_id)
 
-    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
+    run_config: RunnableConfig = {"configurable": {"thread_id": session_id}}
+
+    data_gen_input = "生成10条massdata.ADM_REL_MOBILE表的测试数据"
+    sql_data_gen_input = "select MD_ID from massdata.ADM_REL_MOBILE"
 
     init_state = {
-        "messages": HumanMessage(content="当前有多少表"),
+        "messages": HumanMessage(content=data_gen_input),
         "max_retries": 5,
         "session_id": session_id,
         "client_ip": "10.0.23.57",
     }
 
     # 先流式执行到中断点
-    for event in main_graph.stream(init_state, thread, stream_mode="values"):
-        logger.info(f"event: {event}")
+    for event in main_graph.stream(init_state, run_config, stream_mode="values"):
+        logger.info(f"before interupt event: {event}")
+
+    # 更新用户反馈
+    resume_map = {"human_intent_feedback": "Y"}
+    # main_graph.update_state(
+    #     config=run_config,
+    #     values=resume_map,
+    # )
+
+    # 继续运行
+    main_graph.invoke(Command(resume=resume_map), config=run_config)
+
+    # 新的结果
+    # for event in main_graph.stream(init_state, run_config, stream_mode="values"):
+    #     logger.info(f"after interupt event: {event}")
