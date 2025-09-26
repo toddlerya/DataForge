@@ -4,11 +4,13 @@
 # @Author   : guoqun X2590
 # @Desc     : 主图
 
+import uuid
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command
 from loguru import logger
 
 from agent.data_graph import data_gen_graph
@@ -17,6 +19,7 @@ from agent.llm import chat_llm
 from agent.prompt import main_intent_prompt
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import AppUserIntentSchema, MainAppState
+from utils.log import TracedLogger
 
 
 def analyze_intent(state: MainAppState) -> MainAppState:
@@ -97,13 +100,9 @@ main_graph = main_builder.compile(checkpointer=memory)
 
 
 if __name__ == "__main__":
-    import uuid
-
-    from langgraph.types import Command
-
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
-    from utils.log import LogManager, TracedLogger
+    from utils.log import LogManager
 
     log_config = LogManager(
         base_path=str(PROJECT_PATH.absolute()),
@@ -142,14 +141,6 @@ if __name__ == "__main__":
 
     # 更新用户反馈
     resume_map = {"human_intent_feedback": "Y"}
-    # main_graph.update_state(
-    #     config=run_config,
-    #     values=resume_map,
-    # )
 
     # 继续运行
     main_graph.invoke(Command(resume=resume_map), config=run_config)
-
-    # 新的结果
-    # for event in main_graph.stream(init_state, run_config, stream_mode="values"):
-    #     logger.info(f"after interupt event: {event}")

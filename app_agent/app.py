@@ -520,7 +520,6 @@ async def on_message(message: cl.Message):
             processed = await handle_graph_event(
                 node=node, state=state, run_config=run_config
             )
-            logger.info(f"processed: {processed} node={node}")
             if node == "__interrupt__" and processed:
                 logger.info(f"processed = {processed} node = {node} will break astream")
                 break

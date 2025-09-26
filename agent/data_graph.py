@@ -88,6 +88,7 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
         if isinstance(user_intent, DataGenUserIntentSchema):
             state["user_intent"] = user_intent
             state["env_name"] = user_intent.env_name
+            state["dont_run_dg_task"] = user_intent.dont_run_dg_task
     return state
 
 
@@ -337,7 +338,8 @@ def is_only_dg_rule_gen_mode(state: DataGenState):
     Args:
         state (DataGenState): _description_
     """
-    dont_run_dg_task = state.get("dont_run_dg_task", False)
+    dont_run_dg_task = state.get("dont_run_dg_task")
+    logger.info(f"dont_run_dg_task: {dont_run_dg_task}")
     if dont_run_dg_task is True:
         return "save_task_info2db"
     else:

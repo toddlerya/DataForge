@@ -157,13 +157,13 @@ class DataGenBaseState(CommonState):
     error_message: Annotated[List[AnyMessage], add_messages]
     task_data: TaskDataSchema
     env_name: str
+    dont_run_dg_task: bool
 
 
 class DataGenState(DataGenBaseState):
     user_intent: DataGenUserIntentSchema
     pre_heat_mode: bool
     mode: Literal[1]
-    dont_run_dg_task: bool
 
 
 class DataGenSQLModeUserIntentSchema(BaseModel):
@@ -306,8 +306,10 @@ class AppUserIntentSchema(BaseModel):
 class MainAppState(CommonState):
     user_intent: AppUserIntentSchema
     next_sub_graph_name: str
+    # 与子图共用的状态，定义了才能传递
     user_input: str
     human_intent_feedback: str
+    dont_run_dg_task: bool
 
 
 if __name__ == "__main__":
