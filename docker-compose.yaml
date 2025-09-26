@@ -36,6 +36,7 @@ x-common-volumes: &common-volumes
   - ./config.py:/app/config.py
   - ./serve.py:/app/serve.py
   # - ./.chainlit:/app/.chainlit
+  - ./public:/app/public
   - ./app_data_gen:/app/app_data_gen
   - ./app_fmdb_insert_sql_gen:/app/app_fmdb_insert_sql_gen
   - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
