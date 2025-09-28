@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Request
 from langchain_core.runnables.config import RunnableConfig
 from loguru import logger
 
-from agent.sql_mode_data_graph import sql_mode_data_gen_graph
+from agent.standalone_sql_mode_data_graph import standalone_sql_gen_graph
 from agent.state import DataGenSQLModeUserIntentSchema
 from server.api.depends import get_transaction_logger
 from server.api.schemas.base_schema import ResponseBaseSchema
@@ -176,7 +176,7 @@ async def run_graph(
     }
 
     thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
-    event = await sql_mode_data_gen_graph.ainvoke(
+    event = await standalone_sql_gen_graph.ainvoke(
         init_state, thread, stream_mode="values"
     )
     for error in [

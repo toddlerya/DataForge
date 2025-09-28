@@ -173,7 +173,7 @@ if __name__ == "__main__":
     sql_data_gen_input = "select MD_ID from massdata.ADM_REL_MOBILE, 生成100条数据"
 
     init_state = {
-        "messages": HumanMessage(content=meta_data_gen_input),
+        "messages": HumanMessage(content=sql_data_gen_input),
         "max_retries": 5,
         "session_id": session_id,
         "client_ip": "10.0.23.57",

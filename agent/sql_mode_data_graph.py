@@ -239,20 +239,29 @@ memory = InMemorySaver()
 sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(checkpointer=memory)
 
 if __name__ == "__main__":
+    import pathlib
+
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
     from utils.log import LogManager
 
+    current_file_path = pathlib.Path(__file__)
+    current_log_name = (
+        f"{current_file_path.name.replace(current_file_path.suffix, '')}.log"
+    )
     log_config = LogManager(
         base_path=str(PROJECT_PATH.absolute()),
         log_path="logs",
-        log_name="DataForgeSQLModeDataGenApp.log",
+        log_name=current_log_name,
         file_log_level="TRACE",
     )
     setup_logging(log_config.get_config().get("handlers"))
     init_env()
 
-    print(sql_mode_data_gen_graph.get_graph(xray=True).draw_mermaid())
+    graph_mermaid = sql_mode_data_gen_graph.get_graph(xray=True).draw_mermaid()
+    print(graph_mermaid)
+    logger.info("\n" + graph_mermaid)
+
     user_input = """SQL内容(必填): select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE,
      NICKNAME, REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT,
      REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE,
@@ -305,29 +314,3 @@ if __name__ == "__main__":
         table_dict_category_code_map = event.get("table_dict_category_code_map")
         if table_dict_category_code_map:
             logger.info(f"table_dict_category_code_map: {table_dict_category_code_map}")
-
-        create_data_genius_task_error = event.get("create_data_genius_task_error")
-        if create_data_genius_task_error:
-            logger.info(
-                f"create_data_genius_task_error: {create_data_genius_task_error}"
-            )
-
-        query_data_genius_task_error = event.get("query_data_genius_task_error")
-        if query_data_genius_task_error:
-            logger.info(f"query_data_genius_task_error: {query_data_genius_task_error}")
-
-        data_genius_plan_run_duration = event.get("data_genius_plan_run_duration")
-        if data_genius_plan_run_duration:
-            logger.info(
-                f"data_genius_plan_run_duration: {data_genius_plan_run_duration}"
-            )
-
-        data_genius_plan_output_url = event.get("data_genius_plan_output_url")
-        if data_genius_plan_output_url:
-            logger.info(f"data_genius_plan_output_url: {data_genius_plan_output_url}")
-
-        data_genius_plan_output_filesize = event.get("data_genius_plan_output_filesize")
-        if data_genius_plan_output_filesize:
-            logger.info(
-                f"data_genius_plan_output_filesize: {data_genius_plan_output_filesize}"
-            )
