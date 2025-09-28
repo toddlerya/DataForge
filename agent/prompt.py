@@ -243,11 +243,11 @@ expolore_chat_prompt = ChatPromptTemplate.from_messages(
 main_intent_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是测试数据智能助手, 分析用户的输入, 识别出以下信息\n"
     "1. 用户任务需要使用的子图(对应graph_name). \n"
-    "- 如果是基于提供的明确表名称构造测试数据则填写data_gen_graph\n"
+    "- 如果是基于提供的明确表名称构造测试数据则填写meta_mode_data_gen_graph\n"
     "- 如果是基于提供的SQL构造测试数据则填写sql_mode_data_gen_graph\n"
     "- 如果都不是则填写expolore_graph\n"
     "- 没有第4种情况, 只能从给定的清单"
-    "中[data_gen_graph,sql_mode_data_gen_graph,expolore_graph]3选1\n"
+    "中[meta_mode_data_gen_graph,sql_mode_data_gen_graph,expolore_graph]3选1\n"
     "按照要求输出结构化数据。"
 )
 

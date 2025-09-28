@@ -12,8 +12,8 @@ from agent.dg_rule_extend import force_update_dg_rule
 from agent.llm import chat_llm
 from agent.prompt import dg_category_prompt
 from agent.state import (
-    DataGenState,
     DataGenUserIntentSchema,
+    MetaModeDataGenState,
     PydanticDataGeniusCategoryRecommendation,
     PydanticDataGeniusPlan,
     PydanticDataGeniusRule,
@@ -152,8 +152,8 @@ def recommend_dg_rule_by_llm(
 
 
 def dg_rule_processor(
-    state: Union[SQLModeDataGenState, DataGenState],
-) -> Union[SQLModeDataGenState, DataGenState]:
+    state: Union[SQLModeDataGenState, MetaModeDataGenState],
+) -> Union[SQLModeDataGenState, MetaModeDataGenState]:
     """
     DataGenius字段分类缓存和推荐处理器
     Args:
@@ -164,8 +164,9 @@ def dg_rule_processor(
     """
     logger.info("DataGenius字段规则处理")
     # 复用的字段
+    logger.trace(f"state: {state}")
 
-    user_intent = state["user_intent"]
+    user_intent = state.get("user_intent")
     client_ip = state["client_ip"]
     session_id = state["session_id"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")

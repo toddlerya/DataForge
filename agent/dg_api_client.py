@@ -20,7 +20,7 @@ from agent.dg_configs import (
     DG_SERVER_BASE_URL,
     DG_TASK_HISTORY,
 )
-from agent.state import DataGenState, SQLModeDataGenState, TableMetadataSchema
+from agent.state import MetaModeDataGenState, SQLModeDataGenState, TableMetadataSchema
 from config import DG_PAYLOAD_PATH
 from cruds.task import save_task_info
 from utils.db_manager import DatabaseManager
@@ -62,8 +62,8 @@ def dg_rule_data_preview(
 
 
 def create_dg_task(
-    state: Union[SQLModeDataGenState, DataGenState],
-) -> Union[SQLModeDataGenState, DataGenState]:
+    state: Union[SQLModeDataGenState, MetaModeDataGenState],
+) -> Union[SQLModeDataGenState, MetaModeDataGenState]:
     """
     创建人DataGenius任务
     Args:
@@ -149,6 +149,7 @@ def create_dg_task(
         else:
             info = resp_json.get("info")
             logger.error(f"创建任务异常{create_task_url}, info: {info}")
+            # TODO: 如果发现异常，不应该再查询了，需要加个节点
             state["create_data_genius_task_error"] = (
                 f"创建任务异常{create_task_url}, error: {info}"
             )
@@ -159,8 +160,8 @@ def create_dg_task(
 
 
 def query_dg_task_status(
-    state: Union[SQLModeDataGenState, DataGenState],
-) -> Union[SQLModeDataGenState, DataGenState]:
+    state: Union[SQLModeDataGenState, MetaModeDataGenState],
+) -> Union[SQLModeDataGenState, MetaModeDataGenState]:
     """
     查询当前任务状态
     Args:
@@ -260,8 +261,8 @@ def query_dg_task_status(
 
 
 def save_task_info2db(
-    state: Union[SQLModeDataGenState, DataGenState],
-) -> Union[SQLModeDataGenState, DataGenState]:
+    state: Union[SQLModeDataGenState, MetaModeDataGenState],
+) -> Union[SQLModeDataGenState, MetaModeDataGenState]:
     """存储任务信息到数据库
 
     Args:

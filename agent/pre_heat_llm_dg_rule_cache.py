@@ -9,7 +9,7 @@ import uuid
 
 from langchain_core.runnables.config import RunnableConfig
 
-from agent.data_graph import data_gen_graph
+from agent.meta_mode_data_graph import meta_mode_data_gen_graph
 from agent.state import DataGenUserIntentSchema
 from config import PRESET_FIXED_PANGU_DG_RULE_PATH
 from cruds.dynamic_query import query_sql
@@ -71,7 +71,9 @@ async def pre_heat_llm_recommendation_dg_rule(db_manager: DatabaseManager):
             "pre_heat_mode": True,
         }
         thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
-        event = await data_gen_graph.ainvoke(init_state, thread, stream_mode="values")
+        event = await meta_mode_data_gen_graph.ainvoke(
+            init_state, thread, stream_mode="values"
+        )
 
 
 def run_data_graph_preheat():

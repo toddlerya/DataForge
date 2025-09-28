@@ -17,19 +17,17 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from loguru import logger
 
-from agent.dg_api_client import create_dg_task, query_dg_task_status, save_task_info2db
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
-from agent.dg_rule_processor import dg_rule_processor
 from agent.llm import chat_llm
 from agent.prompt import data_intent_prompt
 from agent.state import (
-    DataGenState,
     DataGenUserIntentSchema,
+    MetaModeDataGenState,
     PydanticDataGeniusCategoryRecommendation,
     TableMetadataSchema,
     init_dg_category_config,
 )
-from config import DG_PLAN_PATH, PROJECT_PATH
+from config import PROJECT_PATH
 from cruds.pangu import (
     query_dict_items_info_by_dict_category,
     query_dict_items_info_by_dictkey,
@@ -37,10 +35,9 @@ from cruds.pangu import (
 from cruds.table_metadata import table_metadata_fuzzy_query, table_metadata_query
 from database_models.schema import RecommendPanGuDictSchema, TableRawFieldSchema
 from utils.db_manager import DatabaseManager
-from utils.file import save_dict2jl
 
 
-def reset_input_and_intent(state: DataGenState) -> DataGenState:
+def reset_input_and_intent(state: MetaModeDataGenState) -> MetaModeDataGenState:
     """重置输入和意图
 
     Args:
@@ -55,7 +52,7 @@ def reset_input_and_intent(state: DataGenState) -> DataGenState:
     return new_state
 
 
-def detect_input_type(state: DataGenState):
+def detect_input_type(state: MetaModeDataGenState):
     """
     判断用户输入的是结构化任务参数还是自然语言任务需求
     :param state:
@@ -70,8 +67,8 @@ def detect_input_type(state: DataGenState):
         return "analyze_data_intent"
 
 
-def analyze_data_intent(state: DataGenState) -> DataGenState:
-    user_input = state.get("user_input").strip()
+def analyze_data_intent(state: MetaModeDataGenState) -> MetaModeDataGenState:
+    user_input = state.get("user_input", "").strip()
     human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
         f"analyze_data_intent => user_input: {user_input} "
@@ -92,7 +89,7 @@ def analyze_data_intent(state: DataGenState) -> DataGenState:
     return state
 
 
-def intent_human_feedback_node(state: DataGenState):
+def intent_human_feedback_node(state: MetaModeDataGenState):
     feedback: dict = interrupt("意图正确吗?")
     logger.info(f"resume feedback: {feedback}")
     human_intent_feedback = feedback.get("human_intent_feedback", "").strip().upper()
@@ -100,7 +97,7 @@ def intent_human_feedback_node(state: DataGenState):
     return state
 
 
-def should_data_intent_continue(state: DataGenState):
+def should_data_intent_continue(state: MetaModeDataGenState):
     """Return the next node to execute"""
 
     # Check if human feedback
@@ -126,7 +123,7 @@ def should_data_intent_continue(state: DataGenState):
         return "reset_input_and_intent"
 
 
-def should_table_raw_field_info_continue(state: DataGenState):
+def should_table_raw_field_info_continue(state: MetaModeDataGenState):
     logger.info("should_table_raw_field_info_continue start")
     table_metadata_error = state.get("table_metadata_error", [])
     if len(table_metadata_error) >= 1:
@@ -135,10 +132,10 @@ def should_table_raw_field_info_continue(state: DataGenState):
         logger.info("重置state的user_input和user_intent")
         return "reset_input_and_intent"
     else:
-        return "rag_sql_table_filed_info"
+        return "rag_table_filed_info"
 
 
-def query_table_raw_field_info(state: DataGenState) -> DataGenState:
+def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
     logger.info("query_table_raw_field_info start")
     state["mode"] = 1
     if "table_metadata_info" not in state:
@@ -218,7 +215,7 @@ def query_table_raw_field_info(state: DataGenState) -> DataGenState:
     return state
 
 
-def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
+def rag_table_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
     """
     根据字段知识库增强字段信息
     :param state:
@@ -292,122 +289,63 @@ def rag_sql_table_filed_info(state: DataGenState) -> DataGenState:
     return state
 
 
-def save_dg_plan2json(state: DataGenState):
-    """
-    存储DG执行计划任务配置
-    Args:
-        state:
-
-    Returns:
-
-    """
-    logger.info("存储DataGenius任务规则")
-    pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
-    table_metadata = state.get("table_metadata_info")
-    if pydantic_data_genius_plan:
-        data = pydantic_data_genius_plan.model_dump()
-        save_json_path = DG_PLAN_PATH.joinpath(
-            f"{pydantic_data_genius_plan.rule_name}.json"
-        ).absolute()
-        save_dict2jl(json_data=data, save_path=str(save_json_path))
-    if table_metadata:
-        table_metadata_data = table_metadata.model_dump()
-        table_metadata_json_path = DG_PLAN_PATH.joinpath(
-            f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
-        )
-
-        save_dict2jl(json_data=table_metadata_data, save_path=table_metadata_json_path)
-    return state
+meta_mode_data_gen_builder = StateGraph(MetaModeDataGenState)
+meta_mode_data_gen_builder.add_node("reset_input_and_intent", reset_input_and_intent)
+meta_mode_data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
+meta_mode_data_gen_builder.add_node(
+    "intent_human_feedback_node", intent_human_feedback_node
+)
+meta_mode_data_gen_builder.add_node(
+    "query_table_raw_field_info", query_table_raw_field_info
+)
+meta_mode_data_gen_builder.add_node("rag_table_filed_info", rag_table_field_info)
 
 
-def is_pre_heat_dg_rule_mode(state: DataGenState):
-    """
-    如果是预热字段推荐DG规则模式则不创建DG任务
-    Args:
-        state:
-
-    Returns:
-
-    """
-    pre_heat_mode = state.get("pre_heat_mode", False)
-    if pre_heat_mode is True:
-        return END
-    else:
-        return "save_dg_plan2json"
-
-
-def is_only_dg_rule_gen_mode(state: DataGenState):
-    """如果是DG规则生成模式,则不需要创建DG任务,但需要存储此次调用的任务规则信息
-
-    Args:
-        state (DataGenState): _description_
-    """
-    dont_run_dg_task = state.get("dont_run_dg_task")
-    logger.info(f"dont_run_dg_task: {dont_run_dg_task}")
-    if dont_run_dg_task is True:
-        return "save_task_info2db"
-    else:
-        return "create_dg_task"
-
-
-data_gen_builder = StateGraph(DataGenState)
-data_gen_builder.add_node("reset_input_and_intent", reset_input_and_intent)
-data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
-data_gen_builder.add_node("intent_human_feedback_node", intent_human_feedback_node)
-data_gen_builder.add_node("query_table_raw_field_info", query_table_raw_field_info)
-data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
-data_gen_builder.add_node("dg_rule_processor", dg_rule_processor)
-data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
-data_gen_builder.add_node("create_dg_task", create_dg_task)
-data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
-data_gen_builder.add_node("save_task_info2db", save_task_info2db)
-
-data_gen_builder.add_conditional_edges(
+meta_mode_data_gen_builder.add_conditional_edges(
     START, detect_input_type, ["query_table_raw_field_info", "analyze_data_intent"]
 )
-data_gen_builder.add_edge("analyze_data_intent", "intent_human_feedback_node")
-data_gen_builder.add_conditional_edges(
+meta_mode_data_gen_builder.add_edge("analyze_data_intent", "intent_human_feedback_node")
+meta_mode_data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
     should_data_intent_continue,
     ["query_table_raw_field_info", "reset_input_and_intent"],
 )
-data_gen_builder.add_conditional_edges(
+meta_mode_data_gen_builder.add_conditional_edges(
     "query_table_raw_field_info",
     should_table_raw_field_info_continue,
-    ["rag_sql_table_filed_info", "reset_input_and_intent"],
+    ["rag_table_filed_info", "reset_input_and_intent"],
 )
-data_gen_builder.add_edge("reset_input_and_intent", "analyze_data_intent")
-data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_rule_processor")
-data_gen_builder.add_conditional_edges(
-    "dg_rule_processor", is_pre_heat_dg_rule_mode, ["save_dg_plan2json", END]
-)
-data_gen_builder.add_conditional_edges(
-    "save_dg_plan2json",
-    is_only_dg_rule_gen_mode,
-    ["save_task_info2db", "create_dg_task"],
-)
-data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
-data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
-data_gen_builder.add_edge("save_task_info2db", END)
+meta_mode_data_gen_builder.add_edge("reset_input_and_intent", "analyze_data_intent")
+meta_mode_data_gen_builder.add_edge("rag_table_filed_info", END)
+
 
 memory = InMemorySaver()
-data_gen_graph = data_gen_builder.compile(checkpointer=memory)
+meta_mode_data_gen_graph = meta_mode_data_gen_builder.compile(checkpointer=memory)
+
 
 if __name__ == "__main__":
+    import pathlib
+
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
     from utils.log import LogManager, TracedLogger
 
+    current_file_path = pathlib.Path(__file__)
+    current_log_name = (
+        f"{current_file_path.name.replace(current_file_path.suffix, '')}.log"
+    )
+
     log_config = LogManager(
         base_path=str(PROJECT_PATH.absolute()),
         log_path="logs",
-        log_name="DataForgeDataGenApp.log",
+        log_name=current_log_name,
         file_log_level="TRACE",
     )
     setup_logging(log_config.get_config().get("handlers"))
 
     init_env()
-    print(data_gen_graph.get_graph(xray=True).draw_mermaid())
+    print(meta_mode_data_gen_graph.get_graph(xray=True).draw_mermaid())
+    logger.info("\n" + meta_mode_data_gen_graph.get_graph(xray=True).draw_mermaid())
 
     session_id = uuid.uuid4().hex
 
@@ -416,9 +354,7 @@ if __name__ == "__main__":
     if traced_logger.get_trace_uuid() is None:
         traced_logger.set_trace_uuid(session_id)
 
-    user_input = (
-        """数据库表名称: Afmdbmeta.DWD_BEH_TRANS_ENTRY 期望生成数据条数： 100"""
-    )
+    user_input = """数据库表名称: fmdbmeta.DWD_BEH_TRANS_ENTRY 期望生成数据条数： 100"""
     thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
     init_state = {
@@ -437,7 +373,9 @@ if __name__ == "__main__":
     }
 
     # 1. 先流式执行到中断点
-    for event in data_gen_graph.stream(init_state, thread, stream_mode="values"):
+    for event in meta_mode_data_gen_graph.stream(
+        init_state, thread, stream_mode="values"
+    ):
         # Review
         # user_intent: DataGenUserIntentSchema = event.get("user_intent")
         # if user_intent:
@@ -451,38 +389,14 @@ if __name__ == "__main__":
         logger.info(f"event: {event}")
 
     # 2. 模拟用户意图识别的研判反馈
-    data_gen_graph.update_state(
+    meta_mode_data_gen_graph.update_state(
         thread,
         {"human_intent_feedback": "正确"},
         as_node="intent_human_feedback_node",
     )
 
     # 3. 从中断点继续执行
-    for event in data_gen_graph.stream(None, thread, stream_mode="values"):
+    for event in meta_mode_data_gen_graph.stream(None, thread, stream_mode="values"):
         table_dict_category_code_map = event.get("table_dict_category_code_map")
         if table_dict_category_code_map:
             logger.info(f"table_dict_category_code_map: {table_dict_category_code_map}")
-
-        create_data_genius_task_error = event.get("create_data_genius_task_error")
-        if create_data_genius_task_error:
-            logger.info("create_data_genius_task_error", create_data_genius_task_error)
-
-        query_data_genius_task_error = event.get("query_data_genius_task_error")
-        if query_data_genius_task_error:
-            logger.info("query_data_genius_task_error", query_data_genius_task_error)
-
-        data_genius_plan_run_duration = event.get("data_genius_plan_run_duration")
-        if data_genius_plan_run_duration:
-            logger.info(
-                f"data_genius_plan_run_duration: {data_genius_plan_run_duration}"
-            )
-
-        data_genius_plan_output_url = event.get("data_genius_plan_output_url")
-        if data_genius_plan_output_url:
-            logger.info(f"data_genius_plan_output_url: {data_genius_plan_output_url}")
-
-        data_genius_plan_output_filesize = event.get("data_genius_plan_output_filesize")
-        if data_genius_plan_output_filesize:
-            logger.info(
-                f"data_genius_plan_output_filesize: {data_genius_plan_output_filesize}"
-            )

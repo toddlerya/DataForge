@@ -16,9 +16,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from loguru import logger
 
-from agent.dg_api_client import create_dg_task, query_dg_task_status, save_task_info2db
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
-from agent.dg_rule_processor import dg_rule_processor
 from agent.llm import chat_llm
 from agent.prompt import sql_mode_data_intent_prompt
 from agent.sql_parser import parse_simple_select
@@ -31,14 +29,12 @@ from agent.state import (
     TableRawFieldSchema,
     init_dg_category_config,
 )
-from config import DG_PLAN_PATH
 from cruds.pangu import (
     query_dict_items_info_by_dictkey,
     query_field_recommend_info_by_ename,
 )
 from database_models.schema import RecommendPanGuDictSchema
 from utils.db_manager import DatabaseManager
-from utils.file import save_dict2jl
 
 
 def detect_input_type(state: SQLModeDataGenState):
@@ -132,7 +128,7 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     return state
 
 
-def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
+def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     根据字段知识库增强字段信息
     :param state:
@@ -216,47 +212,14 @@ def rag_sql_table_filed_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     return state
 
 
-def save_dg_plan2json(state: SQLModeDataGenState):
-    """
-    存储DG执行计划任务配置
-    Args:
-        state:
-
-    Returns:
-
-    """
-    logger.info("存储DataGenius任务规则")
-    pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
-    table_metadata_info: TableMetadataSchema = state.get("table_metadata_info")
-    if pydantic_data_genius_plan:
-        data = pydantic_data_genius_plan.model_dump()
-        save_json_path = DG_PLAN_PATH.joinpath(
-            f"{pydantic_data_genius_plan.rule_name}.json"
-        ).absolute()
-        save_dict2jl(json_data=data, save_path=str(save_json_path))
-    if table_metadata_info:
-        table_metadata_json_path = DG_PLAN_PATH.joinpath(
-            f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
-        )
-        save_dict2jl(
-            json_data=table_metadata_info.model_dump(),
-            save_path=table_metadata_json_path,
-        )
-    return state
-
-
 sql_mode_data_gen_builder = StateGraph(SQLModeDataGenState)
 sql_mode_data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
 sql_mode_data_gen_builder.add_node(
     "intent_human_feedback_node", data_intent_human_feedback_node
 )
 sql_mode_data_gen_builder.add_node("sql_parse_to_table_info", sql_parse_to_table_info)
-sql_mode_data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_filed_info)
-sql_mode_data_gen_builder.add_node("dg_category_recommend", dg_rule_processor)
-sql_mode_data_gen_builder.add_node("save_dg_plan2json", save_dg_plan2json)
-sql_mode_data_gen_builder.add_node("create_dg_task", create_dg_task)
-sql_mode_data_gen_builder.add_node("query_dg_task_status", query_dg_task_status)
-sql_mode_data_gen_builder.add_node("save_task_info2db", save_task_info2db)
+sql_mode_data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_field_info)
+
 
 sql_mode_data_gen_builder.add_conditional_edges(
     START, detect_input_type, ["sql_parse_to_table_info", "analyze_data_intent"]
@@ -270,12 +233,7 @@ sql_mode_data_gen_builder.add_conditional_edges(
 sql_mode_data_gen_builder.add_edge(
     "sql_parse_to_table_info", "rag_sql_table_filed_info"
 )
-sql_mode_data_gen_builder.add_edge("rag_sql_table_filed_info", "dg_category_recommend")
-sql_mode_data_gen_builder.add_edge("dg_category_recommend", "save_dg_plan2json")
-sql_mode_data_gen_builder.add_edge("save_dg_plan2json", "create_dg_task")
-sql_mode_data_gen_builder.add_edge("create_dg_task", "query_dg_task_status")
-sql_mode_data_gen_builder.add_edge("query_dg_task_status", "save_task_info2db")
-sql_mode_data_gen_builder.add_edge("save_task_info2db", END)
+sql_mode_data_gen_builder.add_edge("rag_sql_table_filed_info", END)
 
 memory = InMemorySaver()
 sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(checkpointer=memory)

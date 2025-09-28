@@ -17,6 +17,7 @@ from typing import (
     Optional,
     Set,
     TypedDict,
+    Union,
 )
 
 from langchain_core.messages import AnyMessage, BaseMessage
@@ -31,17 +32,6 @@ from database_models.schema import (
     TableRawFieldSchema,
     TaskDataSchema,
 )
-
-
-class DataGenUserIntentSchema(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    table_en_name: str = Field(..., description="表英文名称, 不可为空")
-    data_count: int = Field(..., ge=1, le=2147483647, description="期望数据条数")
-    # TODO: 考虑让env_name是枚举类型，根据数据库信息动态更新
-    env_name: str = Field(default="", description="环境名称")
-    dont_run_dg_task: bool = Field(
-        default=False, description="只进行AI推荐不创建DG任务"
-    )
 
 
 class TableMetadataSchema(BaseModel):
@@ -146,9 +136,44 @@ class CommonState(TypedDict):
     max_retries: int
 
 
+class SQLModeFieldSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    en_name: str = Field(..., min_length=1, description="字段英文名称")
+    alias_name: str = Field("", description="字段别名")
+    comment: str = Field("", description="字段注释")
+
+
+class SQLModeTableInfoSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    table_en_name: str = Field(
+        description="表英文名称", alias="table_en_name", default=""
+    )
+    fields_info: List[SQLModeFieldSchema] = Field(
+        description="字段信息", alias="fields_info", default=[]
+    )
+
+
+class DataGenUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    table_en_name: str = Field(..., description="表英文名称, 不可为空")
+    data_count: int = Field(..., ge=1, le=2147483647, description="期望数据条数")
+    # TODO: 考虑让env_name是枚举类型，根据数据库信息动态更新
+    env_name: str = Field(default="", description="环境名称")
+    dont_run_dg_task: bool = Field(
+        default=False, description="只进行AI推荐不创建DG任务"
+    )
+
+
+class DataGenSQLModeUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    sql: str = Field(..., min_length=15, description="SQL内容")
+    data_count: int = Field(..., ge=1, le=2147483647, description="期望数据条数")
+
+
 # 基类：公共字段
 class DataGenBaseState(CommonState):
     user_input: str
+    user_intent: Union[DataGenUserIntentSchema, DataGenSQLModeUserIntentSchema]
     human_intent_feedback: str
     table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
@@ -168,44 +193,19 @@ class DataGenBaseState(CommonState):
     error_message: Annotated[List[AnyMessage], add_messages]
     task_data: TaskDataSchema
     env_name: str
+    mode: Literal[1, 2]
+    pre_heat_mode: bool
     dont_run_dg_task: bool
     subgraph_control: dict[str, Any]
 
 
-class DataGenState(DataGenBaseState):
-    user_intent: DataGenUserIntentSchema
-    pre_heat_mode: bool
-    mode: Literal[1]
-
-
-class DataGenSQLModeUserIntentSchema(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    sql: str = Field(..., min_length=15, description="SQL内容")
-    data_count: int = Field(..., ge=1, le=2147483647, description="期望数据条数")
-
-
-class SQLModeFieldSchema(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    en_name: str = Field(..., min_length=1, description="字段英文名称")
-    alias_name: str = Field("", description="字段别名")
-    comment: str = Field("", description="字段注释")
-
-
-class SQLModeTableInfoSchema(BaseModel):
-    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    table_en_name: str = Field(
-        description="表英文名称", alias="table_en_name", default=""
-    )
-    fields_info: List[SQLModeFieldSchema] = Field(
-        description="字段信息", alias="fields_info", default=[]
-    )
+class MetaModeDataGenState(DataGenBaseState):
+    pass
 
 
 class SQLModeDataGenState(DataGenBaseState):
-    user_intent: DataGenSQLModeUserIntentSchema
     table_info_error: str
     table_info_data: SQLModeTableInfoSchema
-    mode: Literal[2]
 
 
 class TableGenUserIntentSchema(BaseModel):
@@ -315,8 +315,8 @@ class AppUserIntentSchema(BaseModel):
     user_input: str = Field(..., description="用户意图输入文本")
 
 
-class MainAppState(CommonState):
-    user_intent: AppUserIntentSchema
+class MainAppState(DataGenBaseState):
+    main_user_intent: AppUserIntentSchema
     next_sub_graph_name: str
     # 与子图共用的状态，定义了才能传递
     user_input: str
@@ -355,5 +355,5 @@ if __name__ == "__main__":
     except ValueError as e:
         print("验证失败:", e)
 
-    print(hasattr(DataGenState, "metadata_gen"))
-    print("metadata_gen" in DataGenState.__annotations__)
+    print(hasattr(MetaModeDataGenState, "metadata_gen"))
+    print("metadata_gen" in MetaModeDataGenState.__annotations__)

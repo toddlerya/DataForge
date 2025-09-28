@@ -13,13 +13,13 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
 from loguru import logger
 
-from agent.data_graph import data_gen_graph
+from agent.dg_graph import process_dg_graph
 from agent.explore_graph import expolore_graph
 from agent.llm import chat_llm
+from agent.meta_mode_data_graph import meta_mode_data_gen_graph
 from agent.prompt import main_intent_prompt
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import AppUserIntentSchema, MainAppState
-from utils.log import TracedLogger
 
 
 def analyze_intent(state: MainAppState) -> MainAppState:
@@ -32,16 +32,18 @@ def analyze_intent(state: MainAppState) -> MainAppState:
         chat_promt = main_intent_prompt.format_messages(user_input=last_message)
         logger.trace(f"analyze_intent chat_prompt: {chat_promt}")
         try:
-            user_intent = structured_llm.invoke(chat_promt)
+            main_user_intent = structured_llm.invoke(chat_promt)
         except Exception as err:
             err_message = f"意图解析异常: {err}"
             logger.error(err_message)
             messages.append(AIMessage(err_message))
         else:
-            logger.info(f"last_message: {last_message} user_intent: {user_intent}")
-            if isinstance(user_intent, AppUserIntentSchema):
-                state["next_sub_graph_name"] = user_intent.sub_graph_name
-                state["user_input"] = user_intent.user_input
+            logger.info(
+                f"last_message: {last_message} main_user_intent: {main_user_intent}"
+            )
+            if isinstance(main_user_intent, AppUserIntentSchema):
+                state["next_sub_graph_name"] = main_user_intent.sub_graph_name
+                state["user_input"] = main_user_intent.user_input
     return state
 
 
@@ -71,16 +73,20 @@ def clear_main_state(
     return clean_state
 
 
-def invoke_expolore_graph(state: MainAppState):
-    return expolore_graph.invoke(state)
+# def invoke_expolore_graph(state: MainAppState):
+#     return expolore_graph.invoke(state)
 
 
-def invoke_data_gen_graph(state: MainAppState):
-    return data_gen_graph.invoke(state)
+# def invoke_meta_mode_data_gen_graph(state: MainAppState):
+#     return meta_mode_data_gen_graph.invoke(state)
 
 
-def invoke_sql_mode_data_gen_graph(state: MainAppState):
-    return sql_mode_data_gen_graph.invoke(state)
+# def invoke_sql_mode_data_gen_graph(state: MainAppState):
+#     return sql_mode_data_gen_graph.invoke(state)
+
+
+# def invoke_process_dg_graph(state: MainAppState):
+#     return process_dg_graph.invoke(state)
 
 
 def sub_graph_route(state: MainAppState):
@@ -92,8 +98,8 @@ def sub_graph_route(state: MainAppState):
     if next_sub_graph_name := state.get("next_sub_graph_name").strip():
         if next_sub_graph_name == "expolore_graph":
             return "expolore_graph"
-        elif next_sub_graph_name == "data_gen_graph":
-            return "data_gen_graph"
+        elif next_sub_graph_name == "meta_mode_data_gen_graph":
+            return "meta_mode_data_gen_graph"
         elif next_sub_graph_name == "sql_mode_data_gen_graph":
             return "sql_mode_data_gen_graph"
         else:
@@ -105,9 +111,10 @@ def sub_graph_route(state: MainAppState):
 main_builder = StateGraph(MainAppState)
 main_builder.add_node("clear_main_state", clear_main_state)
 main_builder.add_node("analyze_intent", analyze_intent)
-main_builder.add_node("expolore_graph", invoke_expolore_graph)
-main_builder.add_node("data_gen_graph", invoke_data_gen_graph)
-main_builder.add_node("sql_mode_data_gen_graph", invoke_sql_mode_data_gen_graph)
+main_builder.add_node("expolore_graph", expolore_graph)
+main_builder.add_node("meta_mode_data_gen_graph", meta_mode_data_gen_graph)
+main_builder.add_node("sql_mode_data_gen_graph", sql_mode_data_gen_graph)
+main_builder.add_node("process_dg_graph", process_dg_graph)
 
 
 main_builder.add_edge(START, "clear_main_state")
@@ -117,26 +124,35 @@ main_builder.add_conditional_edges(
     sub_graph_route,
     [
         "expolore_graph",
-        "data_gen_graph",
+        "meta_mode_data_gen_graph",
         "sql_mode_data_gen_graph",
         END,
     ],
 )
+main_builder.add_edge("meta_mode_data_gen_graph", "process_dg_graph")
+main_builder.add_edge("sql_mode_data_gen_graph", "process_dg_graph")
+main_builder.add_edge("process_dg_graph", END)
 
 memory = InMemorySaver()
 main_graph = main_builder.compile(checkpointer=memory)
 
 
 if __name__ == "__main__":
+    import pathlib
+
     from common.initialization import init_env, setup_logging
     from config import PROJECT_PATH
-    from utils.log import LogManager
+    from utils.log import LogManager, TracedLogger
+
+    current_file_path = pathlib.Path(__file__)
+    current_log_name = (
+        f"{current_file_path.name.replace(current_file_path.suffix, '')}.log"
+    )
 
     log_config = LogManager(
         base_path=str(PROJECT_PATH.absolute()),
         log_path="logs",
-        log_name="AgentGraph.log",
-        console_log_level="DEBUG",
+        log_name=current_log_name,
         file_log_level="TRACE",
     )
     setup_logging(log_config.get_config().get("handlers"))
@@ -153,11 +169,11 @@ if __name__ == "__main__":
 
     run_config: RunnableConfig = {"configurable": {"thread_id": session_id}}
 
-    data_gen_input = "生成10条massdata.ADM_REL_MOBILE表的测试数据"
-    sql_data_gen_input = "select MD_ID from massdata.ADM_REL_MOBILE"
+    meta_data_gen_input = "生成10条massdata.ADM_REL_MOBILE表的测试数据"
+    sql_data_gen_input = "select MD_ID from massdata.ADM_REL_MOBILE, 生成100条数据"
 
     init_state = {
-        "messages": HumanMessage(content=data_gen_input),
+        "messages": HumanMessage(content=meta_data_gen_input),
         "max_retries": 5,
         "session_id": session_id,
         "client_ip": "10.0.23.57",

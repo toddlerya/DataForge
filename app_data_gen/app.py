@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from langchain_core.runnables.config import RunnableConfig
 from loguru import logger
 
-from agent.data_graph import data_gen_graph
+from agent.meta_mode_data_graph import meta_mode_data_gen_graph
 from agent.state import DataGenUserIntentSchema, PydanticDataGeniusPlan
 from common.initialization import init_env, setup_logging
 from config import DG_PLAN_PATH, PROJECT_PATH
@@ -284,7 +284,7 @@ async def main(message: cl.Message):
     }
     cl.user_session.set("configs", config)
 
-    current_state = data_gen_graph.get_state(config)
+    current_state = meta_mode_data_gen_graph.get_state(config)
 
     logger.debug(
         f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
@@ -302,11 +302,11 @@ async def main(message: cl.Message):
             "session_id": cl.context.session.id,
             "client_ip": cl.user_session.get("client_ip"),
         }
-        async for event in data_gen_graph.astream(init_state, config):
-            await process_step(event, data_gen_graph)
+        async for event in meta_mode_data_gen_graph.astream(init_state, config):
+            await process_step(event, meta_mode_data_gen_graph)
 
-    async for step_output in data_gen_graph.astream(None, config):
-        await process_step(step_output, data_gen_graph)
+    async for step_output in meta_mode_data_gen_graph.astream(None, config):
+        await process_step(step_output, meta_mode_data_gen_graph)
     # 完成会话清空trace_uuid
     trace_token = cl.user_session.get("trace_token")
     if trace_token is None:
