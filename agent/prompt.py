@@ -33,7 +33,7 @@ sql_mode_data_intent_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是SQL专家，你的任务如下\n"
     "1. 识别出数据库表名称用户提供的SQL内容, 对应sql\n"
     "2. 期望生成数据条数, 对应data_count\n"
-    "3. 是否创建任务(对应dont_run_dg_task), 若用户不需要创建任务则填写true\n"
+    "3. 是否创建任务(对应dont_run_dg_task), 若用户不需要创建任务则填写true, 否则填写false\n"
     "按照要求输出结构化数据。"
 )
 

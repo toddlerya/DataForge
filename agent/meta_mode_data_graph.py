@@ -121,7 +121,14 @@ def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenSt
     state["mode"] = 1
     if "table_metadata_info" not in state:
         state["table_metadata_error"] = []
-    user_intent = cast(DataGenUserIntentSchema, state["user_intent"])
+    if user_intent := state.get("user_intent"):
+        if not isinstance(user_intent, DataGenUserIntentSchema):
+            state["table_metadata_error"].append(
+                f"用于意图不是元数据构造意图: {user_intent.model_dump()}"
+            )
+            return state
+    else:
+        user_intent = cast(DataGenUserIntentSchema, user_intent)
     env_name = user_intent.env_name
     state["env_name"] = env_name
     table_en_name = user_intent.table_en_name

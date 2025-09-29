@@ -9,7 +9,6 @@
 import json
 import uuid
 from copy import deepcopy
-from typing import cast
 
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
@@ -104,9 +103,11 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     logger.info("[+] 解析SQL为表结构JSON")
     state["mode"] = 2
-    user_intent = cast(DataGenSQLModeUserIntentSchema, state.get("user_intent"))
-
-    user_sql = user_intent.sql
+    user_intent = state.get("user_intent")
+    if isinstance(user_intent, DataGenSQLModeUserIntentSchema):
+        user_sql = user_intent.sql
+    else:
+        user_sql = ""
     logger.info(f"用户提供的SQL: {user_sql}")
     status, error, result = parse_simple_select(user_sql)
     if status is False or not result:
