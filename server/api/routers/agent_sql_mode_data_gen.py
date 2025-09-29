@@ -175,9 +175,9 @@ async def run_graph(
         "client_ip": client_ip,
     }
 
-    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
+    run_config = RunnableConfig(configurable={"thread_id": session_id})
     event = await standalone_sql_gen_graph.ainvoke(
-        init_state, thread, stream_mode="values"
+        init_state, run_config, stream_mode="values"
     )
     for error in [
         "table_info_error",

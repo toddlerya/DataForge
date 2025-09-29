@@ -18,6 +18,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from loguru import logger
 
+from agent.common_node import restart_graph
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from agent.llm import chat_llm
 from agent.prompt import data_intent_prompt
@@ -36,21 +37,6 @@ from cruds.pangu import (
 from cruds.table_metadata import table_metadata_fuzzy_query, table_metadata_query
 from database_models.schema import RecommendPanGuDictSchema, TableRawFieldSchema
 from utils.db_manager import DatabaseManager
-
-
-def reset_input_and_intent(state: MetaModeDataGenState) -> MetaModeDataGenState:
-    """重置输入和意图
-
-    Args:
-        state (DataGenState): _description_
-
-    Returns:
-        DataGenState: _description_
-    """
-    new_state = deepcopy(state)
-    new_state["user_input"] = ""
-    new_state["user_intent"] = None  # type: ignore
-    return new_state
 
 
 def detect_input_type(state: MetaModeDataGenState):
@@ -113,25 +99,19 @@ def should_data_intent_continue(state: MetaModeDataGenState):
         return "query_table_raw_field_info"
     else:
         # Otherwise proceed to create table info
-        logger.info("should_data_intent_continue -> reset_input_and_intent")
+        logger.info("should_data_intent_continue -> END")
         # 重新开始意图识别
-        logger.info(
-            "需要重置state的user_input和user_intent, 如果有主图也许重置主图的意图状态"
-        )
-        if "subgraph_control" not in state:
-            state["subgraph_control"] = {}
-        state["subgraph_control"]["clear_main_state"] = True
-        return "reset_input_and_intent"
+        logger.info("需要意图错误, END")
+        return END
 
 
 def should_table_raw_field_info_continue(state: MetaModeDataGenState):
     logger.info("should_table_raw_field_info_continue start")
     table_metadata_error = state.get("table_metadata_error", [])
     if len(table_metadata_error) >= 1:
-        logger.info(f"存在table_metadata_error: {' '.join(table_metadata_error)}")
-        # 查询表元数据有错误, 重新开始意图识别
-        logger.info("重置state的user_input和user_intent")
-        return "reset_input_and_intent"
+        logger.error(f"存在table_metadata_error: {' '.join(table_metadata_error)}")
+        logger.info("查询元数据错误，END")
+        return END
     else:
         return "rag_table_filed_info"
 
@@ -292,8 +272,8 @@ def rag_table_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
 
 
 meta_mode_data_gen_builder = StateGraph(MetaModeDataGenState)
-meta_mode_data_gen_builder.add_node("reset_input_and_intent", reset_input_and_intent)
 meta_mode_data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
+meta_mode_data_gen_builder.add_node("restart_graph", restart_graph)
 meta_mode_data_gen_builder.add_node(
     "intent_human_feedback_node", intent_human_feedback_node
 )
@@ -310,14 +290,13 @@ meta_mode_data_gen_builder.add_edge("analyze_data_intent", "intent_human_feedbac
 meta_mode_data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
     should_data_intent_continue,
-    ["query_table_raw_field_info", "reset_input_and_intent"],
+    ["query_table_raw_field_info", END],
 )
 meta_mode_data_gen_builder.add_conditional_edges(
     "query_table_raw_field_info",
     should_table_raw_field_info_continue,
-    ["rag_table_filed_info", "reset_input_and_intent"],
+    ["rag_table_filed_info", END],
 )
-meta_mode_data_gen_builder.add_edge("reset_input_and_intent", "analyze_data_intent")
 meta_mode_data_gen_builder.add_edge("rag_table_filed_info", END)
 
 
@@ -357,7 +336,7 @@ if __name__ == "__main__":
         traced_logger.set_trace_uuid(session_id)
 
     user_input = """数据库表名称: fmdbmeta.DWD_BEH_TRANS_ENTRY 期望生成数据条数： 100"""
-    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
+    run_config = RunnableConfig(configurable={"thread_id": session_id})
 
     init_state = {
         "user_input": user_input,
@@ -376,7 +355,7 @@ if __name__ == "__main__":
 
     # 1. 先流式执行到中断点
     for event in meta_mode_data_gen_graph.stream(
-        init_state, thread, stream_mode="values"
+        init_state, run_config, stream_mode="values"
     ):
         # Review
         # user_intent: DataGenUserIntentSchema = event.get("user_intent")
@@ -392,13 +371,15 @@ if __name__ == "__main__":
 
     # 2. 模拟用户意图识别的研判反馈
     meta_mode_data_gen_graph.update_state(
-        thread,
+        run_config,
         {"human_intent_feedback": "正确"},
         as_node="intent_human_feedback_node",
     )
 
     # 3. 从中断点继续执行
-    for event in meta_mode_data_gen_graph.stream(None, thread, stream_mode="values"):
+    for event in meta_mode_data_gen_graph.stream(
+        None, run_config, stream_mode="values"
+    ):
         table_dict_category_code_map = event.get("table_dict_category_code_map")
         if table_dict_category_code_map:
             logger.info(f"table_dict_category_code_map: {table_dict_category_code_map}")

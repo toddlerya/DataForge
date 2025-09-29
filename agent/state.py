@@ -9,7 +9,6 @@
 from pathlib import Path
 from typing import (
     Annotated,
-    Any,
     ClassVar,
     Dict,
     List,
@@ -202,7 +201,6 @@ class DataGenBaseState(CommonState):
     mode: Literal[1, 2]
     pre_heat_mode: bool
     dont_run_dg_task: bool
-    subgraph_control: dict[str, Any]
 
 
 class MetaModeDataGenState(DataGenBaseState):
@@ -329,7 +327,6 @@ class MainAppState(DataGenBaseState):
     human_intent_feedback: str
     dont_run_dg_task: bool
     # 子图控制字段
-    subgraph_control: dict[str, Any]
 
 
 if __name__ == "__main__":

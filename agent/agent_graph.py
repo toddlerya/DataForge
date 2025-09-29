@@ -47,48 +47,6 @@ def analyze_intent(state: MainAppState) -> MainAppState:
     return state
 
 
-def clear_main_state(
-    state: MainAppState,
-) -> MainAppState:
-    if subgraph_control := state.get("subgraph_control", {}):
-        if not subgraph_control.get("clear_main_state"):
-            # 不需要清理
-            return state
-    # 需要保留的跨任务的状态
-    persistent_data = {
-        "session_id": state.get("session_id"),
-        "client_ip": state.get("client_ip"),
-        "max_retries": state.get("max_retries", 5),
-        # 只保留最新的消息
-        "messages": state.get("messages", [])[-1:],
-    }
-    clean_state: MainAppState = {
-        **persistent_data,
-        "user_intent": None,  # type: ignore
-        "next_sub_graph_name": "",
-        "user_input": "",
-        "human_intent_feedback": "",
-        "dont_run_dg_task": False,
-    }
-    return clean_state
-
-
-# def invoke_expolore_graph(state: MainAppState):
-#     return expolore_graph.invoke(state)
-
-
-# def invoke_meta_mode_data_gen_graph(state: MainAppState):
-#     return meta_mode_data_gen_graph.invoke(state)
-
-
-# def invoke_sql_mode_data_gen_graph(state: MainAppState):
-#     return sql_mode_data_gen_graph.invoke(state)
-
-
-# def invoke_process_dg_graph(state: MainAppState):
-#     return process_dg_graph.invoke(state)
-
-
 def sub_graph_route(state: MainAppState):
     """子图路由器
 
@@ -108,17 +66,41 @@ def sub_graph_route(state: MainAppState):
         return END
 
 
+def restart_analyze_intent(state: MainAppState):
+    logger.info("重新进行意图识别了")
+    if human_intent_feedback := state.get("human_intent_feedback"):
+        logger.info(f"human_intent_feedback: {human_intent_feedback}")
+        return {
+            "messages": [HumanMessage(content=human_intent_feedback.strip())],
+            "main_user_intent": None,
+            "next_sub_graph_name": None,
+            "user_input": None,
+            "dont_run_dg_task": None,
+            "human_intent_feedback": None,
+        }
+    else:
+        return state
+
+
+def continue_dg_route(state: MainAppState):
+    logger.info("判断是否已经生成了DG规则对象")
+    if pydantic_data_genius_plan := state.get("pydantic_data_genius_plan"):
+        logger.info(f"pydantic_data_genius_plan: {type(pydantic_data_genius_plan)}")
+        return "process_dg_graph"
+    else:
+        return "restart_analyze_intent"
+
+
 main_builder = StateGraph(MainAppState)
-main_builder.add_node("clear_main_state", clear_main_state)
 main_builder.add_node("analyze_intent", analyze_intent)
+main_builder.add_node("restart_analyze_intent", restart_analyze_intent)
 main_builder.add_node("expolore_graph", expolore_graph)
 main_builder.add_node("meta_mode_data_gen_graph", meta_mode_data_gen_graph)
 main_builder.add_node("sql_mode_data_gen_graph", sql_mode_data_gen_graph)
 main_builder.add_node("process_dg_graph", process_dg_graph)
 
 
-main_builder.add_edge(START, "clear_main_state")
-main_builder.add_edge("clear_main_state", "analyze_intent")
+main_builder.add_edge(START, "analyze_intent")
 main_builder.add_conditional_edges(
     "analyze_intent",
     sub_graph_route,
@@ -129,8 +111,17 @@ main_builder.add_conditional_edges(
         END,
     ],
 )
-main_builder.add_edge("meta_mode_data_gen_graph", "process_dg_graph")
-main_builder.add_edge("sql_mode_data_gen_graph", "process_dg_graph")
+main_builder.add_conditional_edges(
+    "meta_mode_data_gen_graph",
+    continue_dg_route,
+    ["restart_analyze_intent", "process_dg_graph"],
+)
+main_builder.add_conditional_edges(
+    "sql_mode_data_gen_graph",
+    continue_dg_route,
+    ["restart_analyze_intent", "process_dg_graph"],
+)
+main_builder.add_edge("restart_analyze_intent", "analyze_intent")
 main_builder.add_edge("process_dg_graph", END)
 
 memory = InMemorySaver()
@@ -167,16 +158,17 @@ if __name__ == "__main__":
     if traced_logger.get_trace_uuid() is None:
         traced_logger.set_trace_uuid(session_id)
 
-    run_config: RunnableConfig = {"configurable": {"thread_id": session_id}}
+    run_config = RunnableConfig(configurable={"thread_id": session_id})
 
     meta_data_gen_input = "生成10条massdata.ADM_REL_MOBILE表的测试数据"
     sql_data_gen_input = "select MD_ID from massdata.ADM_REL_MOBILE, 生成100条数据"
 
     init_state = {
-        "messages": HumanMessage(content=sql_data_gen_input),
+        "messages": HumanMessage(content=meta_data_gen_input),
         "max_retries": 5,
         "session_id": session_id,
         "client_ip": "10.0.23.57",
+        "run_config": run_config,
     }
 
     # 先流式执行到中断点
@@ -184,7 +176,7 @@ if __name__ == "__main__":
         logger.info(f"before interupt event: {event}")
 
     # 更新用户反馈
-    resume_map = {"human_intent_feedback": "Y"}
+    resume_map = {"human_intent_feedback": "我要查看有哪些表"}
 
     # 继续运行
     main_graph.invoke(Command(resume=resume_map), config=run_config)

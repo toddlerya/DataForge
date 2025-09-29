@@ -70,9 +70,9 @@ async def pre_heat_llm_recommendation_dg_rule(db_manager: DatabaseManager):
             "client_ip": "0.0.0.0",
             "pre_heat_mode": True,
         }
-        thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
+        run_config = RunnableConfig(configurable={"thread_id": session_id})
         event = await meta_mode_data_gen_graph.ainvoke(
-            init_state, thread, stream_mode="values"
+            init_state, run_config, stream_mode="values"
         )
         logger.info(f"event: {event}")
 

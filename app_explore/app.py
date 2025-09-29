@@ -114,9 +114,10 @@ async def chat_profile(current_user: cl.User):
 
 @cl.on_message
 async def on_message(message: cl.Message):
+    session_id = cl.context.session.id
     # 如果没有初始化trace_uuid则初始化trace_token
     if traced_logger.get_trace_uuid() is None:
-        trace_token = traced_logger.set_trace_uuid(trace_uuid=cl.context.session.id)
+        trace_token = traced_logger.set_trace_uuid(trace_uuid=session_id)
         cl.user_session.set("trace_token", trace_token)
 
     if hasattr(cl.context.session, "environ") and cl.context.session.environ:
@@ -130,20 +131,20 @@ async def on_message(message: cl.Message):
         cl.user_session.set("client_ip", "127.0.0.1")
 
     logger.info(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
+        f"session_id={session_id} ip={cl.user_session.get('client_ip')} "
         f"message: {message.content}"
     )
 
     init_state = {
         "messages": HumanMessage(content=message.content.strip()),
         "max_retries": 5,
-        "session_id": cl.context.session.id,
+        "session_id": session_id,
         "client_ip": cl.user_session.get("client_ip"),
         "tool_call_result": None,
     }
 
     run_config = RunnableConfig(
-        configurable={"thread_id": cl.context.session.id},
+        configurable={"thread_id": session_id},
         recursion_limit=50,
     )
 

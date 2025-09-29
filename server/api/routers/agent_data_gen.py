@@ -177,9 +177,9 @@ async def run_graph(
         "dont_run_dg_task": user_intent.dont_run_dg_task,
     }
 
-    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
+    run_config = RunnableConfig(configurable={"thread_id": session_id})
     event = await standalone_data_gen_graph.ainvoke(
-        init_state, thread, stream_mode="values"
+        init_state, run_config, stream_mode="values"
     )
     for error in [
         "table_metadata_error",

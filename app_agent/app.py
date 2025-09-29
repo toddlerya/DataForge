@@ -18,7 +18,11 @@ from loguru import logger
 
 from agent.agent_graph import main_graph
 from agent.llm import chat_llm
-from agent.state import DataGenUserIntentSchema, PydanticDataGeniusPlan
+from agent.state import (
+    PydanticDataGeniusPlan,
+    SQLModeTableInfoSchema,
+    TableMetadataSchema,
+)
 from common.initialization import init_env, setup_logging
 from config import DG_PLAN_PATH, PROJECT_PATH
 from utils.log import LogManager, TracedLogger
@@ -43,45 +47,6 @@ next_sub_graph_name_map = {
     "expolore_graph": "表元数据信息探索",
     "sql_mode_data_gen_graph": "测试数据生成(SQL模式)",
 }
-
-
-class SessionManager:
-    """会话管理器，为每个任务创建独立的线程"""
-
-    def __init__(self) -> None:
-        self.task_counter = 0
-
-    def get_new_thread_id(self, base_session_id: str) -> str:
-        """为新任务生成唯一的线程ID
-
-        Args:
-            base_session_id (str): _description_
-
-        Returns:
-            str: _description_
-        """
-        self.task_counter += 1
-        return f"{base_session_id[:-4]}_t_{self.task_counter}"
-
-    def clear_session_memory(self, thread_id: str):
-        """清空指定线程的内存
-
-        Args:
-            thread_id (str): _description_
-        """
-        try:
-            # 如果使用 InMemorySaver
-            if hasattr(main_graph.checkpointer, "storage"):
-                if thread_id in main_graph.checkpointer.storage:
-                    del main_graph.checkpointer.storage[thread_id]
-                    logger.info(f"已清空线程: {thread_id} 的内存")
-            else:
-                logger.info("main_graph.checkpointer不存在strorage属性")
-        except Exception as err:
-            logger.warning(f"清空线程内存失败: {err}")
-
-
-session_manager = SessionManager()
 
 
 async def create_simple_dataframe_element(data: list[dict]) -> list[cl.Dataframe]:
@@ -214,7 +179,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         await cl.Message(content=summary).send()
     elif node == "analyze_data_intent":
         logger.info("[entry] analyze_data_intent")
-        user_intent: DataGenUserIntentSchema = state.get("user_intent")
+        user_intent = state.get("user_intent")
         if not user_intent:
             logger.info("还没有出现意图呢...")
             return False
@@ -231,16 +196,17 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         end_time = asyncio.get_event_loop().time()
         cl.user_session.set("end_time", end_time)
         await cl.Message(content="已获取表元数据信息...").send()
-        table_metadata = state.get("table_metadata_info")
+        table_metadata_info = state.get("table_metadata_info")
         table_metadata_error = state.get("table_metadata_error")
         if table_metadata_error:
             logger.error(f"table_metadata_error: {table_metadata_error}")
             await cl.Message(
                 author="Tool", content="\n".join(table_metadata_error)
             ).send()
-        else:
+        elif table_metadata_info:
+            table_metadata_info = cast(TableMetadataSchema, table_metadata_info)
             df = pd.DataFrame(
-                [ele.model_dump() for ele in table_metadata.raw_fields_info]
+                [ele.model_dump() for ele in table_metadata_info.raw_fields_info]
             )[
                 [
                     "cn_name",
@@ -264,20 +230,23 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                 cl.Dataframe(
                     data=df,
                     display="side",
-                    name=f"{table_metadata.table_en_name}表字段信息",
+                    name=f"{table_metadata_info.table_en_name}表字段信息",
                 )
             ]
             if table_metadata_elements:
                 await cl.Message(
                     author="Database",
-                    content=f"{table_metadata.table_en_name}表字段信息",
+                    content=f"{table_metadata_info.table_en_name}表字段信息",
                     elements=table_metadata_elements,
                 ).send()
             else:
                 await cl.Message(
                     content="工具查询到的表字段信息文本: \n"
                     + json.dumps(
-                        [ele.model_dump() for ele in table_metadata.raw_fields_info],
+                        [
+                            ele.model_dump()
+                            for ele in table_metadata_info.raw_fields_info
+                        ],
                         ensure_ascii=True,
                     ),
                 ).send()
@@ -292,7 +261,8 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         if table_info_error:
             logger.error(f"table_info_error: {table_info_error}")
             await cl.Message(content=table_info_error).send()
-        else:
+        elif table_info_data:
+            table_info_data = cast(SQLModeTableInfoSchema, table_info_data)
             df = pd.DataFrame(
                 [ele.model_dump() for ele in table_info_data.fields_info]
             )[
@@ -322,92 +292,131 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             ).send()
     elif node == "dg_category_recommend":
         logger.info("[process] dg_category_recommend")
-        pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
-            "pydantic_data_genius_plan"
-        )
-        await cl.Message(
-            content=("当前生成的DataGenius数据生成计划配置如下, 将开始数据生成任务"),
-        ).send()
-        await cl.Message(
-            content=pydantic_data_genius_plan.model_dump_json(indent=2),
-            language="python",
-        ).send()
+        pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+        if pydantic_data_genius_plan:
+            pydantic_data_genius_plan = cast(
+                PydanticDataGeniusPlan, pydantic_data_genius_plan
+            )
+            await cl.Message(
+                content=(
+                    "当前生成的DataGenius数据生成计划配置如下, 将开始数据生成任务"
+                ),
+            ).send()
+            await cl.Message(
+                content=pydantic_data_genius_plan.model_dump_json(indent=2),
+                language="python",
+            ).send()
+        else:
+            logger.error(
+                f"pydantic_data_genius_plan为空: value={pydantic_data_genius_plan}"
+            )
+            await cl.Message(
+                content="pydantic_data_genius_plan为空, 请联系开发者",
+            ).send()
     elif node == "save_dg_plan2json":
         logger.info("[process] save_dg_plan2json")
-        pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
-            "pydantic_data_genius_plan"
-        )
-        dg_plan_json_path = DG_PLAN_PATH.joinpath(
-            f"{pydantic_data_genius_plan.rule_name}.json"
-        ).absolute()
-        logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
-        download_dg_plan_json_elements = [
-            cl.File(
-                name=f"{pydantic_data_genius_plan.rule_name}.json",
-                path=str(dg_plan_json_path),
-                display="inline",
-            ),
-        ]
-        await cl.Message(
-            content=("可下载DataGenius计划配置备用, 比如上传到DataGenius二次修改"),
-            elements=download_dg_plan_json_elements,
-        ).send()
+        pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+        if pydantic_data_genius_plan:
+            pydantic_data_genius_plan = cast(
+                PydanticDataGeniusPlan, pydantic_data_genius_plan
+            )
 
-        # 表元数据文件信息
-        dg_plan_table_metadata_json_path = DG_PLAN_PATH.joinpath(
-            f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
-        ).absolute()
-        logger.info(
-            f"dg_plan_table_metadata_json_path: {dg_plan_table_metadata_json_path}"
-        )
-        download_dg_plan_table_metadata_json_elements = [
-            cl.File(
-                name=f"{pydantic_data_genius_plan.rule_name}_table_metadata.json",
-                path=str(dg_plan_table_metadata_json_path),
-                display="inline",
-            ),
-        ]
-        await cl.Message(
-            author="Assistant",
-            content="可下载表的元数据配置信息，入库测试数据时可能会用到",
-            elements=download_dg_plan_table_metadata_json_elements,
-        ).send()
+            dg_plan_json_path = DG_PLAN_PATH.joinpath(
+                f"{pydantic_data_genius_plan.rule_name}.json"
+            ).absolute()
+            logger.info(f"dg_plan_json_path: {dg_plan_json_path}")
+            download_dg_plan_json_elements = [
+                cl.File(
+                    name=f"{pydantic_data_genius_plan.rule_name}.json",
+                    path=str(dg_plan_json_path),
+                    display="inline",
+                ),
+            ]
+            await cl.Message(
+                content=("可下载DataGenius计划配置备用, 比如上传到DataGenius二次修改"),
+                elements=download_dg_plan_json_elements,
+            ).send()
+            # 表元数据文件信息
+            dg_plan_table_metadata_json_path = DG_PLAN_PATH.joinpath(
+                f"{pydantic_data_genius_plan.rule_name}_table_metadata.json"
+            ).absolute()
+            logger.info(
+                f"dg_plan_table_metadata_json_path: {dg_plan_table_metadata_json_path}"
+            )
+            download_dg_plan_table_metadata_json_elements = [
+                cl.File(
+                    name=f"{pydantic_data_genius_plan.rule_name}_table_metadata.json",
+                    path=str(dg_plan_table_metadata_json_path),
+                    display="inline",
+                ),
+            ]
+            await cl.Message(
+                author="Assistant",
+                content="可下载表的元数据配置信息，入库测试数据时可能会用到",
+                elements=download_dg_plan_table_metadata_json_elements,
+            ).send()
+        else:
+            logger.error(
+                f"pydantic_data_genius_plan为空: value={pydantic_data_genius_plan}"
+            )
+            await cl.Message(
+                content="pydantic_data_genius_plan为空, 请联系开发者",
+            ).send()
     elif node == "create_dg_task":
         logger.info("[process] create_dg_task")
-        pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
-            "pydantic_data_genius_plan"
-        )
-        await cl.Message(
-            author="Assistant",
-            content=f"已在DataGenius创建任务，任务名称：{pydantic_data_genius_plan.rule_name}",
-        ).send()
+        pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+        if pydantic_data_genius_plan:
+            pydantic_data_genius_plan = cast(
+                PydanticDataGeniusPlan, pydantic_data_genius_plan
+            )
+            await cl.Message(
+                author="Assistant",
+                content=f"已在DataGenius创建任务，任务名称：{pydantic_data_genius_plan.rule_name}",
+            ).send()
+        else:
+            logger.error(
+                f"pydantic_data_genius_plan为空: value={pydantic_data_genius_plan}"
+            )
+            await cl.Message(
+                content="pydantic_data_genius_plan为空, 请联系开发者",
+            ).send()
     elif node == "query_dg_task_status":
         logger.info("[process] query_dg_task_status")
-
-        pydantic_data_genius_plan: PydanticDataGeniusPlan = state.get(
-            "pydantic_data_genius_plan"
-        )
-        data_genius_plan_task_id = state.get("data_genius_plan_task_id")
-        data_genius_plan_edit_url = state.get("data_genius_plan_edit_url")
-        data_genius_plan_run_duration = state.get("data_genius_plan_run_duration")
-        data_genius_plan_output_filesize = state.get("data_genius_plan_output_filesize")
-        data_genius_plan_output_url = state.get("data_genius_plan_output_url")
-        query_data_genius_task_error = state.get("query_data_genius_task_error")
-        if query_data_genius_task_error:
-            done_message = query_data_genius_task_error
-            logger.error(query_data_genius_task_error)
-        else:
-            done_message = (
-                "DataGenius任务已完成。\n"
-                f"- **DG任务名称**: {pydantic_data_genius_plan.rule_name}\n"
-                f"- **DG运行耗时**: {data_genius_plan_run_duration}\n"
-                f"- **生成数据大小**: {data_genius_plan_output_filesize}\n"
-                f"- **数据下载地址**: {data_genius_plan_output_url}\n"
-                f"- **DG任务编辑地址**: "
-                f"[{data_genius_plan_task_id}]({data_genius_plan_edit_url})"
+        pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
+        if pydantic_data_genius_plan:
+            pydantic_data_genius_plan = cast(
+                PydanticDataGeniusPlan, pydantic_data_genius_plan
             )
-            logger.info(done_message)
-        await cl.Message(author="Assistant", content=done_message).send()
+            data_genius_plan_task_id = state.get("data_genius_plan_task_id")
+            data_genius_plan_edit_url = state.get("data_genius_plan_edit_url")
+            data_genius_plan_run_duration = state.get("data_genius_plan_run_duration")
+            data_genius_plan_output_filesize = state.get(
+                "data_genius_plan_output_filesize"
+            )
+            data_genius_plan_output_url = state.get("data_genius_plan_output_url")
+            query_data_genius_task_error = state.get("query_data_genius_task_error")
+            if query_data_genius_task_error:
+                done_message = query_data_genius_task_error
+                logger.error(query_data_genius_task_error)
+            else:
+                done_message = (
+                    "DataGenius任务已完成。\n"
+                    f"- **DG任务名称**: {pydantic_data_genius_plan.rule_name}\n"
+                    f"- **DG运行耗时**: {data_genius_plan_run_duration}\n"
+                    f"- **生成数据大小**: {data_genius_plan_output_filesize}\n"
+                    f"- **数据下载地址**: {data_genius_plan_output_url}\n"
+                    f"- **DG任务编辑地址**: "
+                    f"[{data_genius_plan_task_id}]({data_genius_plan_edit_url})"
+                )
+                logger.info(done_message)
+            await cl.Message(content=done_message).send()
+        else:
+            logger.error(
+                f"pydantic_data_genius_plan为空: value={pydantic_data_genius_plan}"
+            )
+            await cl.Message(
+                content="pydantic_data_genius_plan为空, 请联系开发者",
+            ).send()
     elif node == "END":
         start_time = cl.user_session.get("start_time") or 0.0
         end_time = cl.user_session.get("end_time") or 0.0
@@ -445,14 +454,13 @@ async def handle_interrupt(run_config: RunnableConfig) -> bool:
         timeout=300,
     ).send()
     if res and "output" in res:
+        start_time = asyncio.get_event_loop().time()
+        cl.user_session.set("start_time", start_time)
+
         res_text = res["output"].strip()
         logger.info(f"human_intent_feedback: {res_text}")
         cl.user_session.set("human_intent_feedback", res_text)
         resume_map = {"human_intent_feedback": res_text}
-        start_time = asyncio.get_event_loop().time()
-        cl.user_session.set("start_time", start_time)
-
-        # await cl.Message(content="正在获取表元数据信息...").send()
 
         # 继续运行
         async for event in main_graph.astream(
@@ -517,20 +525,12 @@ async def chat_profile(current_user: cl.User):
 
 @cl.on_message
 async def on_message(message: cl.Message):
-    # 为每个新任务创建独立的线程ID
-    task_thread_id = session_manager.get_new_thread_id(
-        base_session_id=cl.context.session.id
-    )
-
-    # 如果需要清理上一个任务的状态
-    if last_thread_id := cl.user_session.get("last_thread_id"):
-        session_manager.clear_session_memory(last_thread_id)
-
-    cl.user_session.set("last_thread_id", task_thread_id)
+    session_id = cl.context.session.id
+    cl.user_session.set("session_id", session_id)
 
     # 如果没有初始化trace_uuid则初始化trace_token
     if traced_logger.get_trace_uuid() is None:
-        trace_token = traced_logger.set_trace_uuid(trace_uuid=task_thread_id)
+        trace_token = traced_logger.set_trace_uuid(trace_uuid=session_id)
         cl.user_session.set("trace_token", trace_token)
 
     if hasattr(cl.context.session, "environ") and cl.context.session.environ:
@@ -544,22 +544,21 @@ async def on_message(message: cl.Message):
         cl.user_session.set("client_ip", "127.0.0.1")
 
     logger.info(
-        f"session_id={task_thread_id} ip={cl.user_session.get('client_ip')} "
+        f"session_id={session_id} ip={cl.user_session.get('client_ip')} "
         f"message: {message.content}"
     )
 
+    run_config = RunnableConfig(
+        configurable={"thread_id": session_id},
+        recursion_limit=50,
+    )
     init_state = {
         "messages": HumanMessage(content=message.content.strip()),
         "max_retries": 5,
-        "session_id": task_thread_id,
+        "session_id": session_id,
         "client_ip": cl.user_session.get("client_ip"),
         "tool_call_result": None,
     }
-
-    run_config = RunnableConfig(
-        configurable={"thread_id": task_thread_id},
-        recursion_limit=50,
-    )
 
     async for event in main_graph.astream(
         init_state, run_config, stream_mode="updates", subgraphs=True
@@ -578,7 +577,7 @@ async def on_message(message: cl.Message):
     trace_token = cl.user_session.get("trace_token")
     if trace_token is None:
         logger.warning(
-            f"session_id={task_thread_id} trace_token not found, skipping reset."
+            f"session_id={session_id} trace_token not found, skipping reset."
         )
     else:
         # 这里 Pylance 知道 trace_token 是 Token 类型，且不是 None

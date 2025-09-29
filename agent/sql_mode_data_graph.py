@@ -93,7 +93,7 @@ def should_data_intent_continue(state: SQLModeDataGenState):
         return "sql_parse_to_table_info"
 
     # Otherwise proceed to create table info
-    return "analyze_data_intent"
+    return END
 
 
 def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
@@ -230,7 +230,7 @@ sql_mode_data_gen_builder.add_edge("analyze_data_intent", "intent_human_feedback
 sql_mode_data_gen_builder.add_conditional_edges(
     "intent_human_feedback_node",
     should_data_intent_continue,
-    ["analyze_data_intent", "sql_parse_to_table_info"],
+    [END, "sql_parse_to_table_info"],
 )
 sql_mode_data_gen_builder.add_edge(
     "sql_parse_to_table_info", "rag_sql_table_filed_info"
@@ -271,7 +271,7 @@ if __name__ == "__main__":
      from XY_BF_ACCOUNT
     期望生成数据条数(必填): 100"""
     session_id = uuid.uuid4().hex
-    thread: RunnableConfig = {"configurable": {"thread_id": session_id}}
+    run_config = RunnableConfig(configurable={"thread_id": session_id})
     init_state = {
         "user_input": user_input,
         "user_intent": DataGenSQLModeUserIntentSchema(
@@ -290,7 +290,7 @@ if __name__ == "__main__":
         "session_id": session_id,
     }
     for event in sql_mode_data_gen_graph.stream(
-        init_state, thread, stream_mode="values"
+        init_state, run_config, stream_mode="values"
     ):
         if user_intent := event.get("user_intent"):
             logger.info(f"user_intent: {user_intent.model_dump_json(indent=2)}")
