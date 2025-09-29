@@ -155,6 +155,7 @@ class SQLModeTableInfoSchema(BaseModel):
 
 class DataGenUserIntentSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     table_en_name: str = Field(..., description="表英文名称, 不可为空")
     data_count: int = Field(..., ge=1, le=2147483647, description="期望数据条数")
     # TODO: 考虑让env_name是枚举类型，根据数据库信息动态更新
@@ -166,8 +167,13 @@ class DataGenUserIntentSchema(BaseModel):
 
 class DataGenSQLModeUserIntentSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     sql: str = Field(..., min_length=15, description="SQL内容")
     data_count: int = Field(..., ge=1, le=2147483647, description="期望数据条数")
+    env_name: str = Field(default="", description="环境名称")
+    dont_run_dg_task: bool = Field(
+        default=False, description="只进行AI推荐不创建DG任务"
+    )
 
 
 # 基类：公共字段

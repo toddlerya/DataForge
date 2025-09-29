@@ -82,7 +82,7 @@ async def process_step(event, graph):  # noqa: C901
                 content="上述意图识别结果是否正确？若不正确请调整输入信息再次尝试意图识别；若正确，请输入“正确“或”Y”，将开始数据生成任务。",
                 timeout=300,
             ).send()
-            if res:
+            if res and "output" in res:
                 res_text = res["output"].strip()
                 logger.info(f"human_intent_feedback: {res_text}")
                 cl.user_session.set("human_intent_feedback", res_text)
@@ -228,9 +228,17 @@ async def process_step(event, graph):  # noqa: C901
             await cl.Message(author="Assistant", content=done_message).send()
 
         elif node == "END":
-            elapsed_time = cl.user_session.get("end_time") - cl.user_session.get(
-                "start_time"
-            )
+            start_time = cl.user_session.get("start_time") or 0.0
+            end_time = cl.user_session.get("end_time") or 0.0
+            # 确保是 float 类型
+            if isinstance(start_time, (int, float)) and isinstance(
+                end_time, (int, float)
+            ):
+                elapsed_time = end_time - start_time
+                logger.info(f"Total execution time: {elapsed_time:.2f} seconds")
+            else:
+                logger.warning("Invalid time values in session.")
+                elapsed_time = 0.0
             cost_msg = f"{elapsed_time: .2f} 秒"
             final_message = (
                 f"本次任务运行完成，总计耗时: {cost_msg}, 如需再次使用请开启新会话."
@@ -277,7 +285,14 @@ async def main(message: cl.Message):
         await process_step(step_output, sql_mode_data_gen_graph)
 
     # 完成会话清空trace_uuid
-    traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
+    trace_token = cl.user_session.get("trace_token")
+    if trace_token is None:
+        logger.warning(
+            f"session_id={cl.context.session.id} trace_token not found, skipping reset."
+        )
+    else:
+        # 这里 Pylance 知道 trace_token 是 Token 类型，且不是 None
+        traced_logger.reset_trace_uuid(trace_token)
 
 
 if __name__ == "__main__":

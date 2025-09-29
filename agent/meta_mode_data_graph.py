@@ -9,6 +9,7 @@
 import json
 import uuid
 from copy import deepcopy
+from typing import cast
 
 from langchain_core.messages import ToolMessage
 from langchain_core.runnables.config import RunnableConfig
@@ -59,7 +60,7 @@ def detect_input_type(state: MetaModeDataGenState):
     :return:
     """
 
-    user_intent: DataGenUserIntentSchema = state.get("user_intent")
+    user_intent = state.get("user_intent")
 
     if user_intent:
         return "query_table_raw_field_info"
@@ -140,9 +141,10 @@ def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenSt
     state["mode"] = 1
     if "table_metadata_info" not in state:
         state["table_metadata_error"] = []
-    env_name = state["user_intent"].env_name
+    user_intent = cast(DataGenUserIntentSchema, state["user_intent"])
+    env_name = user_intent.env_name
     state["env_name"] = env_name
-    table_en_name = state["user_intent"].table_en_name
+    table_en_name = user_intent.table_en_name
     # 查询知识库获取表的字段配置信息
     table_metadata = TableMetadataSchema(table_en_name=table_en_name)
     db_manager = DatabaseManager()

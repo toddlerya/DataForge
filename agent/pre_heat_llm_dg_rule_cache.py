@@ -74,6 +74,7 @@ async def pre_heat_llm_recommendation_dg_rule(db_manager: DatabaseManager):
         event = await meta_mode_data_gen_graph.ainvoke(
             init_state, thread, stream_mode="values"
         )
+        logger.info(f"event: {event}")
 
 
 def run_data_graph_preheat():
