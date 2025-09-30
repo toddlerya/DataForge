@@ -78,6 +78,7 @@ def retry_analyze_intent(state: MainAppState):
             "user_input": None,
             "dont_run_dg_task": None,
             "human_intent_feedback": None,
+            "rag_done": None,
         }
     else:
         return state
@@ -85,12 +86,18 @@ def retry_analyze_intent(state: MainAppState):
 
 def continue_dg_route(state: MainAppState):
     logger.info("判断是否已经RAG了DG规则清单")
-    if DG_FIELD_CATEGORY_CONFIG := state.get("DG_FIELD_CATEGORY_CONFIG"):
-        logger.info(f"DG_FIELD_CATEGORY_CONFIG count: {len(DG_FIELD_CATEGORY_CONFIG)}")
+    user_accepted = state.get("user_accepted")
+    rag_done = state.get("rag_done")
+    # FIXME: 这里的逻辑需要处理多种情况
+    # 1. 用于反馈是不是Y或正确的，要retry
+    # 2. 表元数据查询错误的，要retry
+    # 3. rag失败的要retry==，给出错误信息
+    if rag_done:
+        logger.info(f"rag_done={rag_done} user_accepted={user_accepted}")
         return "process_dg_graph"
     else:
         logger.warning(
-            f"重新识别意图 DG_FIELD_CATEGORY_CONFIG={type(DG_FIELD_CATEGORY_CONFIG)} "
+            f"route retry_analyze_intent rag_done={rag_done} user_accepted={user_accepted}"
         )
         return "retry_analyze_intent"
 

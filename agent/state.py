@@ -178,13 +178,15 @@ class DataGenSQLModeUserIntentSchema(BaseModel):
 # 基类：公共字段
 class DataGenBaseState(CommonState):
     user_input: str
-    user_intent: Union[DataGenUserIntentSchema, DataGenSQLModeUserIntentSchema]
     human_intent_feedback: str
+    user_intent: Union[DataGenUserIntentSchema, DataGenSQLModeUserIntentSchema]
+    user_accepted: bool
     table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
     DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
     table_dict_category_code_map: dict[str, str]
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
+    rag_done: bool
     pydantic_data_genius_plan: PydanticDataGeniusPlan
     data_genius_headers: dict
     data_genius_task_id: str
@@ -326,7 +328,6 @@ class MainAppState(DataGenBaseState):
     user_input: str
     human_intent_feedback: str
     dont_run_dg_task: bool
-    # 子图控制字段
 
 
 if __name__ == "__main__":

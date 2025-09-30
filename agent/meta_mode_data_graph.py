@@ -117,6 +117,7 @@ def should_table_raw_field_info_continue(state: MetaModeDataGenState):
 def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
     logger.info("query_table_raw_field_info start")
     state["mode"] = 1
+    state["user_accepted"] = True
     if "table_metadata_info" not in state:
         state["table_metadata_error"] = []
     if user_intent := state.get("user_intent"):
@@ -268,6 +269,8 @@ def rag_table_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
     state["table_dict_category_code_map"] = table_dict_category_code_map
     state["table_dictkey_map"] = table_dictkey_map
     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
+    state["rag_done"] = True
+    logger.info(f"完成RAG增强: {state.get('rag_done')}")
     # 动态更新配置
     init_dg_category_config.DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
     # 如果已经生成过实例了，需要清空缓存更新

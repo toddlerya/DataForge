@@ -109,6 +109,7 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     logger.info("[+] 解析SQL为表结构JSON")
     state["mode"] = 2
+    state["user_accepted"] = True
     user_intent = state.get("user_intent")
     if isinstance(user_intent, DataGenSQLModeUserIntentSchema):
         user_sql = user_intent.sql
@@ -224,6 +225,8 @@ def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     state["table_dict_category_code_map"] = table_dict_category_code_map
     state["table_dictkey_map"] = table_dictkey_map
     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
+    state["rag_done"] = True
+    logger.info(f"完成RAG增强: {state.get('rag_done')}")
     # 动态更新配置
     init_dg_category_config.DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
     # 如果已经生成过实例了，需要清空缓存更新
