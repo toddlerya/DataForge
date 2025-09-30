@@ -53,7 +53,8 @@ def sub_graph_route(state: MainAppState):
     Args:
         state (MainAppState): _description_
     """
-    if next_sub_graph_name := state.get("next_sub_graph_name").strip():
+    if next_sub_graph_name := state.get("next_sub_graph_name"):
+        next_sub_graph_name = next_sub_graph_name.strip()
         if next_sub_graph_name == "expolore_graph":
             return "expolore_graph"
         elif next_sub_graph_name == "meta_mode_data_gen_graph":
@@ -66,7 +67,7 @@ def sub_graph_route(state: MainAppState):
         return END
 
 
-def restart_analyze_intent(state: MainAppState):
+def retry_analyze_intent(state: MainAppState):
     logger.info("重新进行意图识别了")
     if human_intent_feedback := state.get("human_intent_feedback"):
         logger.info(f"human_intent_feedback: {human_intent_feedback}")
@@ -83,17 +84,20 @@ def restart_analyze_intent(state: MainAppState):
 
 
 def continue_dg_route(state: MainAppState):
-    logger.info("判断是否已经生成了DG规则对象")
-    if pydantic_data_genius_plan := state.get("pydantic_data_genius_plan"):
-        logger.info(f"pydantic_data_genius_plan: {type(pydantic_data_genius_plan)}")
+    logger.info("判断是否已经RAG了DG规则清单")
+    if DG_FIELD_CATEGORY_CONFIG := state.get("DG_FIELD_CATEGORY_CONFIG"):
+        logger.info(f"DG_FIELD_CATEGORY_CONFIG count: {len(DG_FIELD_CATEGORY_CONFIG)}")
         return "process_dg_graph"
     else:
-        return "restart_analyze_intent"
+        logger.warning(
+            f"重新识别意图 DG_FIELD_CATEGORY_CONFIG={type(DG_FIELD_CATEGORY_CONFIG)} "
+        )
+        return "retry_analyze_intent"
 
 
 main_builder = StateGraph(MainAppState)
 main_builder.add_node("analyze_intent", analyze_intent)
-main_builder.add_node("restart_analyze_intent", restart_analyze_intent)
+main_builder.add_node("retry_analyze_intent", retry_analyze_intent)
 main_builder.add_node("expolore_graph", expolore_graph)
 main_builder.add_node("meta_mode_data_gen_graph", meta_mode_data_gen_graph)
 main_builder.add_node("sql_mode_data_gen_graph", sql_mode_data_gen_graph)
@@ -114,14 +118,14 @@ main_builder.add_conditional_edges(
 main_builder.add_conditional_edges(
     "meta_mode_data_gen_graph",
     continue_dg_route,
-    ["restart_analyze_intent", "process_dg_graph"],
+    ["retry_analyze_intent", "process_dg_graph"],
 )
 main_builder.add_conditional_edges(
     "sql_mode_data_gen_graph",
     continue_dg_route,
-    ["restart_analyze_intent", "process_dg_graph"],
+    ["retry_analyze_intent", "process_dg_graph"],
 )
-main_builder.add_edge("restart_analyze_intent", "analyze_intent")
+main_builder.add_edge("retry_analyze_intent", "analyze_intent")
 main_builder.add_edge("process_dg_graph", END)
 
 memory = InMemorySaver()

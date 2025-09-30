@@ -99,7 +99,7 @@ if __name__ == "__main__":
         base_path=str(PROJECT_PATH.absolute()),
         log_path="logs",
         log_name="crond_task.log",
-        file_log_level="DEBUG",
+        file_log_level="INFO",
         console_log_level="INFO",
     )
     setup_logging(log_config.get_config().get("handlers"))

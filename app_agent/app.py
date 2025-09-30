@@ -177,8 +177,8 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         logger.info("[entry] summary_node")
         summary = state.get("summary", "")
         await cl.Message(content=summary).send()
-    elif node == "analyze_data_intent":
-        logger.info("[entry] analyze_data_intent")
+    elif node == "analyze_meta_intent" or node == "analyze_sql_intent":
+        logger.info("[entry] analyze_meta_intent or analyze_sql_intent")
         user_intent = state.get("user_intent")
         if not user_intent:
             logger.info("还没有出现意图呢...")
@@ -290,8 +290,8 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                 content=f"{table_info_data.table_en_name}表字段信息",
                 elements=table_metadata_elements,
             ).send()
-    elif node == "dg_category_recommend":
-        logger.info("[process] dg_category_recommend")
+    elif node == "dg_rule_processor":
+        logger.info("[process] dg_rule_processor")
         pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
         if pydantic_data_genius_plan:
             pydantic_data_genius_plan = cast(
@@ -351,7 +351,6 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                 ),
             ]
             await cl.Message(
-                author="Assistant",
                 content="可下载表的元数据配置信息，入库测试数据时可能会用到",
                 elements=download_dg_plan_table_metadata_json_elements,
             ).send()
@@ -370,7 +369,6 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                 PydanticDataGeniusPlan, pydantic_data_genius_plan
             )
             await cl.Message(
-                author="Assistant",
                 content=f"已在DataGenius创建任务，任务名称：{pydantic_data_genius_plan.rule_name}",
             ).send()
         else:
@@ -432,7 +430,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             f"本次任务运行完成，总计耗时: {cost_msg}, 如需再次使用请开启新会话."
         )
         logger.info(final_message)
-        await cl.Message(author="Assistant", content=final_message).send()
+        await cl.Message(content=final_message).send()
 
 
 async def handle_interrupt(run_config: RunnableConfig) -> bool:
@@ -445,7 +443,6 @@ async def handle_interrupt(run_config: RunnableConfig) -> bool:
         cl.user_session.set("human_intent_feedback", None)
         return True
     res = await cl.AskUserMessage(
-        author="Assistant",
         content=(
             "上述意图识别结果是否正确？"
             "若不正确请调整输入信息再次尝试意图识别; "

@@ -47,10 +47,10 @@ def detect_input_type(state: SQLModeDataGenState):
     if user_intent:
         return "sql_parse_to_table_info"
     else:
-        return "analyze_data_intent"
+        return "analyze_sql_intent"
 
 
-def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
+def analyze_sql_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     解析用户意图, SQL模式
     :param state:
@@ -59,7 +59,7 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     user_input = state.get("user_input").strip()
     human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
-        f"analyze_data_intent => user_input: {user_input} "
+        f"analyze_sql_intent => user_input: {user_input} "
         f"human_intent_feedback: {human_intent_feedback} "
         f"state: {state}"
     )
@@ -67,7 +67,7 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     chat_prompt = sql_mode_data_intent_prompt.format_messages(
         user_input=user_input, human_intent_feedback=human_intent_feedback
     )
-    logger.trace(f"analyze_intent chat_prompt: {chat_prompt}")
+    logger.trace(f"analyze_sql_intent chat_prompt: {chat_prompt}")
     user_intent = structured_llm.invoke(chat_prompt)
     if isinstance(user_intent, DataGenSQLModeUserIntentSchema):
         state["user_intent"] = user_intent
@@ -75,7 +75,7 @@ def analyze_data_intent(state: SQLModeDataGenState) -> SQLModeDataGenState:
     return state
 
 
-def data_intent_human_feedback_node(state: SQLModeDataGenState):
+def sql_intent_human_feedback_node(state: SQLModeDataGenState):
     feedback: dict = interrupt("意图正确吗?")
     logger.info(f"resume feedback: {feedback}")
     human_intent_feedback = feedback.get("human_intent_feedback", "").strip().upper()
@@ -83,16 +83,22 @@ def data_intent_human_feedback_node(state: SQLModeDataGenState):
     return state
 
 
-def should_data_intent_continue(state: SQLModeDataGenState):
+def should_intent_continue(state: SQLModeDataGenState):
     """Return the next node to execute"""
 
     # Check if human feedback
     human_intent_feedback = state.get("human_intent_feedback", "").strip()
     if human_intent_feedback == "正确" or human_intent_feedback == "Y":
+        logger.info(
+            "should_intent_continue -> sql_parse_to_table_info "
+            f"human_intent_feedback: {human_intent_feedback}"
+        )
         return "sql_parse_to_table_info"
-
-    # Otherwise proceed to create table info
-    return END
+    else:
+        logger.info("should_intent_continue -> END")
+        # 重新开始意图识别
+        logger.info("需要意图错误, END")
+        return END
 
 
 def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
@@ -129,6 +135,17 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
         state["table_info_error"] = table_info_error
         return state
     return state
+
+
+def should_rag_sql_table_field_info_continue(state: SQLModeDataGenState):
+    logger.info("should_rag_sql_table_field_info_continue start")
+    table_info_error = state.get("table_info_error", [])
+    if len(table_info_error) >= 1:
+        logger.error(f"存在table_info_error: {' '.join(table_info_error)}")
+        logger.info("SQL生成表结构化信息异常, END")
+        return END
+    else:
+        return "rag_sql_table_field_info"
 
 
 def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
@@ -216,27 +233,31 @@ def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
 
 
 sql_mode_data_gen_builder = StateGraph(SQLModeDataGenState)
-sql_mode_data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
+sql_mode_data_gen_builder.add_node("analyze_sql_intent", analyze_sql_intent)
 sql_mode_data_gen_builder.add_node(
-    "intent_human_feedback_node", data_intent_human_feedback_node
+    "sql_intent_human_feedback_node", sql_intent_human_feedback_node
 )
 sql_mode_data_gen_builder.add_node("sql_parse_to_table_info", sql_parse_to_table_info)
-sql_mode_data_gen_builder.add_node("rag_sql_table_filed_info", rag_sql_table_field_info)
+sql_mode_data_gen_builder.add_node("rag_sql_table_field_info", rag_sql_table_field_info)
 
 
 sql_mode_data_gen_builder.add_conditional_edges(
-    START, detect_input_type, ["sql_parse_to_table_info", "analyze_data_intent"]
-)
-sql_mode_data_gen_builder.add_edge("analyze_data_intent", "intent_human_feedback_node")
-sql_mode_data_gen_builder.add_conditional_edges(
-    "intent_human_feedback_node",
-    should_data_intent_continue,
-    [END, "sql_parse_to_table_info"],
+    START, detect_input_type, ["sql_parse_to_table_info", "analyze_sql_intent"]
 )
 sql_mode_data_gen_builder.add_edge(
-    "sql_parse_to_table_info", "rag_sql_table_filed_info"
+    "analyze_sql_intent", "sql_intent_human_feedback_node"
 )
-sql_mode_data_gen_builder.add_edge("rag_sql_table_filed_info", END)
+sql_mode_data_gen_builder.add_conditional_edges(
+    "sql_intent_human_feedback_node",
+    should_intent_continue,
+    [END, "sql_parse_to_table_info"],
+)
+sql_mode_data_gen_builder.add_conditional_edges(
+    "sql_parse_to_table_info",
+    should_rag_sql_table_field_info_continue,
+    ["rag_sql_table_field_info", END],
+)
+sql_mode_data_gen_builder.add_edge("rag_sql_table_field_info", END)
 
 memory = InMemorySaver()
 sql_mode_data_gen_graph = sql_mode_data_gen_builder.compile(checkpointer=memory)

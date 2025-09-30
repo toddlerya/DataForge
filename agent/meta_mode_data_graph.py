@@ -18,7 +18,6 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from loguru import logger
 
-from agent.common_node import restart_graph
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
 from agent.llm import chat_llm
 from agent.prompt import data_intent_prompt
@@ -51,14 +50,14 @@ def detect_input_type(state: MetaModeDataGenState):
     if user_intent:
         return "query_table_raw_field_info"
     else:
-        return "analyze_data_intent"
+        return "analyze_meta_intent"
 
 
-def analyze_data_intent(state: MetaModeDataGenState) -> MetaModeDataGenState:
+def analyze_meta_intent(state: MetaModeDataGenState) -> MetaModeDataGenState:
     user_input = state.get("user_input", "").strip()
     human_intent_feedback = state.get("human_intent_feedback", "")
     logger.debug(
-        f"analyze_data_intent => user_input: {user_input} "
+        f"analyze_meta_intent => user_input: {user_input} "
         f"human_intent_feedback: {human_intent_feedback}"
     )
     if user_input:
@@ -66,7 +65,7 @@ def analyze_data_intent(state: MetaModeDataGenState) -> MetaModeDataGenState:
         chat_prompt = data_intent_prompt.format_messages(
             user_input=user_input, human_intent_feedback=human_intent_feedback
         )
-        logger.trace(f"analyze_data_intent chat_prompt: {chat_prompt}")
+        logger.trace(f"analyze_meta_intent chat_prompt: {chat_prompt}")
         user_intent = structured_llm.invoke(chat_prompt)
         logger.info(f"user_input: {user_input} user_intent: {user_intent}")
         if isinstance(user_intent, DataGenUserIntentSchema):
@@ -76,7 +75,7 @@ def analyze_data_intent(state: MetaModeDataGenState) -> MetaModeDataGenState:
     return state
 
 
-def intent_human_feedback_node(state: MetaModeDataGenState):
+def meta_intent_human_feedback_node(state: MetaModeDataGenState):
     feedback: dict = interrupt("意图正确吗?")
     logger.info(f"resume feedback: {feedback}")
     human_intent_feedback = feedback.get("human_intent_feedback", "").strip().upper()
@@ -84,22 +83,21 @@ def intent_human_feedback_node(state: MetaModeDataGenState):
     return state
 
 
-def should_data_intent_continue(state: MetaModeDataGenState):
+def should_intent_continue(state: MetaModeDataGenState):
     """Return the next node to execute"""
 
     # Check if human feedback
 
-    logger.info(f"should_data_intent_continue: {state}")
+    logger.info(f"should_intent_continue: {state}")
     human_intent_feedback = state.get("human_intent_feedback", "").strip().upper()
     if human_intent_feedback == "正确" or human_intent_feedback == "Y":
         logger.info(
-            "should_data_intent_continue -> query_table_raw_field_info "
+            "should_intent_continue -> query_table_raw_field_info "
             f"human_intent_feedback: {human_intent_feedback}"
         )
         return "query_table_raw_field_info"
     else:
-        # Otherwise proceed to create table info
-        logger.info("should_data_intent_continue -> END")
+        logger.info("should_intent_continue -> END")
         # 重新开始意图识别
         logger.info("需要意图错误, END")
         return END
@@ -113,7 +111,7 @@ def should_table_raw_field_info_continue(state: MetaModeDataGenState):
         logger.info("查询元数据错误，END")
         return END
     else:
-        return "rag_table_filed_info"
+        return "rag_table_field_info"
 
 
 def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
@@ -279,32 +277,33 @@ def rag_table_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
 
 
 meta_mode_data_gen_builder = StateGraph(MetaModeDataGenState)
-meta_mode_data_gen_builder.add_node("analyze_data_intent", analyze_data_intent)
-meta_mode_data_gen_builder.add_node("restart_graph", restart_graph)
+meta_mode_data_gen_builder.add_node("analyze_meta_intent", analyze_meta_intent)
 meta_mode_data_gen_builder.add_node(
-    "intent_human_feedback_node", intent_human_feedback_node
+    "meta_intent_human_feedback_node", meta_intent_human_feedback_node
 )
 meta_mode_data_gen_builder.add_node(
     "query_table_raw_field_info", query_table_raw_field_info
 )
-meta_mode_data_gen_builder.add_node("rag_table_filed_info", rag_table_field_info)
+meta_mode_data_gen_builder.add_node("rag_table_field_info", rag_table_field_info)
 
 
 meta_mode_data_gen_builder.add_conditional_edges(
-    START, detect_input_type, ["query_table_raw_field_info", "analyze_data_intent"]
+    START, detect_input_type, ["query_table_raw_field_info", "analyze_meta_intent"]
 )
-meta_mode_data_gen_builder.add_edge("analyze_data_intent", "intent_human_feedback_node")
+meta_mode_data_gen_builder.add_edge(
+    "analyze_meta_intent", "meta_intent_human_feedback_node"
+)
 meta_mode_data_gen_builder.add_conditional_edges(
-    "intent_human_feedback_node",
-    should_data_intent_continue,
+    "meta_intent_human_feedback_node",
+    should_intent_continue,
     ["query_table_raw_field_info", END],
 )
 meta_mode_data_gen_builder.add_conditional_edges(
     "query_table_raw_field_info",
     should_table_raw_field_info_continue,
-    ["rag_table_filed_info", END],
+    ["rag_table_field_info", END],
 )
-meta_mode_data_gen_builder.add_edge("rag_table_filed_info", END)
+meta_mode_data_gen_builder.add_edge("rag_table_field_info", END)
 
 
 memory = InMemorySaver()
