@@ -180,7 +180,6 @@ class DataGenBaseState(CommonState):
     user_input: str
     human_intent_feedback: str
     user_intent: Union[DataGenUserIntentSchema, DataGenSQLModeUserIntentSchema]
-    user_accepted: bool
     table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
     DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
@@ -197,7 +196,7 @@ class DataGenBaseState(CommonState):
     data_genius_plan_output_url: str
     data_genius_plan_output_filesize: str
     data_genius_plan_edit_url: str
-    error_message: Annotated[List[AnyMessage], add_messages]
+    error_messages: Annotated[List[AnyMessage], add_messages]
     task_data: TaskDataSchema
     env_name: str
     mode: Literal[1, 2]

@@ -81,7 +81,7 @@ def create_dg_task(
     if table_metadata_info is None:
         error = "state的table_metadata_info为None, 无法获取table_en_name"
         logger.error(error)
-        state["error_message"].append(ToolMessage(error))
+        state["error_messages"].append(ToolMessage(error))
         return state
     table_en_name = table_metadata_info.table_en_name
     logger.info(

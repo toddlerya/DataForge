@@ -46,6 +46,7 @@ next_sub_graph_name_map = {
     "meta_mode_data_gen_graph": "测试数据生成(元数据模式)",
     "expolore_graph": "表元数据信息探索",
     "sql_mode_data_gen_graph": "测试数据生成(SQL模式)",
+    "unkown_node": "未知意图",
 }
 
 
@@ -85,7 +86,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         if next_sub_graph_name:
             await cl.Message(
                 content=(
-                    f"### 意图路由: 使用"
+                    f"### 意图路由: "
                     f"{next_sub_graph_name_map.get(next_sub_graph_name, '未知意图')}"
                 ),
             ).send()
@@ -184,7 +185,6 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             logger.info("还没有出现意图呢...")
             return False
         await cl.Message(
-            author="AI",
             content=user_intent.model_dump_json(indent=2),
             language="python",
         ).send()
@@ -200,9 +200,8 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         table_metadata_error = state.get("table_metadata_error")
         if table_metadata_error:
             logger.error(f"table_metadata_error: {table_metadata_error}")
-            await cl.Message(
-                author="Tool", content="\n".join(table_metadata_error)
-            ).send()
+            await cl.Message(content="\n".join(table_metadata_error)).send()
+            return True
         elif table_metadata_info:
             table_metadata_info = cast(TableMetadataSchema, table_metadata_info)
             df = pd.DataFrame(
@@ -261,6 +260,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         if table_info_error:
             logger.error(f"table_info_error: {table_info_error}")
             await cl.Message(content=table_info_error).send()
+            return True
         elif table_info_data:
             table_info_data = cast(SQLModeTableInfoSchema, table_info_data)
             df = pd.DataFrame(
@@ -313,6 +313,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             await cl.Message(
                 content="pydantic_data_genius_plan为空, 请联系开发者",
             ).send()
+            return True
     elif node == "save_dg_plan2json":
         logger.info("[process] save_dg_plan2json")
         pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
@@ -361,6 +362,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             await cl.Message(
                 content="pydantic_data_genius_plan为空, 请联系开发者",
             ).send()
+            return True
     elif node == "create_dg_task":
         logger.info("[process] create_dg_task")
         pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
@@ -378,6 +380,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             await cl.Message(
                 content="pydantic_data_genius_plan为空, 请联系开发者",
             ).send()
+            return True
     elif node == "query_dg_task_status":
         logger.info("[process] query_dg_task_status")
         pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
@@ -396,6 +399,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             if query_data_genius_task_error:
                 done_message = query_data_genius_task_error
                 logger.error(query_data_genius_task_error)
+                return True
             else:
                 done_message = (
                     "DataGenius任务已完成。\n"
@@ -415,6 +419,20 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             await cl.Message(
                 content="pydantic_data_genius_plan为空, 请联系开发者",
             ).send()
+            return True
+    elif node == "unkown_node":
+        logger.info("[entry] unkown_node")
+        messages = state.get("messages", [])
+        logger.trace(f"messages: {messages}")
+        if len(messages) >= 1:
+            last_message = messages[-1].content
+        else:
+            last_message = (
+                "抱歉，我暂时还不具备处理您提到的问题的能力。"
+                "请提供更具体的信息或尝试其他问题。"
+            )
+        await cl.Message(content=last_message).send()
+        return True
     elif node == "END":
         start_time = cl.user_session.get("start_time") or 0.0
         end_time = cl.user_session.get("end_time") or 0.0
@@ -566,7 +584,8 @@ async def on_message(message: cl.Message):
             processed = await handle_graph_event(
                 node=node, state=state, run_config=run_config
             )
-            if node == "__interrupt__" and processed:
+            # if node == "__interrupt__" and processed:
+            if processed:
                 logger.info(f"processed = {processed} node = {node} will break astream")
                 break
 

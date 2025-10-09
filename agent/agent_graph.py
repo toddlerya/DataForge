@@ -6,7 +6,7 @@
 
 import uuid
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, FunctionMessage, HumanMessage
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -20,6 +20,41 @@ from agent.meta_mode_data_graph import meta_mode_data_gen_graph
 from agent.prompt import main_intent_prompt
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import AppUserIntentSchema, MainAppState
+
+
+def retry_analyze_intent(state: MainAppState) -> MainAppState:
+    logger.info("重新进行意图识别了")
+    if human_intent_feedback := state.get("human_intent_feedback"):
+        logger.info(f"human_intent_feedback: {human_intent_feedback}")
+        return {
+            "messages": [HumanMessage(content=human_intent_feedback.strip())],
+            "main_user_intent": None,
+            "next_sub_graph_name": None,
+            "user_input": None,
+            "dont_run_dg_task": None,
+            "human_intent_feedback": None,
+            "rag_done": None,
+        }  # type: ignore
+    else:
+        return state
+
+
+# FIXME: 这里不能重置状态，会导致会话状态异常
+def reset_state(state: MainAppState) -> MainAppState:
+    logger.info("重置状态")
+    if human_intent_feedback := state.get("human_intent_feedback"):
+        logger.info(f"human_intent_feedback: {human_intent_feedback}")
+        return {
+            "messages": [HumanMessage(content=human_intent_feedback.strip())],
+            "main_user_intent": None,
+            "next_sub_graph_name": None,
+            "user_input": None,
+            "dont_run_dg_task": None,
+            "human_intent_feedback": None,
+            "rag_done": None,
+        }  # type: ignore
+    else:
+        return state
 
 
 def analyze_intent(state: MainAppState) -> MainAppState:
@@ -47,6 +82,40 @@ def analyze_intent(state: MainAppState) -> MainAppState:
     return state
 
 
+def unkown_node(state: MainAppState) -> MainAppState:
+    state["messages"].append(
+        AIMessage(
+            content="抱歉，我暂时还不具备处理您提到的问题的能力。请提供更具体的信息或尝试其他问题。"
+        )
+    )
+    state = reset_state(state)
+    return state
+
+
+def table_meta_and_rag_failed(state: MainAppState) -> MainAppState:
+    table_metadata_error = state.get("table_metadata_error")
+    rag_done = state.get("rag_done")
+    if table_metadata_error:
+        state["messages"].append(
+            FunctionMessage(
+                content="\n".join(table_metadata_error), name="table_metadata"
+            )
+        )
+    elif rag_done is False:
+        error_messages = state.get(
+            "error_messages",
+            [FunctionMessage(content="表信息RAG异常", name="rag")],
+        )
+        rag_error_messages = []
+        for ele in error_messages:
+            rag_error_messages.append(ele.content)
+        state["messages"].append(
+            FunctionMessage(content=("\n".join(rag_error_messages)), name="rag")
+        )
+    state = reset_state(state)
+    return state
+
+
 def sub_graph_route(state: MainAppState):
     """子图路由器
 
@@ -62,43 +131,27 @@ def sub_graph_route(state: MainAppState):
         elif next_sub_graph_name == "sql_mode_data_gen_graph":
             return "sql_mode_data_gen_graph"
         else:
-            return END
+            return "unkown_node"
     else:
         return END
 
 
-def retry_analyze_intent(state: MainAppState):
-    logger.info("重新进行意图识别了")
-    if human_intent_feedback := state.get("human_intent_feedback"):
-        logger.info(f"human_intent_feedback: {human_intent_feedback}")
-        return {
-            "messages": [HumanMessage(content=human_intent_feedback.strip())],
-            "main_user_intent": None,
-            "next_sub_graph_name": None,
-            "user_input": None,
-            "dont_run_dg_task": None,
-            "human_intent_feedback": None,
-            "rag_done": None,
-        }
-    else:
-        return state
-
-
 def continue_dg_route(state: MainAppState):
     logger.info("判断是否已经RAG了DG规则清单")
-    user_accepted = state.get("user_accepted")
+    table_metadata_error = state.get("table_metadata_error")
     rag_done = state.get("rag_done")
     # FIXME: 这里的逻辑需要处理多种情况
-    # 1. 用于反馈是不是Y或正确的，要retry
-    # 2. 表元数据查询错误的，要retry
-    # 3. rag失败的要retry==，给出错误信息
-    if rag_done:
-        logger.info(f"rag_done={rag_done} user_accepted={user_accepted}")
+    # 1. 用户反馈意图不正确，要retry ==> table_metadata_error=[] and rag_done=None
+    # 2. 表元数据查询错误的，要retry ==> table_metadata_error != []，给出错误信息并结束
+    # 3. rag失败的要retry==> rag_done == True，给出错误信息并结束
+    logger.info(f"table_metadata_error={table_metadata_error} rag_done={rag_done}")
+    if not table_metadata_error and rag_done:
         return "process_dg_graph"
+    elif rag_done is False or table_metadata_error:
+        logger.warning("route table_meta_and_rag_failed")
+        return "table_meta_and_rag_failed"
     else:
-        logger.warning(
-            f"route retry_analyze_intent rag_done={rag_done} user_accepted={user_accepted}"
-        )
+        logger.warning("route retry_analyze_intent")
         return "retry_analyze_intent"
 
 
@@ -109,6 +162,8 @@ main_builder.add_node("expolore_graph", expolore_graph)
 main_builder.add_node("meta_mode_data_gen_graph", meta_mode_data_gen_graph)
 main_builder.add_node("sql_mode_data_gen_graph", sql_mode_data_gen_graph)
 main_builder.add_node("process_dg_graph", process_dg_graph)
+main_builder.add_node("unkown_node", unkown_node)
+main_builder.add_node("table_meta_and_rag_failed", table_meta_and_rag_failed)
 
 
 main_builder.add_edge(START, "analyze_intent")
@@ -119,21 +174,24 @@ main_builder.add_conditional_edges(
         "expolore_graph",
         "meta_mode_data_gen_graph",
         "sql_mode_data_gen_graph",
+        "unkown_node",
         END,
     ],
 )
 main_builder.add_conditional_edges(
     "meta_mode_data_gen_graph",
     continue_dg_route,
-    ["retry_analyze_intent", "process_dg_graph"],
+    ["retry_analyze_intent", "process_dg_graph", "table_meta_and_rag_failed"],
 )
 main_builder.add_conditional_edges(
     "sql_mode_data_gen_graph",
     continue_dg_route,
-    ["retry_analyze_intent", "process_dg_graph"],
+    ["retry_analyze_intent", "process_dg_graph", "table_meta_and_rag_failed"],
 )
 main_builder.add_edge("retry_analyze_intent", "analyze_intent")
 main_builder.add_edge("process_dg_graph", END)
+main_builder.add_edge("unkown_node", END)
+main_builder.add_edge("table_meta_and_rag_failed", END)
 
 memory = InMemorySaver()
 main_graph = main_builder.compile(checkpointer=memory)

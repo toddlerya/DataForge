@@ -11,7 +11,7 @@ import uuid
 from copy import deepcopy
 from typing import cast
 
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import FunctionMessage
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -90,7 +90,7 @@ def should_intent_continue(state: MetaModeDataGenState):
 
     logger.info(f"should_intent_continue: {state}")
     human_intent_feedback = state.get("human_intent_feedback", "").strip().upper()
-    if human_intent_feedback == "正确" or human_intent_feedback == "Y":
+    if human_intent_feedback in ("正确", "Y", "OK"):
         logger.info(
             "should_intent_continue -> query_table_raw_field_info "
             f"human_intent_feedback: {human_intent_feedback}"
@@ -99,7 +99,7 @@ def should_intent_continue(state: MetaModeDataGenState):
     else:
         logger.info("should_intent_continue -> END")
         # 重新开始意图识别
-        logger.info("需要意图错误, END")
+        logger.info("用户反馈意图错误, END")
         return END
 
 
@@ -108,26 +108,26 @@ def should_table_raw_field_info_continue(state: MetaModeDataGenState):
     table_metadata_error = state.get("table_metadata_error", [])
     if len(table_metadata_error) >= 1:
         logger.error(f"存在table_metadata_error: {' '.join(table_metadata_error)}")
-        logger.info("查询元数据错误，END")
+        logger.info("查询元数据错误, END")
         return END
     else:
         return "rag_table_field_info"
 
 
-def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
+def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:  # noqa: C901
     logger.info("query_table_raw_field_info start")
     state["mode"] = 1
-    state["user_accepted"] = True
     if "table_metadata_info" not in state:
         state["table_metadata_error"] = []
     if user_intent := state.get("user_intent"):
         if not isinstance(user_intent, DataGenUserIntentSchema):
             state["table_metadata_error"].append(
-                f"用于意图不是元数据构造意图: {user_intent.model_dump()}"
+                f"用户意图不是元数据构造意图: {user_intent.model_dump()}"
             )
             return state
     else:
         user_intent = cast(DataGenUserIntentSchema, user_intent)
+    logger.info(f"user_intent: {user_intent}")
     env_name = user_intent.env_name
     state["env_name"] = env_name
     table_en_name = user_intent.table_en_name
@@ -212,11 +212,12 @@ def rag_table_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
     global dict_result
     logger.info("RAG增强字段属性信息")
     DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
-    table_metadata = state["table_metadata_info"]
+    table_metadata = state.get("table_metadata_info")
     if not table_metadata:
-        logger.error("未查询到表元数据，无法进行字段字典RAG增强推荐")
-        state["error_message"].append(
-            ToolMessage("未查询到表元数据，无法进行字段字典RAG增强推荐")
+        table_metadata_error = "未查询到表元数据, 无法进行字段字典RAG增强推荐"
+        logger.error(table_metadata_error)
+        state["error_messages"].append(
+            FunctionMessage(content=table_metadata_error, name="rag_table_field_info")
         )
         return state
     table_dictkey_slice: list[str] = []

@@ -10,6 +10,7 @@ import json
 import uuid
 from copy import deepcopy
 
+from langchain_core.messages import FunctionMessage
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
@@ -88,7 +89,7 @@ def should_intent_continue(state: SQLModeDataGenState):
 
     # Check if human feedback
     human_intent_feedback = state.get("human_intent_feedback", "").strip()
-    if human_intent_feedback == "正确" or human_intent_feedback == "Y":
+    if human_intent_feedback in ("正确", "Y", "OK"):
         logger.info(
             "should_intent_continue -> sql_parse_to_table_info "
             f"human_intent_feedback: {human_intent_feedback}"
@@ -109,7 +110,6 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     logger.info("[+] 解析SQL为表结构JSON")
     state["mode"] = 2
-    state["user_accepted"] = True
     user_intent = state.get("user_intent")
     if isinstance(user_intent, DataGenSQLModeUserIntentSchema):
         user_sql = user_intent.sql
@@ -120,6 +120,9 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     if status is False or not result:
         table_info_error = f"解析SQL异常! error={error} result={result}"
         logger.error(table_info_error)
+        state["error_messages"].append(
+            FunctionMessage(content=table_info_error, name="sql_parse_to_table_info")
+        )
         state["table_info_error"] = table_info_error
         return state
     try:
@@ -133,6 +136,9 @@ def sql_parse_to_table_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     except Exception as err:
         table_info_error = f"SQL生成表结构化信息异常: {err}"
         logger.error(table_info_error)
+        state["error_messages"].append(
+            FunctionMessage(content=table_info_error, name="sql_parse_to_table_info")
+        )
         state["table_info_error"] = table_info_error
         return state
     return state
@@ -156,7 +162,7 @@ def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     :return:
     """
     logger.info("RAG增强字段属性信息")
-    table_info_data: SQLModeTableInfoSchema = state["table_info_data"]
+    table_info_data: SQLModeTableInfoSchema = state.get("table_info_data")
     DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
     table_metadata_info = TableMetadataSchema(
         table_en_name=table_info_data.table_en_name
@@ -176,6 +182,7 @@ def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
             )
             logger.error(err_message)
             table_metadata_error.append(err_message)
+            state["rag_done"] = False
         if recommend_data is None:
             raw_field_data = TableRawFieldSchema(en_name=each_field.en_name)
             table_metadata_info.raw_fields_info.append(raw_field_data)
@@ -198,7 +205,9 @@ def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
                     )
                 )
                 if dict_status is False:
-                    logger.error(f"获取盘古字典异常: {dict_message}")
+                    err_message = f"获取盘古字典异常: {dict_message}"
+                    logger.error(err_message)
+                    table_metadata_error.append(err_message)
                 elif dict_result:
                     one_dict = dict_result[0]
                     category = one_dict.dict_category
@@ -225,7 +234,8 @@ def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     state["table_dict_category_code_map"] = table_dict_category_code_map
     state["table_dictkey_map"] = table_dictkey_map
     state["DG_FIELD_CATEGORY_CONFIG"] = DG_FIELD_CATEGORY_CONFIG
-    state["rag_done"] = True
+    if state.get("rag_done") is None:
+        state["rag_done"] = True
     logger.info(f"完成RAG增强: {state.get('rag_done')}")
     # 动态更新配置
     init_dg_category_config.DG_FIELD_CATEGORY_CONFIG = DG_FIELD_CATEGORY_CONFIG
@@ -340,4 +350,5 @@ if __name__ == "__main__":
 
         table_dict_category_code_map = event.get("table_dict_category_code_map")
         if table_dict_category_code_map:
+            logger.info(f"table_dict_category_code_map: {table_dict_category_code_map}")
             logger.info(f"table_dict_category_code_map: {table_dict_category_code_map}")

@@ -185,7 +185,7 @@ def dg_rule_processor(
     row_count = user_intent.data_count or 1000
     if not table_metadata:
         logger.error("未查询到表元数据，无法进行数据字段分类推荐")
-        state["error_message"].append("未查询到表元数据，无法进行数据字段分类推荐")
+        state["error_messages"].append("未查询到表元数据，无法进行数据字段分类推荐")
         return state
     logger.trace(f"table_metadata: {table_metadata.model_dump_json()}")
 
