@@ -306,14 +306,12 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                 PydanticDataGeniusPlan, pydantic_data_genius_plan
             )
             await cl.Message(
-                content=(
-                    "当前生成的DataGenius数据生成计划配置如下, 将开始数据生成任务"
-                ),
+                content=("已生成的DataGenius数据生成计划配置, 将开始数据生成任务"),
             ).send()
-            await cl.Message(
-                content=pydantic_data_genius_plan.model_dump_json(indent=2),
-                language="python",
-            ).send()
+            # await cl.Message(
+            #     content=pydantic_data_genius_plan.model_dump_json(indent=2),
+            #     language="json",
+            # ).send()
         else:
             logger.error(
                 f"pydantic_data_genius_plan为空: value={pydantic_data_genius_plan}"
