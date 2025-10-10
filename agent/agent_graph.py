@@ -147,7 +147,7 @@ def continue_dg_route(state: MainAppState):
     logger.info("判断是否已经RAG了DG规则清单")
     table_metadata_error = state.get("table_metadata_error")
     rag_done = state.get("rag_done")
-    # FIXME: 这里的逻辑需要处理多种情况
+    # 这里的逻辑需要处理多种情况
     # 1. 用户反馈意图不正确，要retry ==> table_metadata_error=[] and rag_done=None
     # 2. 表元数据查询错误的，要retry ==> table_metadata_error != []，给出错误信息并结束
     # 3. rag失败的要retry==> rag_done == True，给出错误信息并结束

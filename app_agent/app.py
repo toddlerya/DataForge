@@ -200,9 +200,9 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         table_metadata_error = state.get("table_metadata_error")
         if table_metadata_error:
             logger.error(f"table_metadata_error: {table_metadata_error}")
-            await cl.Message(content="\n".join(table_metadata_error)).send()
+            # await cl.Message(content="\n".join(table_metadata_error)).send()
             return True
-        elif table_metadata_info:
+        if table_metadata_info:
             table_metadata_info = cast(TableMetadataSchema, table_metadata_info)
             df = pd.DataFrame(
                 [ele.model_dump() for ele in table_metadata_info.raw_fields_info]
