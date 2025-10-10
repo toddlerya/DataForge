@@ -62,3 +62,34 @@ FROM table_meta_data_info t,
      jsonb_array_elements(t.table_fields) AS field
 WHERE field->>'en_name' = 'ACTION_TYPE';
 ```
+
+```sql
+
+-- 获取所有字典不为空的字段名称
+SELECT DISTINCT tf.en_name
+FROM public.table_meta_data_info t,
+     jsonb_to_recordset(t.table_fields) AS tf(en_name text, dict_name text)
+WHERE tf.dict_name IS NOT NULL
+  AND tf.dict_name <> '' and tf.en_name = 'OS_TYPE';
+
+
+
+-- 先查确认要删的数据：
+ SELECT ename
+FROM public.field_dg_rule_cache
+WHERE ename IN (
+    SELECT DISTINCT tf.en_name
+    FROM public.table_meta_data_info t,
+         jsonb_to_recordset(t.table_fields) AS tf(en_name text, dict_name text)
+    WHERE tf.dict_name IS NOT NULL AND tf.dict_name <> ''
+);
+
+--再执行删除缓存的字段
+DELETE FROM public.field_dg_rule_cache
+WHERE ename IN (
+    SELECT DISTINCT tf.en_name
+    FROM public.table_meta_data_info t,
+         jsonb_to_recordset(t.table_fields) AS tf(en_name text, dict_name text)
+    WHERE tf.dict_name IS NOT NULL AND tf.dict_name <> ''
+);
+```
