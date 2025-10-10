@@ -242,7 +242,8 @@ expolore_chat_prompt = ChatPromptTemplate.from_messages(
 # 定义模板
 main_intent_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是测试数据智能助手, 分析用户的输入, 识别出以下信息\n"
-    "1. 用户任务需要使用的子图(对应graph_name). \n"
+    "用户任务需要使用的子图(对应graph_name). \n"
+    "- 如果用于期望查看对接了多少表,有些特征有关的表这种问题则填写expolore_graph\n"
     "- 如果是基于提供的明确表名称构造测试数据则填写meta_mode_data_gen_graph\n"
     "- 如果是基于提供的SQL构造测试数据则填写sql_mode_data_gen_graph\n"
     "- 如果都不是则填写unkown\n"

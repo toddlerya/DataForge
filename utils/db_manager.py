@@ -74,13 +74,13 @@ class DatabaseManager:
         """关闭当前会话（不调用 remove, 由框架或业务逻辑管理）"""
         try:
             self.db.session.close()
-            logger.info(f"Session closed: {self.db._engine}")
+            logger.debug(f"Session closed: {self.db._engine}")
         except Exception as err:
             logger.warning(f"Failed to close session: : {self.db._engine} ERROR: {err}")
         try:
             if hasattr(self.db, "_engine") and self.db._engine:
                 self.db._engine.dispose()
-                logger.info(f"Engine disposed: {self.db._engine}")
+                logger.debug(f"Engine disposed: {self.db._engine}")
         except Exception as err:
             logger.warning(f"Failed to dispose engine: {self.db._engine} ERROR: {err}")
 

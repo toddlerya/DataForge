@@ -72,7 +72,7 @@ def analyze_intent(state: MainAppState) -> MainAppState:
     if last_message and isinstance(last_message, HumanMessage):
         logger.debug(f"latest human message: content={last_message.content}")
         structured_llm = chat_llm.with_structured_output(AppUserIntentSchema)
-        chat_promt = main_intent_prompt.format_messages(user_input=last_message)
+        chat_promt = main_intent_prompt.format_messages(user_input=last_message.content)
         logger.trace(f"analyze_intent chat_prompt: {chat_promt}")
         try:
             main_user_intent = structured_llm.invoke(chat_promt)
