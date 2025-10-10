@@ -268,6 +268,7 @@ def rag_table_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
             # 补充字典类别名称
             each_field.dict_name = category
             each_field.dict_key = one_dict.dictkey_with_nlevel
+    logger.info(f"DG_FIELD_CATEGORY_CONFIG count: {len(DG_FIELD_CATEGORY_CONFIG)}")
     state["table_metadata_info"] = table_metadata
     state["table_dict_category_code_map"] = table_dict_category_code_map
     state["table_dictkey_map"] = table_dictkey_map

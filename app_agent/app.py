@@ -31,7 +31,7 @@ log_config = LogManager(
     base_path=str(PROJECT_PATH.absolute()),
     log_path="logs",
     log_name="AgentApp.log",
-    file_log_level="DEBUG",
+    file_log_level="TRACE",
     console_log_level="INFO",
 )
 setup_logging(log_config.get_config().get("handlers"))

@@ -1,6 +1,6 @@
-# 数据银行提供的接口服务
+# 数据银行提供的接口服务【已完成】
 
-## 表元数据-数据生成服务
+## 表元数据-数据生成服务【已完成】
 
 ```
 http://172.16.108.3:25702/data_gen_agent/run
@@ -15,7 +15,7 @@ POST
 }
 ```
 
-## 动态查询 SQL 服务
+## 动态查询 SQL 服务【已完成】
 
 http://172.16.108.3:25702/db/dynamic_query
 
@@ -26,7 +26,7 @@ POST
 "max_count": 10
 }
 
-## 查询 SQL
+## 查询 SQL【已完成】
 
 ```sql
 -- 查询有哪些环境名称
@@ -45,11 +45,13 @@ select table_en_name , table_cn_name, env_name from table_meta_data_info tmdi
 
 # DG 对接待办事项
 
-## 提供 DG 规则查询接口服务
+## 提供 DG 规则查询接口服务【新开发一个】【TODO】
 
 ## 提供 DG 规则录入接口服务
 
-## 规则数据预览接口需要改造
+实际都是自定义规则
+
+## 规则数据预览接口需要改造【新开发一个】【TODO】
 
 http://172.17.55.30/genius/get-preview/
 
@@ -65,12 +67,32 @@ http://172.17.55.30/genius/get-preview/
 
 AI 创建的任务，然后用户对这个任务进行了修改，新建了任务，回调一下数据银行的服务接口 http://10.0.23.57:25702/task/add。
 
+此场景必填字段
+
+```
+"table_en_name",
+"rule_name",  # 例子 dg_task_plan_8590a134d9a84d319bbe37fcc1d118b0
+"task_rule",
+"parent_dg_task_id", # 例子 8590a134d9a84d319bbe37fcc1d118b0
+"parent_rule_name",  # 例子 dg_task_plan_8590a134d9a84d319bbe37fcc1d118b0
+```
+
 详情见接口文档 http://10.0.23.57:25702/docs#/%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86/add_task_info_task_add_post
 
 ## 仅在 DG 新建任务记录同步
 
 调用 http://10.0.23.57:25702/task/add 不需传递 parent_dg_task_id, parent_rule_name
 
+此场景必填字段
+
+```
+"table_en_name",
+"rule_name", # 例子 dg_task_plan_8590a134d9a84d319bbe37fcc1d118b0
+"task_rule",
+```
+
 详情见接口文档 http://10.0.23.57:25702/docs#/%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86/add_task_info_task_add_post
 
-## 支持类似 PG、MYSQL 这种库的字段长度 比如 varchar(30)生成的数据符合长度要求的规则
+## 支持类似 PG、MYSQL 这种库的字段长度 比如 varchar(30)生成的数据符合长度要求的规则【废弃】
+
+使用自定义规则就好

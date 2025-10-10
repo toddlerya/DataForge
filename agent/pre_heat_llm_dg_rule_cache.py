@@ -92,7 +92,7 @@ if __name__ == "__main__":
         base_path=str(PROJECT_PATH.absolute()),
         log_path="logs",
         log_name="DataForgePreHeatDGRules.log",
-        file_log_level="TRACE",
+        file_log_level="DEBUG",
     )
     setup_logging(log_config.get_config().get("handlers"))
 
