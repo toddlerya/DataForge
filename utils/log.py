@@ -66,7 +66,7 @@ class LogManager:
         ),
         file_log_level="INFO",
         console_log_level="INFO",
-        rotation="32 MB",
+        rotation="256 MB",
         compression="zip",
         log_encode="utf-8",
         enqueue=True,
