@@ -250,6 +250,14 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                     ),
                 ).send()
             await cl.Message(content="正在生成DataGenius执行计划...").send()
+    elif node == "table_meta_and_rag_failed":
+        logger.info("[entry] table_meta_and_rag_failed")
+        messages = state.get("messages")
+        if messages:
+            last_message = messages[-1]
+            logger.info(f"last_message: {last_message}")
+            await cl.Message(content=last_message.content).send()
+            return True
     elif node == "sql_parse_to_table_info":
         logger.info("[entry] sql_parse_to_table_info")
         end_time = asyncio.get_event_loop().time()
@@ -575,18 +583,21 @@ async def on_message(message: cl.Message):
         "tool_call_result": None,
     }
 
+    logger.trace(f"init_state={init_state}")
+
     async for event in main_graph.astream(
         init_state, run_config, stream_mode="updates", subgraphs=True
     ):
         event = cast(tuple[tuple, dict], event)
+        logger.trace(f"event={event}")
         for node, state in event[1].items():
-            logger.trace(f"current_node={node} current_state={state}")
+            logger.trace(f"current_node={node} current_state={state} ")
             processed = await handle_graph_event(
                 node=node, state=state, run_config=run_config
             )
             # if node == "__interrupt__" and processed:
             if processed:
-                logger.info(f"processed = {processed} node = {node} will break astream")
+                logger.info(f"processed={processed} node={node} will break astream")
                 break
 
     # 完成会话清空trace_uuid

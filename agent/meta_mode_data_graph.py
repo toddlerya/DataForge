@@ -137,6 +137,8 @@ def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenSt
     query_status, query_message, query_result = table_metadata_query(
         table_en_name=table_en_name, env_name=env_name, db_manager=db_manager
     )
+    if "table_metadata_error" not in state:
+        state["table_metadata_error"] = []
     if query_status is False:
         logger.error(f"查询{table_en_name}元数据异常: {query_message}")
         state["table_metadata_error"].append(

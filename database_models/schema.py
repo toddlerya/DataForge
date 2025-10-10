@@ -170,7 +170,8 @@ class RecommendPanGuDictSchema(BaseModel):
     dict_level: int = Field(..., description="字典层级")
     dict_id: str = Field(..., description="字典项编码")
     dict_name: str = Field(..., description="字典项名称")
-    env_uuid: str = Field("", description="环境UUID, 用于区分表元数据和字典等的版本")
+    # 理论不应为空env_name，但是牵扯到sql查询和推荐比较麻烦，我先允许这个字段为空了
+    env_name: Optional[str] = Field("", description="环境名称")
 
 
 class TableRawFieldSchema(BaseModel):

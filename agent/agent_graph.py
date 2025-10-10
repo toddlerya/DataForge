@@ -31,30 +31,38 @@ def retry_analyze_intent(state: MainAppState) -> MainAppState:
             "main_user_intent": None,
             "next_sub_graph_name": None,
             "user_input": None,
+            "user_intent": None,
+            "table_metadata_info": None,
+            "table_metadata_error": [],
             "dont_run_dg_task": None,
             "human_intent_feedback": None,
             "rag_done": None,
+            "error_messages": [],
+            "env_name": None,
+            "mode": None,
         }  # type: ignore
     else:
         return state
 
 
-# FIXME: 这里不能重置状态，会导致会话状态异常
 def reset_state(state: MainAppState) -> MainAppState:
     logger.info("重置状态")
-    if human_intent_feedback := state.get("human_intent_feedback"):
-        logger.info(f"human_intent_feedback: {human_intent_feedback}")
-        return {
-            "messages": [HumanMessage(content=human_intent_feedback.strip())],
-            "main_user_intent": None,
-            "next_sub_graph_name": None,
-            "user_input": None,
-            "dont_run_dg_task": None,
-            "human_intent_feedback": None,
-            "rag_done": None,
-        }  # type: ignore
-    else:
-        return state
+    new_state = {
+        "messages": state.get("messages"),
+        "main_user_intent": None,
+        "next_sub_graph_name": None,
+        "user_input": None,
+        "user_intent": None,
+        "table_metadata_info": None,
+        "table_metadata_error": [],
+        "dont_run_dg_task": None,
+        "human_intent_feedback": None,
+        "rag_done": None,
+        "error_messages": [],
+        "env_name": None,
+        "mode": None,
+    }
+    return new_state  # type: ignore
 
 
 def analyze_intent(state: MainAppState) -> MainAppState:
@@ -112,7 +120,6 @@ def table_meta_and_rag_failed(state: MainAppState) -> MainAppState:
         state["messages"].append(
             FunctionMessage(content=("\n".join(rag_error_messages)), name="rag")
         )
-    state = reset_state(state)
     return state
 
 
@@ -164,6 +171,7 @@ main_builder.add_node("sql_mode_data_gen_graph", sql_mode_data_gen_graph)
 main_builder.add_node("process_dg_graph", process_dg_graph)
 main_builder.add_node("unkown_node", unkown_node)
 main_builder.add_node("table_meta_and_rag_failed", table_meta_and_rag_failed)
+main_builder.add_node("reset_state", reset_state)
 
 
 main_builder.add_edge(START, "analyze_intent")
@@ -189,9 +197,10 @@ main_builder.add_conditional_edges(
     ["retry_analyze_intent", "process_dg_graph", "table_meta_and_rag_failed"],
 )
 main_builder.add_edge("retry_analyze_intent", "analyze_intent")
-main_builder.add_edge("process_dg_graph", END)
-main_builder.add_edge("unkown_node", END)
-main_builder.add_edge("table_meta_and_rag_failed", END)
+main_builder.add_edge("process_dg_graph", "reset_state")
+main_builder.add_edge("unkown_node", "reset_state")
+main_builder.add_edge("table_meta_and_rag_failed", "reset_state")
+main_builder.add_edge("reset_state", END)
 
 memory = InMemorySaver()
 main_graph = main_builder.compile(checkpointer=memory)
