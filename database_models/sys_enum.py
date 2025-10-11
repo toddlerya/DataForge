@@ -13,6 +13,7 @@ class MetaDataSource(str, Enum):
     pangu = "盘古"
     bdos = "BDOS"
     intelligence_analysis_assistant = "深度搜索预警"
+    excel_file = "Excel文件"
 
 
 class EnvironmentStatus(str, Enum):
