@@ -133,8 +133,8 @@ def recommend_dg_rule_by_llm(
                 logger.error(
                     f"category: {category}的dict_items={dict_items} 无法生成字典规则"
                 )
-        if category == "数字串":
-            # TODO: 如果是默认字符串规则需要根据数据的字段的数据类型进行长度处理
+        if category in ("数字串", "随机串"):
+            # 如果是默认字符串、随机串规则需要根据数据的字段的数据类型进行长度处理
             # `CHAR`类型是固定长度的
             # `VARCHAR2`是可变长度的，比如`VARCHAR2(3)`的长度是`[0,3]`
             # 生成的dg规则应该如下：
@@ -176,7 +176,7 @@ def recommend_dg_rule_by_llm(
                     f"类别={llm_dg_field_category_recommendation.category} "
                     f"更新为{category}规则: {name}"
                 )
-                fix_rule_note = f"【FIX】强制更新为<<自定义-字符串>>规则: {name}"
+                fix_rule_note = f"【FIX】强制更新为<<{category}>>规则: {name}"
 
         pydantic_data_genius_rule = PydanticDataGeniusRule(
             col=col_index,
