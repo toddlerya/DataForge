@@ -5,6 +5,7 @@
 # @FileName : dg_rule_extend.py
 # @Project  : DataForge
 
+import re
 
 from database_models.schema import PydanticDataGeniusRule
 
@@ -96,6 +97,18 @@ def force_update_dg_data_color_id_rule(
             "【数据染色字段-由程序强制设置规则为DG前缀】"
         )
     return pydantic_data_genius_rule
+
+
+def extract_field_type_and_size(field_type: str):
+    # 正则表达式匹配：字母数字 + 可能的括号内的数字
+    pattern = r"^([A-Za-z0-9]+)\((\d+)\)$"
+    match = re.match(pattern, field_type)
+    if match:
+        type_name = match.group(1)
+        size = match.group(2)
+        return type_name, size
+    else:
+        return None, None
 
 
 if __name__ == "__main__":

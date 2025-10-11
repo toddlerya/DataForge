@@ -8,7 +8,7 @@
 from typing import Optional, Union
 
 from agent.dg_configs import DG_STORAGE_PATH
-from agent.dg_rule_extend import force_update_dg_rule
+from agent.dg_rule_extend import extract_field_type_and_size, force_update_dg_rule
 from agent.llm import chat_llm
 from agent.prompt import dg_category_prompt
 from agent.state import (
@@ -112,6 +112,7 @@ def recommend_dg_rule_by_llm(
         # 处理字典规则
         args: dict[str, str | list] = {}
         name = ""
+        fix_rule_note = ""
         category = llm_dg_field_category_recommendation.category
         if category in table_dictkey_map:
             dict_items: list[RecommendPanGuDictSchema] | None = table_dictkey_map.get(
@@ -132,6 +133,51 @@ def recommend_dg_rule_by_llm(
                 logger.error(
                     f"category: {category}的dict_items={dict_items} 无法生成字典规则"
                 )
+        if category == "数字串":
+            # TODO: 如果是默认字符串规则需要根据数据的字段的数据类型进行长度处理
+            # `CHAR`类型是固定长度的
+            # `VARCHAR2`是可变长度的，比如`VARCHAR2(3)`的长度是`[0,3]`
+            # 生成的dg规则应该如下：
+            """
+            {
+                "category": "自定义-字符串",
+                "ename": "DST_PORT",
+                "name": "CHAR(2)",
+                "args": {
+                    "chars_in": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|",
+                    "max_": "2",
+                    "min_": "2"
+                },
+                "value": "【SCORE】: 0, 【THINK】: 字段名为'DST_PORT'，类型为'int'，表示目标端口，通常为0-65535之间的整数。虽然其数据形式为数字，但'端口'属于网络通信中的技术术语，不在预定义的<configs>类别中。由于没有匹配的类别，且无法匹配到任何预定义类别，因此置信度为0，推荐为'数字串'作为默认处理。",
+                "cname": "宿端口",
+                "preview": "-)",
+                "col": 20
+            }
+            """
+            field_type_str = field_info.field_type.upper()
+            type_category, size = extract_field_type_and_size(field_type=field_type_str)
+            if type_category and size:
+                # 处理
+                category = "自定义-字符串"
+                name = field_type_str
+                if type_category == "CHAR":
+                    args = {
+                        "chars_in": "0123456789abcABC",
+                        "max_": size,
+                        "min_": size,
+                    }
+                elif type_category == "VARCHAR2":
+                    args = {
+                        "chars_in": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|",
+                        "max_": "0",
+                        "min_": size,
+                    }
+                logger.debug(
+                    f"类别={llm_dg_field_category_recommendation.category} "
+                    f"更新为{category}规则: {name}"
+                )
+                fix_rule_note = f"【FIX】强制更新为<<自定义-字符串>>规则: {name}"
+
         pydantic_data_genius_rule = PydanticDataGeniusRule(
             col=col_index,
             category=category,
@@ -142,6 +188,7 @@ def recommend_dg_rule_by_llm(
             value=(
                 f"【SCORE】: {llm_dg_field_category_recommendation.score}, "
                 f"【THINK】: {llm_dg_field_category_recommendation.reason}"
+                f"{fix_rule_note}"
             ),
             args=args,
         )
@@ -151,7 +198,7 @@ def recommend_dg_rule_by_llm(
         return True, "", pydantic_data_genius_rule
 
 
-def dg_rule_processor(
+def dg_rule_processor(  # noqa: C901
     state: Union[SQLModeDataGenState, MetaModeDataGenState],
 ) -> Union[SQLModeDataGenState, MetaModeDataGenState]:
     """
@@ -170,7 +217,7 @@ def dg_rule_processor(
     client_ip = state["client_ip"]
     session_id = state["session_id"]
     DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
-    logger.info(
+    logger.trace(
         "DG_FIELD_CATEGORY_CONFIG category slice: "
         f"{[item.get('category') for item in DG_FIELD_CATEGORY_CONFIG]}"
     )

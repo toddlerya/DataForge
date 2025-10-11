@@ -228,9 +228,13 @@ def rag_table_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
     db_manager = DatabaseManager()
     for _, each_field in enumerate(table_metadata.raw_fields_info):
         if each_field.dict_key:
-            # 数据域页面获取的表元数据没有dict_name，只有dict_key，
-            # 且dict_key是没有nlevel的，需要补上, 默认2
-            dict_key_with_nlevel = each_field.dict_key + ":2"
+            # 如果有nlevel则直接使用
+            if ":" in each_field.dict_key:
+                dict_key_with_nlevel = each_field.dict_key
+            else:
+                # 数据域页面获取的表元数据没有dict_name，只有dict_key，
+                # 且dict_key是没有nlevel的，需要补上, 默认2
+                dict_key_with_nlevel = each_field.dict_key + ":2"
             table_dictkey_slice.append(dict_key_with_nlevel)
             dict_status, dict_message, dict_result = query_dict_items_info_by_dictkey(
                 db_manager=db_manager, dictkey_with_nlevel=dict_key_with_nlevel
