@@ -545,6 +545,20 @@ async def chat_profile(current_user: cl.User):
 @cl.on_message
 async def on_message(message: cl.Message):
     session_id = cl.context.session.id
+    # chainlit的一个会话窗口，始终使用一个cl.context.session.id，
+    # 但是这个session_id如果始终一致,在多次创建任务的时候,
+    # 会导致任务ID重复，现象就是DG创建的数据文件是重复的,
+    # 因此需要在一个会话框的每次调用on_message时，增加一个本轮对话的标记
+    talk_round = cl.user_session.get("talk_round")
+    logger.info(f"talk_round: {talk_round}")
+    if not talk_round:
+        # 初始化会话轮次
+        talk_round = 1
+    else:
+        # 更新会话轮次
+        talk_round += 1
+    cl.user_session.set("talk_round", talk_round)
+    session_id += f"-tr_{str(talk_round)}"
     cl.user_session.set("session_id", session_id)
 
     # 如果没有初始化trace_uuid则初始化trace_token
@@ -604,6 +618,9 @@ async def on_message(message: cl.Message):
         )
     else:
         # 这里 Pylance 知道 trace_token 是 Token 类型，且不是 None
+        logger.trace(
+            f"traced_logger.reset_trace_uuid(trace_token) trace_uuid={session_id}"
+        )
         traced_logger.reset_trace_uuid(trace_token)
 
 

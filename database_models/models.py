@@ -359,7 +359,7 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
         {"comment": "任务信息表"},
     )
     task_uuid = Column(
-        String(length=36),
+        String(length=72),
         nullable=False,
         comment="任务唯一ID, 与session_uuid, trace_uuid一致",
     )
@@ -383,7 +383,7 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
     dg_task_duration = Column(String(length=56), default="", comment="DG任务耗时")
     user_modified_rules = Column(JSONB, default=None, comment="用户修改的字段规则")
     parent_dg_task_id = Column(
-        String(length=36),
+        String(length=72),
         nullable=True,
         comment="父任务的DG的任务ID, AI创建的任务人工修改后会有此信息",
     )
