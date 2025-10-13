@@ -169,8 +169,8 @@ def recommend_dg_rule_by_llm(
                 elif type_category == "VARCHAR2":
                     args = {
                         "chars_in": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|",
-                        "max_": "0",
-                        "min_": size,
+                        "max_": size,
+                        "min_": "1",
                     }
                 logger.debug(
                     f"类别={llm_dg_field_category_recommendation.category} "
