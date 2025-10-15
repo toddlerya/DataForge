@@ -320,10 +320,27 @@ class AppUserIntentSchema(BaseModel):
     user_input: str = Field(..., description="用户意图输入文本")
 
 
+class ChainLitFileInfoSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    name: str = Field(..., description="文件名称")
+    # thread_id: str = Field(..., description="thread_id")
+    # chainlit_key: str = Field(..., description="chainlit_key")
+    file_id: str = Field(..., description="文件ID")
+    # path=.files/{thread_id}/{chainlit_key}.bin
+    path: str = Field(..., description="文件路径")
+
+
+class TSMLState(CommonState):
+    user_input: str
+    tsml_file_info: Optional[ChainLitFileInfoSchema]
+    tsml_validate: bool
+
+
 class MainAppState(DataGenBaseState):
     main_user_intent: AppUserIntentSchema
     next_sub_graph_name: str
     # 与子图共用的状态，定义了才能传递
+    tsml_file_info: Optional[ChainLitFileInfoSchema]
     user_input: str
     human_intent_feedback: str
     dont_run_dg_task: bool

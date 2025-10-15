@@ -246,9 +246,10 @@ main_intent_system_prompt = SystemMessagePromptTemplate.from_template(
     "- 如果用于期望查看对接了多少表,有些特征有关的表这种问题则填写expolore_graph\n"
     "- 如果是基于提供的明确表名称构造测试数据则填写meta_mode_data_gen_graph\n"
     "- 如果是基于提供的SQL构造测试数据则填写sql_mode_data_gen_graph\n"
+    "- 如果要运行tsml文件则填写tsml_graph\n"
     "- 如果都不是则填写unkown\n"
-    "- 没有第5种情况, 只能从给定的清单"
-    "中[meta_mode_data_gen_graph,sql_mode_data_gen_graph,expolore_graph,unkown]4选1\n"
+    "- 没有第6种情况, 只能从给定的清单"
+    "中[meta_mode_data_gen_graph,sql_mode_data_gen_graph,expolore_graph,tsml_graph,unkown]5选1\n"
     "按照要求输出结构化数据。"
 )
 

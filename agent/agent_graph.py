@@ -20,6 +20,7 @@ from agent.meta_mode_data_graph import meta_mode_data_gen_graph
 from agent.prompt import main_intent_prompt
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import AppUserIntentSchema, MainAppState
+from agent.tsml_graph import tsml_graph
 
 
 def retry_analyze_intent(state: MainAppState) -> MainAppState:
@@ -70,9 +71,12 @@ def analyze_intent(state: MainAppState) -> MainAppState:
     logger.trace(f"messages: {messages}")
     last_message = messages[-1]
     if last_message and isinstance(last_message, HumanMessage):
-        logger.debug(f"latest human message: content={last_message.content}")
+        user_input = last_message.content
+        logger.debug(f"latest human message: content={user_input}")
         structured_llm = chat_llm.with_structured_output(AppUserIntentSchema)
-        chat_promt = main_intent_prompt.format_messages(user_input=last_message.content)
+        if tsml_file_info := state.get("tsml_file_info"):
+            user_input += f" tsml文件名称: {tsml_file_info.name}"
+        chat_promt = main_intent_prompt.format_messages(user_input=user_input)
         logger.trace(f"analyze_intent chat_prompt: {chat_promt}")
         try:
             main_user_intent = structured_llm.invoke(chat_promt)
@@ -137,6 +141,8 @@ def sub_graph_route(state: MainAppState):
             return "meta_mode_data_gen_graph"
         elif next_sub_graph_name == "sql_mode_data_gen_graph":
             return "sql_mode_data_gen_graph"
+        elif next_sub_graph_name == "tsml_graph":
+            return "tsml_graph"
         else:
             return "unkown_node"
     else:
@@ -166,6 +172,7 @@ main_builder = StateGraph(MainAppState)
 main_builder.add_node("analyze_intent", analyze_intent)
 main_builder.add_node("retry_analyze_intent", retry_analyze_intent)
 main_builder.add_node("expolore_graph", expolore_graph)
+main_builder.add_node("tsml_graph", tsml_graph)
 main_builder.add_node("meta_mode_data_gen_graph", meta_mode_data_gen_graph)
 main_builder.add_node("sql_mode_data_gen_graph", sql_mode_data_gen_graph)
 main_builder.add_node("process_dg_graph", process_dg_graph)
@@ -182,6 +189,7 @@ main_builder.add_conditional_edges(
         "expolore_graph",
         "meta_mode_data_gen_graph",
         "sql_mode_data_gen_graph",
+        "tsml_graph",
         "unkown_node",
         END,
     ],

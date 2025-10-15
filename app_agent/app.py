@@ -18,7 +18,9 @@ from loguru import logger
 
 from agent.agent_graph import main_graph
 from agent.llm import chat_llm
+from agent.meta_map import next_sub_graph_name_map
 from agent.state import (
+    ChainLitFileInfoSchema,
     PydanticDataGeniusPlan,
     SQLModeTableInfoSchema,
     TableMetadataSchema,
@@ -40,14 +42,6 @@ init_env()
 
 # 加载 .env 文件
 load_dotenv(PROJECT_PATH.absolute())
-
-
-next_sub_graph_name_map = {
-    "meta_mode_data_gen_graph": "测试数据生成(元数据模式)",
-    "expolore_graph": "表元数据信息探索",
-    "sql_mode_data_gen_graph": "测试数据生成(SQL模式)",
-    "unkown_node": "未知意图",
-}
 
 
 async def create_simple_dataframe_element(data: list[dict]) -> list[cl.Dataframe]:
@@ -424,6 +418,35 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                 content="pydantic_data_genius_plan为空, 请联系开发者",
             ).send()
             return True
+    elif node == "validate_tsml_input_args":
+        logger.info("[process] validate_tsml_input_args")
+        tsml_files = await cl.AskFileMessage(
+            content="请上传一个tsml文件",
+            accept={"text/plain": [".tsml", ".TSML"]},
+            max_files=1,
+        ).send()
+        if tsml_files:
+            tsml_file = tsml_files[0]
+            tsml_file_info = ChainLitFileInfoSchema(
+                name=tsml_file.name,
+                file_id=tsml_file.id,
+                path=tsml_file.path,
+            )
+            logger.info(f"已上传文件: {tsml_file_info}")
+            resume_map = {"tsml_file_info": tsml_file_info, "tsml_validate": True}
+            # 继续运行
+            async for event in main_graph.astream(
+                Command(resume=resume_map),
+                run_config,
+                stream_mode="updates",
+                subgraphs=True,
+            ):
+                event = cast(tuple[tuple, dict], event)
+                for node, state in event[1].items():
+                    logger.trace(f"current_node={node} current_state={state}")
+                    await handle_graph_event(
+                        node=node, state=state, run_config=run_config
+                    )
     elif node == "unkown_node":
         logger.info("[entry] unkown_node")
         messages = state.get("messages", [])
@@ -581,6 +604,28 @@ async def on_message(message: cl.Message):
         f"message: {message.content}"
     )
 
+    # 解析用户上传的tsml文件:
+    tsml_files: list = [
+        file for file in message.elements if file.name.endswith((".tsml", ".TSML"))
+    ]
+    for each_file in tsml_files:
+        logger.debug(f"each_tsml: {each_file} type({each_file})")
+
+    if len(tsml_files) > 1:
+        await cl.Message("一次任务只能上传1个tsml文件").send()
+        return
+
+    tsml_file_info = None
+    if tsml_files:
+        tsml_file = tsml_files[0]
+        tsml_file_info = ChainLitFileInfoSchema(
+            name=tsml_file.name,
+            # thread_id=tsml_file.thread_id,
+            # chainlit_key=tsml_file.chainlit_key,
+            file_id=tsml_file.id,
+            path=tsml_file.path,
+        )
+
     run_config = RunnableConfig(
         configurable={"thread_id": session_id},
         recursion_limit=50,
@@ -591,6 +636,7 @@ async def on_message(message: cl.Message):
         "session_id": session_id,
         "client_ip": cl.user_session.get("client_ip"),
         "tool_call_result": None,
+        "tsml_file_info": tsml_file_info,
     }
 
     logger.trace(f"init_state={init_state}")
