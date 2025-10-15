@@ -118,9 +118,11 @@ def recommend_dg_rule_by_llm(
             dict_items: list[RecommendPanGuDictSchema] | None = table_dictkey_map.get(
                 category
             )
-            # TODO: 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
-            if dict_items and len(dict_items) > 100:
-                dict_items = dict_items[:100]
+
+            if dict_items:
+                if len(dict_items) > 100:
+                    # 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
+                    dict_items = dict_items[:100]
                 choices = [item.dict_id for item in dict_items]
                 args = {"choices": choices}
                 name = f"{category}_字典规则"
@@ -144,11 +146,18 @@ def recommend_dg_rule_by_llm(
                 "ename": "DST_PORT",
                 "name": "CHAR(2)",
                 "args": {
-                    "chars_in": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|",
+                    "chars_in": (
+                            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN"
+                            "OPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|"
+                        ),
                     "max_": "2",
                     "min_": "2"
                 },
-                "value": "【SCORE】: 0, 【THINK】: 字段名为'DST_PORT'，类型为'int'，表示目标端口，通常为0-65535之间的整数。虽然其数据形式为数字，但'端口'属于网络通信中的技术术语，不在预定义的<configs>类别中。由于没有匹配的类别，且无法匹配到任何预定义类别，因此置信度为0，推荐为'数字串'作为默认处理。",
+                "value": "【SCORE】: 0, 【THINK】: 字段名为'DST_PORT'，类型为'int',
+                表示目标端口, 通常为0-65535之间的整数。虽然其数据形式为数字,
+                但'端口'属于网络通信中的技术术语，不在预定义的<configs>类别中。
+                由于没有匹配的类别, 且无法匹配到任何预定义类别, 因此置信度为0,
+                推荐为'数字串'作为默认处理。",
                 "cname": "宿端口",
                 "preview": "-)",
                 "col": 20
@@ -168,7 +177,10 @@ def recommend_dg_rule_by_llm(
                     }
                 elif type_category == "VARCHAR2":
                     args = {
-                        "chars_in": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|",
+                        "chars_in": (
+                            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN"
+                            "OPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|"
+                        ),
                         "max_": size,
                         "min_": "1",
                     }
@@ -390,3 +402,52 @@ def dg_rule_processor(  # noqa: C901
     state["task_data"] = task_data
     db_manager.close()
     return state
+
+
+if __name__ == "__main__":
+    category = "关联方向类型"
+    dict_items: list[RecommendPanGuDictSchema] | None = [
+        RecommendPanGuDictSchema(
+            uuid=101711,
+            dictkey_with_nlevel="FHWACODE_0021:2",
+            dict_category_code="FHWACODE_0021",
+            dict_category="关联方向类型",
+            dict_level=2,
+            dict_id="1",
+            dict_name="客户端IP为源IP",
+            env_name=None,
+        ),
+        RecommendPanGuDictSchema(
+            uuid=101713,
+            dictkey_with_nlevel="FHWACODE_0021:2",
+            dict_category_code="FHWACODE_0021",
+            dict_category="关联方向类型",
+            dict_level=2,
+            dict_id="3",
+            dict_name="无法判断客户端IP",
+            env_name=None,
+        ),
+        RecommendPanGuDictSchema(
+            uuid=101712,
+            dictkey_with_nlevel="FHWACODE_0021:2",
+            dict_category_code="FHWACODE_0021",
+            dict_category="关联方向类型",
+            dict_level=2,
+            dict_id="2",
+            dict_name="客户端IP为宿IP",
+            env_name=None,
+        ),
+    ]
+    # 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
+
+    if dict_items:
+        if len(dict_items) > 100:
+            # 只取100个枚举值，因为DG的接口设计不支持太大的请求信息，会报413错误
+            dict_items = dict_items[:100]
+        choices = [item.dict_id for item in dict_items]
+        args = {"choices": choices}
+        name = f"{category}_字典规则"
+        category = "自定义-枚举"
+        logger.debug(f"类别={category} 更新为字典规则: {name}")
+    else:
+        logger.error(f"category: {category}的dict_items={dict_items} 无法生成字典规则")
