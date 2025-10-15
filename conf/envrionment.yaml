@@ -19,3 +19,9 @@ other_configs:
    database: intelligenceAnalysisAssistant
    username: root
    password: mysql   
+---
+status: 启用
+env_name: 日喀则原始表
+other_configs:
+  excel:
+    name: 日喀则原始表信息.xlsx

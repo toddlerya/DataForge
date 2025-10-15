@@ -37,6 +37,7 @@ class EnvironmentOtherConfig(BaseModel):
     #     None, description="SQLServer连接配置"
     # )
     tsml: Optional[dict] = Field(None, description="tsml文件信息")
+    excel: Optional[dict] = Field(None, description="excel文件信息")
 
 
 class EnvironmentConfigYAMLSchema(BaseModel):
