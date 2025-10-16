@@ -113,7 +113,7 @@ async def chat_profile(current_user: cl.User):
 
 
 @cl.on_message
-async def on_message(message: cl.Message):
+async def on_message(message: cl.Message):  # noqa: C901
     session_id = cl.context.session.id
     # 如果没有初始化trace_uuid则初始化trace_token
     if traced_logger.get_trace_uuid() is None:

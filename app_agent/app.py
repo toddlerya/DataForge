@@ -583,6 +583,37 @@ async def handle_interrupt(run_config: RunnableConfig, state) -> bool:  # noqa: 
     return False
 
 
+@cl.set_starters  # type: ignore
+async def set_starter():
+    return [
+        # cl.Starter(
+        #     label="当前已对接多少元数据表",
+        #     message="当前已对接多少元数据表?",
+        #     icon="public/icons/text.svg",
+        # ),
+        cl.Starter(
+            label="与VPN相关的表有哪些",
+            message="与VPN相关的表有哪些?",
+            icon="public/icons/mobile-phone.svg",
+        ),
+        cl.Starter(
+            label="生成10条massdata.ADM_REL_MOBILE表的测试数据",
+            message="生成10条massdata.ADM_REL_MOBILE表的测试数据",
+            icon="public/icons/table.svg",
+        ),
+        cl.Starter(
+            label="使用select MD_ID from massdata.ADM_REL_MOBILE生成10条数据",
+            message="使用select MD_ID from massdata.ADM_REL_MOBILE生成10条数据",
+            icon="public/icons/database.svg",
+        ),
+        cl.Starter(
+            label="生成测试数据并运行TSML",
+            message="生成测试数据并运行TSML",
+            icon="public/icons/fingerprint.svg",
+        ),
+    ]
+
+
 @cl.set_chat_profiles  # type: ignore
 async def chat_profile(current_user: cl.User):
     if current_user and current_user.metadata["role"]:
@@ -593,33 +624,6 @@ async def chat_profile(current_user: cl.User):
             name="默认配置",
             icon="public/icons/fhai.ico",
             markdown_description=f"当前使用的模型名称: {chat_llm.model}",
-            starters=[
-                cl.Starter(
-                    label="当前已对接多少元数据表",
-                    message="当前已对接多少元数据表?",
-                    icon="public/icons/text.svg",
-                ),
-                cl.Starter(
-                    label="与VPN相关的表有哪些",
-                    message="与VPN相关的表有哪些?",
-                    icon="public/icons/mobile-phone.svg",
-                ),
-                cl.Starter(
-                    label="生成10条massdata.ADM_REL_MOBILE表的测试数据",
-                    message="生成10条massdata.ADM_REL_MOBILE表的测试数据",
-                    icon="public/icons/table.svg",
-                ),
-                cl.Starter(
-                    label="使用select MD_ID from massdata.ADM_REL_MOBILE生成10条数据",
-                    message="使用select MD_ID from massdata.ADM_REL_MOBILE生成10条数据",
-                    icon="public/icons/database.svg",
-                ),
-                cl.Starter(
-                    label="生成测试数据并运行TSML",
-                    message="生成测试数据并运行TSML",
-                    icon="public/icons/fingerprint.svg",
-                ),
-            ],
         )
     ]
 
