@@ -174,19 +174,21 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         await cl.Message(content=summary).send()
     elif node in ("analyze_meta_intent", "analyze_sql_intent", "analyze_tsml_intent"):
         logger.info(f"[entry] {node}")
-        user_intent = state.get("user_intent")
+        user_intent = state.get("user_intent") or state.get("tsml_user_intent")
         if not user_intent:
             logger.info("还没有出现意图呢...")
             return False
         if node == "analyze_tsml_intent":
             await cl.Message(
-                content="TSML数据生成和运行规划",
+                content="#### TSML数据生成和运行规划",
             ).send()
         cl.user_session.set("user_intent", user_intent)
         await cl.Message(
             content=user_intent.model_dump_json(indent=2),
             language="json",
         ).send()
+        if node == "analyze_tsml_intent":
+            await cl.Message(content="#### TSML文件解析中...").send()
     elif node == "__interrupt__":
         logger.info("[entry] __interrupt__")
         return await handle_interrupt(run_config=run_config, state=state)
@@ -429,15 +431,39 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         logger.info(f"tsml_file_info={tsml_file_info}")
     elif node == "parse_tsml_by_tsml_test_engine":
         logger.info("[entry] parse_tsml_by_tsml_test_engine")
-        await cl.Message(content="TSML文件解析中...").send()
         tsml_parse_result = state.get("tsml_parse_result")
         if tsml_parse_result:
             await cl.Message(
                 content=json.dumps(tsml_parse_result, ensure_ascii=False, indent=2),
                 language="json",
             ).send()
+            await cl.Message(content="#### TSML测试数据生成中...").send()
         else:
-            await cl.Message(content="TSML解析异常异常!").send()
+            await cl.Message(content="TSML解析异常!").send()
+            return False
+    elif node == "query_sql_data_gen_result":
+        logger.info("[entry] query_sql_data_gen_result")
+        sql_data_gen_result = state.get("sql_data_gen_result")
+        if sql_data_gen_result:
+            await cl.Message(
+                content=json.dumps(sql_data_gen_result, ensure_ascii=False, indent=2),
+                language="json",
+            ).send()
+            await cl.Message(content="#### TSML运行中...").send()
+        else:
+            await cl.Message(content="TSML测试数据生成异常!").send()
+            return False
+    elif node == "query_tsml_run_result":
+        logger.info("[entry] query_tsml_run_result")
+        tsml_run_result = state.get("tsml_run_result")
+        if tsml_run_result:
+            await cl.Message(
+                content=json.dumps(tsml_run_result, ensure_ascii=False, indent=2),
+                language="json",
+            ).send()
+            await cl.Message(content="#### TSML任务结束").send()
+        else:
+            await cl.Message(content="TSML运行异常!").send()
             return False
     elif node == "unkown_node":
         logger.info("[entry] unkown_node")

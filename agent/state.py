@@ -338,9 +338,11 @@ class TSMLUserIntentSchema(BaseModel):
 
 class TSMLState(CommonState):
     user_input: str
-    user_intent: TSMLUserIntentSchema
+    tsml_user_intent: TSMLUserIntentSchema
     tsml_file_info: Optional[ChainLitFileInfoSchema]
     tsml_parse_result: dict
+    sql_data_gen_result: dict
+    tsml_run_result: dict
 
 
 class MainAppState(DataGenBaseState):
