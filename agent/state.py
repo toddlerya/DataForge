@@ -330,10 +330,17 @@ class ChainLitFileInfoSchema(BaseModel):
     path: str = Field(..., description="文件路径")
 
 
+class TSMLUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    tsml_name: str = Field(..., description="TSML文件名称")
+    plans: list[str] = Field(..., description="计划")
+
+
 class TSMLState(CommonState):
     user_input: str
+    user_intent: TSMLUserIntentSchema
     tsml_file_info: Optional[ChainLitFileInfoSchema]
-    tsml_validate: bool
+    tsml_parse_result: dict
 
 
 class MainAppState(DataGenBaseState):

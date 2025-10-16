@@ -172,19 +172,24 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         logger.info("[entry] summary_node")
         summary = state.get("summary", "")
         await cl.Message(content=summary).send()
-    elif node == "analyze_meta_intent" or node == "analyze_sql_intent":
-        logger.info("[entry] analyze_meta_intent or analyze_sql_intent")
+    elif node in ("analyze_meta_intent", "analyze_sql_intent", "analyze_tsml_intent"):
+        logger.info(f"[entry] {node}")
         user_intent = state.get("user_intent")
         if not user_intent:
             logger.info("还没有出现意图呢...")
             return False
+        if node == "analyze_tsml_intent":
+            await cl.Message(
+                content="TSML数据生成和运行规划",
+            ).send()
+        cl.user_session.set("user_intent", user_intent)
         await cl.Message(
             content=user_intent.model_dump_json(indent=2),
-            language="python",
+            language="json",
         ).send()
     elif node == "__interrupt__":
         logger.info("[entry] __interrupt__")
-        return await handle_interrupt(run_config=run_config)
+        return await handle_interrupt(run_config=run_config, state=state)
     elif node == "query_table_raw_field_info":
         logger.info("[entry] query_table_raw_field_info")
         end_time = asyncio.get_event_loop().time()
@@ -419,34 +424,21 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             ).send()
             return True
     elif node == "validate_tsml_input_args":
-        logger.info("[process] validate_tsml_input_args")
-        tsml_files = await cl.AskFileMessage(
-            content="请上传一个tsml文件",
-            accept={"text/plain": [".tsml", ".TSML"]},
-            max_files=1,
-        ).send()
-        if tsml_files:
-            tsml_file = tsml_files[0]
-            tsml_file_info = ChainLitFileInfoSchema(
-                name=tsml_file.name,
-                file_id=tsml_file.id,
-                path=tsml_file.path,
-            )
-            logger.info(f"已上传文件: {tsml_file_info}")
-            resume_map = {"tsml_file_info": tsml_file_info, "tsml_validate": True}
-            # 继续运行
-            async for event in main_graph.astream(
-                Command(resume=resume_map),
-                run_config,
-                stream_mode="updates",
-                subgraphs=True,
-            ):
-                event = cast(tuple[tuple, dict], event)
-                for node, state in event[1].items():
-                    logger.trace(f"current_node={node} current_state={state}")
-                    await handle_graph_event(
-                        node=node, state=state, run_config=run_config
-                    )
+        logger.info("[entry] validate_tsml_input_args")
+        tsml_file_info = state.get("tsml_file_info")
+        logger.info(f"tsml_file_info={tsml_file_info}")
+    elif node == "parse_tsml_by_tsml_test_engine":
+        logger.info("[entry] parse_tsml_by_tsml_test_engine")
+        await cl.Message(content="TSML文件解析中...").send()
+        tsml_parse_result = state.get("tsml_parse_result")
+        if tsml_parse_result:
+            await cl.Message(
+                content=json.dumps(tsml_parse_result, ensure_ascii=False, indent=2),
+                language="json",
+            ).send()
+        else:
+            await cl.Message(content="TSML解析异常异常!").send()
+            return False
     elif node == "unkown_node":
         logger.info("[entry] unkown_node")
         messages = state.get("messages", [])
@@ -478,8 +470,14 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         await cl.Message(content=final_message).send()
 
 
-async def handle_interrupt(run_config: RunnableConfig) -> bool:
+async def handle_interrupt(run_config: RunnableConfig, state) -> bool:
     """处理中断, 返回还是继续运行"""
+    logger.info(f"state={state} type(state)={type(state)}")
+    interrupt_value: str = ""
+    if len(state) >= 1 and isinstance(state, tuple):
+        interrupt_value = state[0].value
+    logger.info(f"interrupt_value={interrupt_value}")
+    # 跳出中断
     if human_intent_feedback := cl.user_session.get("human_intent_feedback"):
         logger.warning(
             f"用户已经反馈过并完成了一次任务, 清空用户反馈。"
@@ -487,35 +485,75 @@ async def handle_interrupt(run_config: RunnableConfig) -> bool:
         )
         cl.user_session.set("human_intent_feedback", None)
         return True
-    res = await cl.AskUserMessage(
-        content=(
-            "上述意图识别结果是否正确？"
-            "若不正确请调整输入信息再次尝试意图识别; "
-            "若正确, 请输入“正确“或”Y”, 将开始任务。"
-        ),
-        timeout=300,
-    ).send()
-    if res and "output" in res:
-        start_time = asyncio.get_event_loop().time()
-        cl.user_session.set("start_time", start_time)
-
-        res_text = res["output"].strip()
-        logger.info(f"human_intent_feedback: {res_text}")
-        cl.user_session.set("human_intent_feedback", res_text)
-        resume_map = {"human_intent_feedback": res_text}
-
-        # 继续运行
-        async for event in main_graph.astream(
-            Command(resume=resume_map),
-            run_config,
-            stream_mode="updates",
-            subgraphs=True,
-        ):
-            event = cast(tuple[tuple, dict], event)
-            for node, state in event[1].items():
-                logger.trace(f"current_node={node} current_state={state}")
-                await handle_graph_event(node=node, state=state, run_config=run_config)
+    if tsml_file_info := cl.user_session.get("tsml_file_info"):
+        logger.warning(
+            f"用户已经上传过tsml文件, 清空用户上传。tsml_file_info={tsml_file_info}"
+        )
+        cl.user_session.set("tsml_file_info", None)
         return True
+    # ==== 第一种中断 ====
+    if interrupt_value == "请上传tsml文件":
+        tsml_files = await cl.AskFileMessage(
+            content="请上传一个tsml文件",
+            accept={"text/plain": [".tsml", ".TSML"]},
+            max_files=1,
+        ).send()
+        if tsml_files:
+            tsml_file = tsml_files[0]
+            tsml_file_info = ChainLitFileInfoSchema(
+                name=tsml_file.name,
+                file_id=tsml_file.id,
+                path=tsml_file.path,
+            )
+            logger.info(f"已上传文件: {tsml_file_info}")
+            cl.user_session.set("tsml_file_info", tsml_file_info)
+            # 继续运行
+            async for event in main_graph.astream(
+                Command(resume=tsml_file_info),
+                run_config,
+                stream_mode="updates",
+                subgraphs=True,
+            ):
+                event = cast(tuple[tuple, dict], event)
+                for node, state in event[1].items():
+                    logger.trace(f"current_node={node} current_state={state}")
+                    await handle_graph_event(
+                        node=node, state=state, run_config=run_config
+                    )
+            return True
+    # ==== 另一种中断 ====
+    elif interrupt_value == "意图正确吗?":
+        res = await cl.AskUserMessage(
+            content=(
+                "上述意图识别结果是否正确？"
+                "若不正确请调整输入信息再次尝试意图识别; "
+                "若正确, 请输入“正确“或”Y”, 将开始任务。"
+            ),
+            timeout=300,
+        ).send()
+        if res and "output" in res:
+            start_time = asyncio.get_event_loop().time()
+            cl.user_session.set("start_time", start_time)
+
+            res_text = res["output"].strip()
+            logger.info(f"human_intent_feedback: {res_text}")
+            cl.user_session.set("human_intent_feedback", res_text)
+            resume_map = {"human_intent_feedback": res_text}
+
+            # 继续运行
+            async for event in main_graph.astream(
+                Command(resume=resume_map),
+                run_config,
+                stream_mode="updates",
+                subgraphs=True,
+            ):
+                event = cast(tuple[tuple, dict], event)
+                for node, state in event[1].items():
+                    logger.trace(f"current_node={node} current_state={state}")
+                    await handle_graph_event(
+                        node=node, state=state, run_config=run_config
+                    )
+            return True
     return False
 
 
@@ -535,11 +573,6 @@ async def chat_profile(current_user: cl.User):
                     message="当前已对接多少元数据表?",
                     icon="public/icons/text.svg",
                 ),
-                # cl.Starter(
-                #     label="当前对接了哪些环境配置",
-                #     message="当前对接了哪些环境配置?",
-                #     icon="public/icons/setting.svg",
-                # ),
                 cl.Starter(
                     label="与VPN相关的表有哪些",
                     message="与VPN相关的表有哪些?",
@@ -556,8 +589,8 @@ async def chat_profile(current_user: cl.User):
                     icon="public/icons/database.svg",
                 ),
                 cl.Starter(
-                    label="哪些表包含身份证号码字段",
-                    message="哪些表包含身份证号码字段?",
+                    label="生成测试数据并运行TSML",
+                    message="生成测试数据并运行TSML",
                     icon="public/icons/fingerprint.svg",
                 ),
             ],
@@ -618,13 +651,16 @@ async def on_message(message: cl.Message):
     tsml_file_info = None
     if tsml_files:
         tsml_file = tsml_files[0]
-        tsml_file_info = ChainLitFileInfoSchema(
-            name=tsml_file.name,
-            # thread_id=tsml_file.thread_id,
-            # chainlit_key=tsml_file.chainlit_key,
-            file_id=tsml_file.id,
-            path=tsml_file.path,
-        )
+        try:
+            tsml_file_info = ChainLitFileInfoSchema(
+                name=tsml_file.name,
+                # thread_id=tsml_file.thread_id,
+                # chainlit_key=tsml_file.chainlit_key,
+                file_id=tsml_file.id,
+                path=tsml_file.path,
+            )
+        except Exception as err:
+            logger.error(err)
 
     run_config = RunnableConfig(
         configurable={"thread_id": session_id},
