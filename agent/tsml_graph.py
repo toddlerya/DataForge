@@ -79,8 +79,11 @@ def parse_tsml_by_tsml_test_engine(state: TSMLState):
             "model_category": "9999",
             "model_code": "3201_11_10375",
             "gen_data_sqls": {
-                "zdr_dict_tab": "SELECT create_time, create_userid, create_userorg, dict_id, dict_name, dict_name_simplify, dict_pid, dict_type, level, modify_time, remark, sort, status FROM zdr_dict_tab;",
-                "relation_nostatus": "SELECT dept_id, entity_id, model_id, rule_content, rule_id, rule_name, rule_type, userid FROM relation_nostatus;",
+                "zdr_dict_tab": "SELECT create_time, create_userid, create_userorg, "
+                "dict_id, dict_name, dict_name_simplify, dict_pid, dict_type, level, "
+                "modify_time, remark, sort, status FROM zdr_dict_tab;",
+                "relation_nostatus": "SELECT dept_id, entity_id, model_id, "
+                "rule_id, rule_name, rule_type, userid FROM relation_nostatus;",
             },
         }
         state["tsml_parse_result"] = tsml_parse_result

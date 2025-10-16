@@ -496,7 +496,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         await cl.Message(content=final_message).send()
 
 
-async def handle_interrupt(run_config: RunnableConfig, state) -> bool:
+async def handle_interrupt(run_config: RunnableConfig, state) -> bool:  # noqa: C901
     """处理中断, 返回还是继续运行"""
     logger.info(f"state={state} type(state)={type(state)}")
     interrupt_value: str = ""
@@ -625,7 +625,7 @@ async def chat_profile(current_user: cl.User):
 
 
 @cl.on_message
-async def on_message(message: cl.Message):
+async def on_message(message: cl.Message):  # noqa: C901
     session_id = cl.context.session.id
     # chainlit的一个会话窗口，始终使用一个cl.context.session.id，
     # 但是这个session_id如果始终一致,在多次创建任务的时候,
