@@ -8,7 +8,6 @@
 
 import json
 import uuid
-from copy import deepcopy
 from typing import cast
 
 from langchain_core.messages import FunctionMessage
@@ -18,7 +17,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from loguru import logger
 
-from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
+from agent.common_node import init_dg_rule_category_node
 from agent.llm import chat_llm
 from agent.prompt import data_intent_prompt
 from agent.state import (
@@ -111,7 +110,7 @@ def should_table_raw_field_info_continue(state: MetaModeDataGenState):
         logger.info("查询元数据错误, END")
         return END
     else:
-        return "rag_table_field_info"
+        return "init_dg_rule_category_node"
 
 
 def query_table_raw_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:  # noqa: C901
@@ -213,7 +212,7 @@ def rag_table_field_info(state: MetaModeDataGenState) -> MetaModeDataGenState:
     """
     global dict_result
     logger.info("RAG增强字段属性信息")
-    DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
+    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     table_metadata = state.get("table_metadata_info")
     if not table_metadata:
         table_metadata_error = "未查询到表元数据, 无法进行字段字典RAG增强推荐"
@@ -295,6 +294,9 @@ meta_mode_data_gen_builder.add_node(
 meta_mode_data_gen_builder.add_node(
     "query_table_raw_field_info", query_table_raw_field_info
 )
+meta_mode_data_gen_builder.add_node(
+    "init_dg_rule_category_node", init_dg_rule_category_node
+)
 meta_mode_data_gen_builder.add_node("rag_table_field_info", rag_table_field_info)
 
 
@@ -312,7 +314,10 @@ meta_mode_data_gen_builder.add_conditional_edges(
 meta_mode_data_gen_builder.add_conditional_edges(
     "query_table_raw_field_info",
     should_table_raw_field_info_continue,
-    ["rag_table_field_info", END],
+    ["init_dg_rule_category_node", END],
+)
+meta_mode_data_gen_builder.add_edge(
+    "init_dg_rule_category_node", "rag_table_field_info"
 )
 meta_mode_data_gen_builder.add_edge("rag_table_field_info", END)
 

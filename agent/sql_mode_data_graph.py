@@ -8,7 +8,6 @@
 
 import json
 import uuid
-from copy import deepcopy
 
 from langchain_core.messages import FunctionMessage
 from langchain_core.runnables.config import RunnableConfig
@@ -17,7 +16,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from loguru import logger
 
-from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG as BASE_DG_FIELD_CATEGORY_CONFIG
+from agent.common_node import init_dg_rule_category_node
 from agent.llm import chat_llm
 from agent.prompt import sql_mode_data_intent_prompt
 from agent.sql_parser import parse_simple_select
@@ -152,7 +151,7 @@ def should_rag_sql_table_field_info_continue(state: SQLModeDataGenState):
         logger.info("SQL生成表结构化信息异常, END")
         return END
     else:
-        return "rag_sql_table_field_info"
+        return "init_dg_rule_category_node"
 
 
 def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
@@ -163,7 +162,7 @@ def rag_sql_table_field_info(state: SQLModeDataGenState) -> SQLModeDataGenState:
     """
     logger.info("RAG增强字段属性信息")
     table_info_data: SQLModeTableInfoSchema = state.get("table_info_data")
-    DG_FIELD_CATEGORY_CONFIG = deepcopy(BASE_DG_FIELD_CATEGORY_CONFIG)
+    DG_FIELD_CATEGORY_CONFIG = state.get("DG_FIELD_CATEGORY_CONFIG")
     table_metadata_info = TableMetadataSchema(
         table_en_name=table_info_data.table_en_name
     )
@@ -251,6 +250,9 @@ sql_mode_data_gen_builder.add_node(
     "sql_intent_human_feedback_node", sql_intent_human_feedback_node
 )
 sql_mode_data_gen_builder.add_node("sql_parse_to_table_info", sql_parse_to_table_info)
+sql_mode_data_gen_builder.add_node(
+    "init_dg_rule_category_node", init_dg_rule_category_node
+)
 sql_mode_data_gen_builder.add_node("rag_sql_table_field_info", rag_sql_table_field_info)
 
 
@@ -268,7 +270,10 @@ sql_mode_data_gen_builder.add_conditional_edges(
 sql_mode_data_gen_builder.add_conditional_edges(
     "sql_parse_to_table_info",
     should_rag_sql_table_field_info_continue,
-    ["rag_sql_table_field_info", END],
+    ["init_dg_rule_category_node", END],
+)
+sql_mode_data_gen_builder.add_edge(
+    "init_dg_rule_category_node", "rag_sql_table_field_info"
 )
 sql_mode_data_gen_builder.add_edge("rag_sql_table_field_info", END)
 

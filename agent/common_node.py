@@ -8,6 +8,7 @@ from typing import Union
 
 from loguru import logger
 
+from agent.dg_api_client import fetch_dg_rule_category
 from agent.state import (
     MainAppState,
     MetaModeDataGenState,
@@ -16,6 +17,17 @@ from agent.state import (
 )
 from config import DG_PLAN_PATH
 from utils.file import save_dict2jl
+
+
+def init_dg_rule_category_node(
+    state: Union[MetaModeDataGenState, SQLModeDataGenState],
+) -> Union[MetaModeDataGenState, SQLModeDataGenState]:
+    logger.info("初始化DataGenius任务规则类别")
+    status, message, data = fetch_dg_rule_category()
+    if status is False:
+        logger.error(message)
+    state["DG_FIELD_CATEGORY_CONFIG"] = data
+    return state
 
 
 def save_dg_plan2json(

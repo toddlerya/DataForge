@@ -45,15 +45,17 @@ select table_en_name , table_cn_name, env_name from table_meta_data_info tmdi
 
 # DG 对接待办事项
 
-## 提供 DG 规则查询接口服务【新开发一个】【TODO】
+## 提供 DG 规则查询接口服务【新开发一个】【完成】
+
+http://172.17.55.30/genius/api/v1/rule_category/
 
 ## 提供 DG 规则录入接口服务
 
 实际都是自定义规则
 
-## 规则数据预览接口需要改造【新开发一个】【TODO】
+## 规则数据预览接口需要改造【新开发一个】【完成】
 
-http://172.17.55.30/genius/get-preview/
+http://172.17.55.30/genius/get-preview/ 改成了 172.17.55.30/genius/api/v1/preview_line/
 
 现在是个 form 表单，改成 json/application 请求
 

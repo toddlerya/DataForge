@@ -6,6 +6,7 @@
 # @Project  : DataForge
 
 import time
+from copy import deepcopy
 from typing import Any, Union
 from urllib.parse import urljoin
 
@@ -14,8 +15,11 @@ from langchain_core.messages import ToolMessage
 from loguru import logger
 
 from agent.dg_configs import (
+    BLACK_DG_RULE_CATEGORY_NAMES,
+    DG_FIELD_CATEGORY_CONFIG,
     DG_GENERATE_TASK_URL,
     DG_NEW_TASK,
+    DG_RULE_CATEGORY,
     DG_RULE_PREVIEW,
     DG_SERVER_BASE_URL,
     DG_TASK_HISTORY,
@@ -25,6 +29,48 @@ from config import DG_PAYLOAD_PATH
 from cruds.task import save_task_info
 from utils.db_manager import DatabaseManager
 from utils.file import save_dict2jl
+
+
+def fetch_dg_rule_category() -> tuple[bool, str, list[dict[str, Any]]]:
+    """获取DG规则类别
+
+    Returns:
+        tuple[bool, str, list[dict[str,Any]]]: _description_
+    """
+    logger.info("获取DG规则类别")
+    rule_cagetory_url = urljoin(DG_SERVER_BASE_URL, DG_RULE_CATEGORY)
+    message = "ok"
+    # 默认兜底逻辑
+    data = []
+    message = "ok"
+    with httpx.Client() as client:
+        response = client.get(rule_cagetory_url)
+    if response.status_code != 200:
+        message = f"请求{rule_cagetory_url}异常, status_code: {response.status_code}"
+        return False, message, data
+    try:
+        resp_json = response.json()
+    except Exception as err:
+        message = f"获取{rule_cagetory_url}响应体异常, ERROR: {err}"
+        return False, message, data
+    if flag := resp_json.get("flag") is True:
+        raw_data: dict[str, list[dict]] = resp_json.get("data", data)
+        # 将DG规则类别展平
+        black_set = set(BLACK_DG_RULE_CATEGORY_NAMES)
+        for categories in raw_data.values():
+            # 剔除部分DG规则，避免干扰字典项
+            categories = [
+                item
+                for item in deepcopy(categories)
+                if item.get("category") not in black_set
+            ]
+            data.extend(categories)
+    else:
+        message = f"接口{rule_cagetory_url}响应体flag为{flag}, 异常请DG检查"
+        # 兜底为默认的DG规则清单
+        logger.warning("实时获取DG规则异常, 使用内置的兜底DG规则")
+        data = deepcopy(DG_FIELD_CATEGORY_CONFIG)
+    return flag, message, data
 
 
 def dg_rule_data_preview(
@@ -232,7 +278,7 @@ def query_dg_task_status(
                         task_data.dg_task_id = task_id
                         task_data.dg_task_edit_url = data_genius_plan_edit_url
 
-                        # TODO: 调用 DG的genius/get-preview接口，
+                        # 调用 DG的genius/get-preview接口，
                         # 获取响应的data结果作为预览数据
                         get_preview_status, get_preview_message, preview_data = (
                             dg_rule_data_preview(rule_data=task_data.task_rule)
@@ -285,3 +331,12 @@ def save_task_info2db(
     db_manager.close()
     # 清理state
     return {"user_intent": None}  # type: ignore
+
+
+if __name__ == "__main__":
+    import json
+
+    s, m, d = fetch_dg_rule_category()
+    print(s)
+    print(m)
+    print(json.dumps(d, ensure_ascii=False))
