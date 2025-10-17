@@ -196,7 +196,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         logger.info("[entry] query_table_raw_field_info")
         end_time = asyncio.get_event_loop().time()
         cl.user_session.set("end_time", end_time)
-        await cl.Message(content="已获取表元数据信息...").send()
+        await cl.Message(content="获取表元数据信息...").send()
         table_metadata_info = state.get("table_metadata_info")
         table_metadata_error = state.get("table_metadata_error")
         if table_metadata_error:

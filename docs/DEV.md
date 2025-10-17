@@ -93,3 +93,49 @@ WHERE ename IN (
     WHERE tf.dict_name IS NOT NULL AND tf.dict_name <> ''
 );
 ```
+
+# 任务统计
+
+```sql
+
+select
+	ti.task_uuid ,
+	update_time ,
+	ti.table_en_name,
+	ti.data_row_count ,
+	ti."mode" ,
+	ti.client_ip ,
+	dg_task_id ,
+	task_rule ,
+	dg_task_message ,
+
+	ti.dg_task_duration,
+	env_name
+from
+	task_info ti
+	 order by create_time desc limit 9000;
+
+-- 按照调用模式分组统计
+SELECT
+    CASE
+        WHEN dg_task_id IS NOT NULL and dg_task_id != ''  THEN 'DG-AI Chat模式'
+        ELSE 'DG-AI元数据推荐模式'
+    END AS task_mode_type,
+    COUNT(*) AS task_count,
+    ROUND(AVG(data_row_count)) AS avg_data_row_count,
+    MAX(dg_task_duration) AS max_duration,
+    MIN(dg_task_duration) AS min_duration,
+    STRING_AGG(DISTINCT env_name, ', ') AS env_names,
+    STRING_AGG(DISTINCT client_ip, ', ') AS client_ips
+FROM
+    task_info ti
+WHERE
+    ti.create_time IS NOT NULL  -- 确保有创建时间
+GROUP BY
+    CASE
+        WHEN dg_task_id IS NOT null  and dg_task_id != '' THEN 'DG-AI Chat模式'
+        ELSE 'DG-AI元数据推荐模式'
+    END
+ORDER BY
+    task_count DESC;
+```

@@ -372,26 +372,27 @@ class TaskInfo(CommonColumnMixin, ToDictMixin, Base):
     client_ip = Column(String(length=15), default="127.0.0.1", comment="客户端IP")
     task_payload = Column(JSONB, default=None, comment="创建任务请求的请求体JSON")
     rule_name = Column(String(length=128), default="", comment="任务规则名称")
-    task_rule = Column(JSONB, default=None, comment="任务规则配置JSON")
+    task_rule = Column(JSONB, default=None, comment="任务创建时的初始规则配置JSON")
+    dg_task_id = Column(String(length=36), default="", comment="DG的任务ID")
+    update_task_rule = Column(JSONB, default=None, comment="任务更新后的规则配置JSON")
     dg_task_status = Column(
         Integer, default=-1, comment="DG任务状态: 0正常,1异常,-1未知"
     )
     dg_task_message = Column(Text, default="", comment="DG任务状态信息")
-    dg_task_id = Column(String(length=36), default="", comment="DG的任务ID")
     dg_task_edit_url = Column(Text, default="", comment="DG任务的编辑URL")
     dg_task_rule_data_preview = Column(JSONB, default=None, comment="DG规则的预览数据")
     dg_task_duration = Column(String(length=56), default="", comment="DG任务耗时")
     user_modified_rules = Column(JSONB, default=None, comment="用户修改的字段规则")
-    parent_dg_task_id = Column(
-        String(length=72),
-        nullable=True,
-        comment="父任务的DG的任务ID, AI创建的任务人工修改后会有此信息",
-    )
-    parent_rule_name = Column(
-        String(length=128),
-        default="",
-        comment="父任务规则名称, AI创建的任务人工修改后会有此信息",
-    )
+    # parent_dg_task_id = Column(
+    #     String(length=72),
+    #     nullable=True,
+    #     comment="父任务的DG的任务ID, AI创建的任务人工修改后会有此信息",
+    # )
+    # parent_rule_name = Column(
+    #     String(length=128),
+    #     default="",
+    #     comment="父任务规则名称, AI创建的任务人工修改后会有此信息",
+    # )
     env_name = Column(
         String(length=128),
         nullable=True,

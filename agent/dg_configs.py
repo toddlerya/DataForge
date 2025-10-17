@@ -8,9 +8,9 @@ DG_TASK_HISTORY = "genius/generate-record/"
 
 DG_NEW_TASK = "genius/page/new-task/"
 
-DG_CATEGORY = "genius/data-category/"
+DG_RULE_PREVIEW = "genius/api/v1/preview_line/"
 
-DG_RULE_PREVIEW = "genius/get-preview/"
+DG_RULE_CATEGORY = "genius/api/v1/rule_category/"
 
 DG_STORAGE_PATH = "/storec/storea/projects/geniusWeb/espresso/media/genius"
 
