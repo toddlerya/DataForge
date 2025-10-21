@@ -166,30 +166,34 @@ def recommend_dg_rule_by_llm(
             field_type_str = field_info.field_type.upper()
             type_category, size = extract_field_type_and_size(field_type=field_type_str)
             if type_category and size:
-                # 处理
-                category = "自定义-字符串"
                 name = field_type_str
-                if type_category == "CHAR":
-                    args = {
-                        "chars_in": "0123456789abcABC",
-                        "max_": size,
-                        "min_": size,
-                    }
-                elif type_category == "VARCHAR2":
-                    args = {
-                        "chars_in": (
-                            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN"
-                            "OPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|"
-                        ),
-                        "max_": size,
-                        "min_": "1",
-                    }
+                if "CHAR" in type_category:
+                    # 处理
+                    category = "自定义-字符串"
+                    if type_category == "CHAR":
+                        args = {
+                            "chars_in": "0123456789abcABC",
+                            "max_": str(size),
+                            "min_": str(size),
+                        }
+                    elif type_category == "VARCHAR2":
+                        args = {
+                            "chars_in": (
+                                "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN"
+                                "OPQRSTUVWXYZ~!@#$%^&*()_+-=]}[{;:,.<>?|"
+                            ),
+                            "max_": str(size),
+                            "min_": "1",
+                        }
+                elif "NUM" in type_category:
+                    category = "自定义-数字"
+                    if type_category == "NUMBER":
+                        args = {"max_": "9" * size, "min_": "1"}
                 logger.debug(
                     f"类别={llm_dg_field_category_recommendation.category} "
                     f"更新为{category}规则: {name}"
                 )
                 fix_rule_note = f"【FIX】强制更新为<<{category}>>规则: {name}"
-
         pydantic_data_genius_rule = PydanticDataGeniusRule(
             col=col_index,
             category=category,

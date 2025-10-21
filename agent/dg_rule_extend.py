@@ -106,6 +106,7 @@ def extract_field_type_and_size(field_type: str):
     if match:
         type_name = match.group(1)
         size = match.group(2)
+        size = int(size)
         return type_name, size
     else:
         return None, None
