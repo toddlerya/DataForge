@@ -13,6 +13,7 @@ from langgraph.types import interrupt
 from loguru import logger
 
 from agent.state import TREExportFileSchema, TSMLState, TSMLUserIntentSchema
+from agent.tre_service_api_client import tre_service_upload_file
 
 
 def validate_tsml_input_args(state: TSMLState):
@@ -64,6 +65,27 @@ def analyze_tsml_intent(state: TSMLState) -> TSMLState:
                 "4. 执行TSML获取结果",
             ],
         )
+    return state
+
+
+def upload_tre_files_node(state: TSMLState) -> TSMLState:
+    """上传TRE运行所需文件"""
+    logger.info("上传TRE文件")
+    task_id = state.get("session_id")
+    tre_export_file_info = state.get("tre_export_file_info")
+    if not tre_export_file_info:
+        logger.error("未获取需要上传的TRE文件")
+        return state
+    # 上传TSML文件
+    if tre_tsml_file_info := tre_export_file_info.tre_tsml_file_info:
+        tsml_upload_message, tsml_upload_resp = tre_service_upload_file(
+            file_name=tre_tsml_file_info.name,
+            file_path=pathlib.Path(tre_tsml_file_info.path),
+            task_id=task_id,
+        )
+        if tsml_upload_message != "ok":
+            state["messages"].append(AIMessage(content=tsml_upload_message))
+
     return state
 
 

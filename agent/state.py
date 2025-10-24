@@ -342,10 +342,18 @@ class TSMLUserIntentSchema(BaseModel):
     plans: list[str] = Field(..., description="计划")
 
 
+class PrepareTREFilesStatusSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    sql_uploaded: bool = Field(False, description="SQL文件是否上传")
+    tsml_uploaded: bool = Field(False, description="TSML文件是否上传")
+    ready_to_run: bool = Field(False, description="是否准备好运行")
+
+
 class TSMLState(CommonState):
     user_input: str
     tsml_user_intent: TSMLUserIntentSchema
     tre_export_file_info: TREExportFileSchema
+    prepare_tre_files_status: PrepareTREFilesStatusSchema
     tsml_parse_result: dict
     sql_data_gen_result: dict
     tsml_run_result: dict
