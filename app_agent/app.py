@@ -24,6 +24,7 @@ from agent.state import (
     PydanticDataGeniusPlan,
     SQLModeTableInfoSchema,
     TableMetadataSchema,
+    TREExportFileSchema,
 )
 from common.initialization import init_env, setup_logging
 from config import DG_PLAN_PATH, PROJECT_PATH
@@ -427,8 +428,8 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             return True
     elif node == "validate_tsml_input_args":
         logger.info("[entry] validate_tsml_input_args")
-        tsml_file_info = state.get("tsml_file_info")
-        logger.info(f"tsml_file_info={tsml_file_info}")
+        tre_tsml_file_info = state.get("tre_tsml_file_info")
+        logger.info(f"tre_tsml_file_info={tre_tsml_file_info}")
     elif node == "parse_tsml_by_tsml_test_engine":
         logger.info("[entry] parse_tsml_by_tsml_test_engine")
         tsml_parse_result = state.get("tsml_parse_result")
@@ -518,35 +519,56 @@ async def handle_interrupt(run_config: RunnableConfig, state) -> bool:  # noqa: 
         cl.user_session.set("tsml_file_info", None)
         return True
     # ==== 第一种中断 ====
-    if interrupt_value == "请上传tsml文件":
+    if interrupt_value == "请上传TRE导出的tsml文件和sql文件":
         tsml_files = await cl.AskFileMessage(
-            content="请上传一个tsml文件",
+            content="请上传一个tre导出的tsml文件",
             accept={"text/plain": [".tsml", ".TSML"]},
             max_files=1,
+            timeout=600,
         ).send()
         if tsml_files:
             tsml_file = tsml_files[0]
-            tsml_file_info = ChainLitFileInfoSchema(
+            tre_tsml_file_info = ChainLitFileInfoSchema(
                 name=tsml_file.name,
                 file_id=tsml_file.id,
                 path=tsml_file.path,
             )
-            logger.info(f"已上传文件: {tsml_file_info}")
-            cl.user_session.set("tsml_file_info", tsml_file_info)
-            # 继续运行
-            async for event in main_graph.astream(
-                Command(resume=tsml_file_info),
-                run_config,
-                stream_mode="updates",
-                subgraphs=True,
-            ):
-                event = cast(tuple[tuple, dict], event)
-                for node, state in event[1].items():
-                    logger.trace(f"current_node={node} current_state={state}")
-                    await handle_graph_event(
-                        node=node, state=state, run_config=run_config
-                    )
-            return True
+            logger.info(f"已上传tsml文件: {tre_tsml_file_info}")
+            cl.user_session.set("tre_tsml_file_info", tre_tsml_file_info)
+            sql_files = await cl.AskFileMessage(
+                content="请上传一个tre导出的sql文件",
+                accept={"text/plain": [".sql", ".SQL"]},
+                max_files=1,
+                timeout=600,
+            ).send()
+            if sql_files:
+                sql_file = sql_files[0]
+                tre_sql_file_info = ChainLitFileInfoSchema(
+                    name=sql_file.name,
+                    file_id=sql_file.id,
+                    path=sql_file.path,
+                )
+                logger.info(f"已上传sql文件: {tre_sql_file_info}")
+                cl.user_session.set("tre_sql_file_info", tre_sql_file_info)
+                tre_export_file_info = TREExportFileSchema(
+                    tre_tsml_file_info=tre_tsml_file_info,
+                    tre_sql_file_info=tre_sql_file_info,
+                )
+                cl.user_session.set("tre_export_file_info", tre_export_file_info)
+                # 继续运行
+                async for event in main_graph.astream(
+                    Command(resume=tre_export_file_info),
+                    run_config,
+                    stream_mode="updates",
+                    subgraphs=True,
+                ):
+                    event = cast(tuple[tuple, dict], event)
+                    for node, state in event[1].items():
+                        logger.trace(f"current_node={node} current_state={state}")
+                        await handle_graph_event(
+                            node=node, state=state, run_config=run_config
+                        )
+                return True
     # ==== 另一种中断 ====
     elif interrupt_value == "意图正确吗?":
         res = await cl.AskUserMessage(
@@ -667,30 +689,45 @@ async def on_message(message: cl.Message):  # noqa: C901
         f"message: {message.content}"
     )
 
-    # 解析用户上传的tsml文件:
-    tsml_files: list = [
-        file for file in message.elements if file.name.endswith((".tsml", ".TSML"))
+    # 解析用户上传的tsml文件和sql文件:
+    tsml_or_sql_files: list = [
+        file
+        for file in message.elements
+        if file.name.endswith((".tsml", ".TSML", ".sql", ".SQL"))
     ]
-    for each_file in tsml_files:
-        logger.debug(f"each_tsml: {each_file} type({each_file})")
+    for each_file in tsml_or_sql_files:
+        logger.info(f"each_tsml_or_sql: {each_file} type({each_file})")
 
-    if len(tsml_files) > 1:
-        await cl.Message("一次任务只能上传1个tsml文件").send()
+    if len(tsml_or_sql_files) > 2:
+        await cl.Message("一次任务只能上传1个TRE的tsml文件 以及 1个TRE的sql文件").send()
         return
 
-    tsml_file_info = None
-    if tsml_files:
-        tsml_file = tsml_files[0]
+    tre_tsml_file_info = None
+    tre_sql_file_info = None
+    for each_file in tsml_or_sql_files:
         try:
-            tsml_file_info = ChainLitFileInfoSchema(
-                name=tsml_file.name,
+            chainlit_file_info = ChainLitFileInfoSchema(
+                name=each_file.name,
                 # thread_id=tsml_file.thread_id,
                 # chainlit_key=tsml_file.chainlit_key,
-                file_id=tsml_file.id,
-                path=tsml_file.path,
+                file_id=each_file.id,
+                path=each_file.path,
             )
         except Exception as err:
             logger.error(err)
+        else:
+            upload_file_name = chainlit_file_info.name.lower()
+            logger.trace(
+                f"user init upload file: {each_file} "
+                f"chainlit_file_info: {chainlit_file_info}"
+                f"upload_file_name: {upload_file_name}"
+            )
+            if upload_file_name.endswith(".sql"):
+                tre_sql_file_info = chainlit_file_info
+                logger.info(f"upload tre_sql_file_info: {tre_sql_file_info}")
+            elif upload_file_name.endswith(".tsml"):
+                tre_tsml_file_info = chainlit_file_info
+                logger.info(f"upload tre_tsml_file_info: {tre_tsml_file_info}")
 
     run_config = RunnableConfig(
         configurable={"thread_id": session_id},
@@ -702,7 +739,10 @@ async def on_message(message: cl.Message):  # noqa: C901
         "session_id": session_id,
         "client_ip": cl.user_session.get("client_ip"),
         "tool_call_result": None,
-        "tsml_file_info": tsml_file_info,
+        "tre_export_file_info": TREExportFileSchema(
+            tre_tsml_file_info=tre_tsml_file_info,
+            tre_sql_file_info=tre_sql_file_info,
+        ),
     }
 
     logger.trace(f"init_state={init_state}")

@@ -62,6 +62,7 @@ def reset_state(state: MainAppState) -> MainAppState:
         "error_messages": [],
         "env_name": None,
         "mode": None,
+        "tre_export_file_info": None,
     }
     return new_state  # type: ignore
 

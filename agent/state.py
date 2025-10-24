@@ -330,16 +330,22 @@ class ChainLitFileInfoSchema(BaseModel):
     path: str = Field(..., description="文件路径")
 
 
+class TREExportFileSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    tre_tsml_file_info: Optional[ChainLitFileInfoSchema]
+    tre_sql_file_info: Optional[ChainLitFileInfoSchema]
+
+
 class TSMLUserIntentSchema(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    tsml_name: str = Field(..., description="TSML文件名称")
+    tre_export_file_info: TREExportFileSchema = Field(..., description="TRE导出的文件")
     plans: list[str] = Field(..., description="计划")
 
 
 class TSMLState(CommonState):
     user_input: str
     tsml_user_intent: TSMLUserIntentSchema
-    tsml_file_info: Optional[ChainLitFileInfoSchema]
+    tre_export_file_info: TREExportFileSchema
     tsml_parse_result: dict
     sql_data_gen_result: dict
     tsml_run_result: dict
@@ -349,7 +355,7 @@ class MainAppState(DataGenBaseState):
     main_user_intent: AppUserIntentSchema
     next_sub_graph_name: str
     # 与子图共用的状态，定义了才能传递
-    tsml_file_info: Optional[ChainLitFileInfoSchema]
+    tre_export_file_info: Optional[TREExportFileSchema]
     user_input: str
     human_intent_feedback: str
     dont_run_dg_task: bool

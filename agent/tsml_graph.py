@@ -12,15 +12,17 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from loguru import logger
 
-from agent.state import ChainLitFileInfoSchema, TSMLState, TSMLUserIntentSchema
+from agent.state import TREExportFileSchema, TSMLState, TSMLUserIntentSchema
 
 
 def validate_tsml_input_args(state: TSMLState):
     """校验tsml图的输入信息,若没有提示用户提供所需内容"""
-    tsml_file_info: Optional[ChainLitFileInfoSchema] = state.get("tsml_file_info")
-    logger.trace(f"tsml_file_info={tsml_file_info}")
-    if tsml_file_info:
-        logger.debug(f"tsml_file_info: {tsml_file_info.model_dump_json()}")
+    tre_export_file_info: Optional[TREExportFileSchema] = state.get(
+        "tre_export_file_info"
+    )
+    logger.trace(f"tre_export_file_info={tre_export_file_info}")
+    if tre_export_file_info:
+        logger.debug(f"tre_export_file_info={tre_export_file_info.model_dump_json()} ")
         return "analyze_tsml_intent"
     else:
         logger.warning("用户未上传tsml文件")
@@ -28,8 +30,8 @@ def validate_tsml_input_args(state: TSMLState):
 
 
 def wait_human_upload_tsml_file(state: TSMLState):
-    tsml_file_info = interrupt("请上传tsml文件")
-    state["tsml_file_info"] = tsml_file_info
+    tre_export_file_info = interrupt("请上传TRE导出的tsml文件和sql文件")
+    state["tre_export_file_info"] = tre_export_file_info
     return state
 
 
@@ -44,17 +46,17 @@ def analyze_tsml_intent(state: TSMLState) -> TSMLState:
     """
     messages = state["messages"]
     last_message = messages[-1]
-    tsml_file_info = state.get("tsml_file_info")
+    tre_export_file_info = state.get("tre_export_file_info")
     logger.debug(
         f"last_message: {type(last_message)} {last_message} "
-        f"tsml_file_info={tsml_file_info}"
+        f"tre_export_file_info={tre_export_file_info}"
     )
-    if tsml_file_info:
+    if tre_export_file_info:
         state["messages"].append(
-            AIMessage(content=f"已收到tsml文件: {tsml_file_info.name}")
+            AIMessage(content=f"已收到TRE导出的文件: {tre_export_file_info}")
         )
         state["tsml_user_intent"] = TSMLUserIntentSchema(
-            tsml_name=tsml_file_info.name,
+            tre_export_file_info=tre_export_file_info,
             plans=[
                 "1. 解析TSML文件提取SELECT SQL",
                 "2. 根据提取SELECT SQL构造测试数据",
@@ -67,8 +69,8 @@ def analyze_tsml_intent(state: TSMLState) -> TSMLState:
 
 def parse_tsml_by_tsml_test_engine(state: TSMLState):
     """调用tsml测试引擎服务解析tsml文件"""
-    tsml_file_info: Optional[ChainLitFileInfoSchema] = state.get("tsml_file_info")
-    if tsml_file_info:
+    tre_export_file_info = state.get("tre_export_file_info")
+    if tre_export_file_info:
         # 上传文件
         logger.info("模拟请求tsml测试引擎.")
         # 获取响应

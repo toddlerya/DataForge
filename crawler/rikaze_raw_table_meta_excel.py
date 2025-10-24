@@ -119,7 +119,7 @@ class RKZRawTableMetaExcelLoad:
                 area_code="",
                 area_name="日喀则",
                 source=MetaDataSource.excel_file,
-                env_name="",
+                env_name="日喀则原始表",
             )
             status, tb_meta_uuid = get_md5(
                 f"{table_metadata.table_en_name}"

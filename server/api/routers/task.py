@@ -119,6 +119,8 @@ async def add_task_info(
     resp_data = ResponseBaseSchema(description="新增任务信息")
     task_type_data = {"task_type": "HUMAN-CREATE"}
     logger.debug(f"task.add ==> task_data: {task_data.model_dump()}")
+    # TODO: 需要根据DG修改来调整服务接口了,
+    # 只有在DG第一次创建任务是时生成唯一dg_task_id, 后续修改任务规则此dg_task_id不会改变
     if task_data.parent_dg_task_id and task_data.parent_rule_name:
         # 这两个字段有值说明是AI-DG任务经过人工修改后新建的任务
         task_type_data = {"task_type": "AI-HUMAN-MODIFIED"}

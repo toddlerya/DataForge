@@ -34,8 +34,8 @@ class TaskPayloadSchmea(TaskDataSchema):
             "table_en_name",
             "rule_name",
             "task_rule",
-            "parent_dg_task_id",
-            "parent_rule_name",
+            # "parent_dg_task_id",
+            # "parent_rule_name",
         }
         for field_name in non_empty_fields:
             value = getattr(self, field_name, None)
@@ -45,8 +45,8 @@ class TaskPayloadSchmea(TaskDataSchema):
                 if len(value) == 0:
                     raise ValueError(f"{field_name} 不可为空 {type(value).__name__}")
         # 2. 长度校验
-        if self.parent_dg_task_id and len(self.parent_dg_task_id) < 32:
-            raise ValueError("parent_dg_task_id 长度必须大于等于 32 位")
+        # if self.parent_dg_task_id and len(self.parent_dg_task_id) < 32:
+        #     raise ValueError("parent_dg_task_id 长度必须大于等于 32 位")
         if self.task_uuid and len(self.task_uuid) < 32:
             raise ValueError("task_uuid 长度必须大于等于 32 位")
         # 3. task_rule 内容校验（可选）
