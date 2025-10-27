@@ -21,6 +21,7 @@ from agent.llm import chat_llm
 from agent.meta_map import next_sub_graph_name_map
 from agent.state import (
     ChainLitFileInfoSchema,
+    PrepareTREFilesStatusSchema,
     PydanticDataGeniusPlan,
     SQLModeTableInfoSchema,
     TableMetadataSchema,
@@ -189,7 +190,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             language="json",
         ).send()
         if node == "analyze_tsml_intent":
-            await cl.Message(content="#### TSML文件解析中...").send()
+            await cl.Message(content="#### 上传TSML配置文件中...").send()
     elif node == "__interrupt__":
         logger.info("[entry] __interrupt__")
         return await handle_interrupt(run_config=run_config, state=state)
@@ -428,19 +429,48 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             return True
     elif node == "validate_tsml_input_args":
         logger.info("[entry] validate_tsml_input_args")
-        tre_tsml_file_info = state.get("tre_tsml_file_info")
-        logger.info(f"tre_tsml_file_info={tre_tsml_file_info}")
-    elif node == "parse_tsml_by_tsml_test_engine":
-        logger.info("[entry] parse_tsml_by_tsml_test_engine")
-        tsml_parse_result = state.get("tsml_parse_result")
-        if tsml_parse_result:
-            await cl.Message(
-                content=json.dumps(tsml_parse_result, ensure_ascii=False, indent=2),
-                language="json",
-            ).send()
-            await cl.Message(content="#### TSML测试数据生成中...").send()
+        tre_export_file_info = state.get("tre_export_file_info")
+        logger.info(f"tre_export_file_info={tre_export_file_info}")
+    elif node == "upload_tre_files_node":
+        logger.info("[entry] upload_tre_files_node")
+        prepare_tre_files_status = state.get("prepare_tre_files_status")
+        if prepare_tre_files_status:
+            prepare_tre_files_status = cast(
+                PrepareTREFilesStatusSchema, prepare_tre_files_status
+            )
+            if prepare_tre_files_status.ready_to_run:
+                await cl.Message(content="#### TSML文件上传齐全").send()
+            else:
+                await cl.Message(
+                    content=prepare_tre_files_status.model_dump_json(indent=2),
+                    language="json",
+                ).send()
         else:
-            await cl.Message(content="TSML解析异常!").send()
+            messages = state.get("messages")
+            if messages:
+                last_message = messages[-1]
+                logger.info(f"last_message: {last_message}")
+                await cl.Message(
+                    content="上传TSML文件异常: " + last_message.content
+                ).send()
+            else:
+                await cl.Message(content="上传TSML文件异常").send()
+                return False
+    elif node == "call_tre_service_run":
+        logger.info("[entry] call_tre_service_run")
+        await cl.Message(content="#### 任务开始处理...").send()
+        status_url = state.get("status_url")
+        logger.info(f"status_url={status_url}")
+        if status_url:
+            await cl.Message(content="任务启动成功").send()
+        else:
+            messages = state.get("messages")
+            if messages:
+                last_message = messages[-1]
+                logger.info(f"last_message: {last_message}")
+                await cl.Message(content="任务启动异常: " + last_message.content).send()
+            else:
+                await cl.Message(content="任务启动异常").send()
             return False
     elif node == "query_sql_data_gen_result":
         logger.info("[entry] query_sql_data_gen_result")
@@ -549,12 +579,11 @@ async def handle_interrupt(run_config: RunnableConfig, state) -> bool:  # noqa: 
                     path=sql_file.path,
                 )
                 logger.info(f"已上传sql文件: {tre_sql_file_info}")
-                cl.user_session.set("tre_sql_file_info", tre_sql_file_info)
                 tre_export_file_info = TREExportFileSchema(
                     tre_tsml_file_info=tre_tsml_file_info,
                     tre_sql_file_info=tre_sql_file_info,
                 )
-                cl.user_session.set("tre_export_file_info", tre_export_file_info)
+                cl.user_session.set("human_intent_feedback", tre_export_file_info)
                 # 继续运行
                 async for event in main_graph.astream(
                     Command(resume=tre_export_file_info),

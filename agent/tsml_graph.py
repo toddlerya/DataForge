@@ -4,6 +4,7 @@
 # @Author   : guoqun X2590
 # @Desc     :
 
+import pathlib
 from typing import Optional
 
 from langchain_core.messages import AIMessage
@@ -12,8 +13,14 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 from loguru import logger
 
-from agent.state import TREExportFileSchema, TSMLState, TSMLUserIntentSchema
-from agent.tre_service_api_client import tre_service_upload_file
+from agent.state import (
+    ChainLitFileInfoSchema,
+    PrepareTREFilesStatusSchema,
+    TREExportFileSchema,
+    TSMLState,
+    TSMLUserIntentSchema,
+)
+from agent.tre_service_api_client import tre_service_run, tre_service_upload_file
 
 
 def validate_tsml_input_args(state: TSMLState):
@@ -22,15 +29,18 @@ def validate_tsml_input_args(state: TSMLState):
         "tre_export_file_info"
     )
     logger.trace(f"tre_export_file_info={tre_export_file_info}")
-    if tre_export_file_info:
+    if (
+        tre_export_file_info.tre_sql_file_info
+        and tre_export_file_info.tre_tsml_file_info
+    ):
         logger.debug(f"tre_export_file_info={tre_export_file_info.model_dump_json()} ")
         return "analyze_tsml_intent"
     else:
-        logger.warning("用户未上传tsml文件")
-        return "wait_human_upload_tsml_file"
+        logger.warning("用户未上传TRE导出的运行配置文件")
+        return "wait_human_upload_tre_file"
 
 
-def wait_human_upload_tsml_file(state: TSMLState):
+def wait_human_upload_tre_file(state: TSMLState):
     tre_export_file_info = interrupt("请上传TRE导出的tsml文件和sql文件")
     state["tre_export_file_info"] = tre_export_file_info
     return state
@@ -59,10 +69,13 @@ def analyze_tsml_intent(state: TSMLState) -> TSMLState:
         state["tsml_user_intent"] = TSMLUserIntentSchema(
             tre_export_file_info=tre_export_file_info,
             plans=[
-                "1. 解析TSML文件提取SELECT SQL",
-                "2. 根据提取SELECT SQL构造测试数据",
-                "3. 将测试数据入库",
-                "4. 执行TSML获取结果",
+                "1. 上传TRE导出的TSML文件和SQL文件给TRE_Test_Service处理",
+                "2. 文件元数据解析",
+                "3. 模型数据清洗",
+                "4. TSML转换存储",
+                "5. AI数据仿真",
+                "6. 提交jenkins执行",
+                "7. 获取执行结果",
             ],
         )
     return state
@@ -76,16 +89,50 @@ def upload_tre_files_node(state: TSMLState) -> TSMLState:
     if not tre_export_file_info:
         logger.error("未获取需要上传的TRE文件")
         return state
-    # 上传TSML文件
+    upload_file_info_slice: list[ChainLitFileInfoSchema] = []
+    # 构建上传的TSML文件和SQL文件的数组
     if tre_tsml_file_info := tre_export_file_info.tre_tsml_file_info:
-        tsml_upload_message, tsml_upload_resp = tre_service_upload_file(
-            file_name=tre_tsml_file_info.name,
-            file_path=pathlib.Path(tre_tsml_file_info.path),
+        upload_file_info_slice.append(tre_tsml_file_info)
+    if tre_sql_file_info := tre_export_file_info.tre_sql_file_info:
+        upload_file_info_slice.append(tre_sql_file_info)
+    # 上传
+    for each_file_info in upload_file_info_slice:
+        upload_message, upload_resp_data = tre_service_upload_file(
+            file_name=each_file_info.name,
+            file_path=pathlib.Path(each_file_info.path),
             task_id=task_id,
         )
-        if tsml_upload_message != "ok":
-            state["messages"].append(AIMessage(content=tsml_upload_message))
+        if upload_message != "ok":
+            state["messages"].append(AIMessage(content=upload_message))
+        if upload_resp_data:
+            state["prepare_tre_files_status"] = PrepareTREFilesStatusSchema(
+                **upload_resp_data.get("files_status", {})
+            )
+            state["tre_task_id"] = upload_resp_data.get("task_id")
+    return state
 
+
+def should_call_tre_run(state: TSMLState):
+    """是否文件齐全可以调用run接口"""
+    prepare_tre_files_status = state.get("prepare_tre_files_status")
+    if prepare_tre_files_status and prepare_tre_files_status.ready_to_run:
+        return "call_tre_service_run"
+    else:
+        return "wait_human_upload_tre_file"
+
+
+def call_tre_service_run(state: TSMLState):
+    """调用run接口"""
+    if task_id := state.get("tre_task_id"):
+        logger.info(f"task_id={task_id}")
+        run_message, run_resp_data = tre_service_run(task_id=task_id)
+        logger.trace(f"run_message={run_message} run_resp_data={run_resp_data}")
+        if run_message != "ok":
+            state["messages"].append(AIMessage(content=run_message))
+        if run_resp_data:
+            state["status_url"] = run_resp_data.get("status_url")
+    else:
+        logger.error(f"没有获取到task_id: {task_id}")
     return state
 
 
@@ -139,22 +186,25 @@ def query_tsml_run_result(state: TSMLState):
 
 
 tsml_builder = StateGraph(TSMLState)
-tsml_builder.add_node("wait_human_upload_tsml_file", wait_human_upload_tsml_file)
+tsml_builder.add_node("wait_human_upload_tre_file", wait_human_upload_tre_file)
 tsml_builder.add_node("analyze_tsml_intent", analyze_tsml_intent)
-tsml_builder.add_node("parse_tsml_by_tsml_test_engine", parse_tsml_by_tsml_test_engine)
-tsml_builder.add_node("query_sql_data_gen_result", query_sql_data_gen_result)
-tsml_builder.add_node("query_tsml_run_result", query_tsml_run_result)
+tsml_builder.add_node("upload_tre_files_node", upload_tre_files_node)
+tsml_builder.add_node("should_call_tre_run", should_call_tre_run)
+tsml_builder.add_node("call_tre_service_run", call_tre_service_run)
 
 tsml_builder.add_conditional_edges(
     START,
     validate_tsml_input_args,
-    ["analyze_tsml_intent", "wait_human_upload_tsml_file"],
+    ["analyze_tsml_intent", "wait_human_upload_tre_file"],
 )
-tsml_builder.add_edge("wait_human_upload_tsml_file", "analyze_tsml_intent")
-tsml_builder.add_edge("analyze_tsml_intent", "parse_tsml_by_tsml_test_engine")
-tsml_builder.add_edge("parse_tsml_by_tsml_test_engine", "query_sql_data_gen_result")
-tsml_builder.add_edge("query_sql_data_gen_result", "query_tsml_run_result")
-tsml_builder.add_edge("query_tsml_run_result", END)
+tsml_builder.add_edge("wait_human_upload_tre_file", "analyze_tsml_intent")
+tsml_builder.add_edge("analyze_tsml_intent", "upload_tre_files_node")
+tsml_builder.add_conditional_edges(
+    "upload_tre_files_node",
+    should_call_tre_run,
+    ["call_tre_service_run", "wait_human_upload_tre_file"],
+)
+tsml_builder.add_edge("call_tre_service_run", END)
 
 memory = InMemorySaver()
 tsml_graph = tsml_builder.compile(checkpointer=memory)

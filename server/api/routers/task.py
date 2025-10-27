@@ -11,10 +11,9 @@ from fastapi import APIRouter, Depends
 from loguru import logger
 
 from cruds.task import query_task_info_by_cnodition, save_task_info
-from database_models.schema import PydanticDataGeniusRule
+from database_models.schema import PydanticDataGeniusRule, TaskDataSchema
 from server.api.depends import get_db_manager
 from server.api.schemas.base_schema import ResponseBaseSchema
-from server.api.schemas.task_schema import TaskPayloadSchmea
 from utils.db_manager import DatabaseManager
 from utils.err_code import error_code
 
@@ -114,49 +113,58 @@ def compare_task_rule(
 
 @router.post("/add", response_model=ResponseBaseSchema)
 async def add_task_info(
-    task_data: TaskPayloadSchmea, db_manager: DatabaseManager = Depends(get_db_manager)
+    task_data_json: dict, db_manager: DatabaseManager = Depends(get_db_manager)
 ):
     resp_data = ResponseBaseSchema(description="新增任务信息")
     task_type_data = {"task_type": "HUMAN-CREATE"}
-    logger.debug(f"task.add ==> task_data: {task_data.model_dump()}")
+    logger.debug(f"task.add ==> task_data_json: {task_data_json}")
+    rule_url_path = task_data_json.get("rule_url_path")
+
+    if rule_url_path and "dg_task_plan_" in rule_url_path:
+        # dg_task_plan_存在说明说明是AI-DG任务经过人工修改后新建的任务
+        task_type_data = {"task_type": "AI-HUMAN-MODIFIED"}
     # TODO: 需要根据DG修改来调整服务接口了,
     # 只有在DG第一次创建任务是时生成唯一dg_task_id, 后续修改任务规则此dg_task_id不会改变
-    if task_data.parent_dg_task_id and task_data.parent_rule_name:
-        # 这两个字段有值说明是AI-DG任务经过人工修改后新建的任务
-        task_type_data = {"task_type": "AI-HUMAN-MODIFIED"}
-        query_status, query_message, parent_task_data = query_task_info_by_cnodition(
-            db_manager=db_manager,
-            dg_task_id=task_data.parent_dg_task_id,
-            rule_name=task_data.rule_name,
-        )
-        if query_status is False:
-            logger.error(f"查询当前任务的父任务信息异常: {query_message}")
-        else:
-            # 分析对比改动的规则内容
-            if parent_task_data and parent_task_data.task_rule is not None:
-                logger.info(
-                    f"找到父任务信息, "
-                    f"parent_dg_task_id={task_data.parent_dg_task_id} "
-                    f"parent_rule_name={task_data.parent_rule_name} "
-                    f"开始分析人工修改规则内容, 当前task_uuid={task_data.task_uuid}"
+    task_data = TaskDataSchema(
+        data_row_count=task_data_json.get("rows", 0),
+        client_ip=task_data_json.get("ip", "127.0.0.1"),
+        task_rule=task_data_json.get("rules", [{}]),
+        dg_task_status=task_data_json.get("code", -1),
+        dg_task_id=task_data_json.get("task_id", ""),
+    )
+    # 查询数据库中此dg任务id是否存在
+    query_status, query_message, last_task_data = query_task_info_by_cnodition(
+        db_manager=db_manager,
+        dg_task_id=task_data.dg_task_id,
+    )
+    if query_status is False:
+        logger.error(f"查询当前任务历史记录信息异常: {query_message}")
+    else:
+        # 分析对比改动的规则内容
+        if last_task_data and last_task_data.task_rule is not None:
+            logger.info(
+                f"找到上一次任务信息, "
+                f"dg_task_id={last_task_data.dg_task_id} "
+                f"开始分析人工修改规则内容"
+            )
+            # FIXME: 以上一次的任务为基准，来更新任务信息入库
+            # 需要更新的是task_rule和user_modified_rules信息
+            # 但是上一次任务的last_task_data是ORM类型，需要注意处理
+
+            # Column[Any] 转换为 list[dict]
+            last_task_rule = cast(list[dict[str, Any]], last_task_data.task_rule)
+            compare_status, compare_message, compare_result = compare_task_rule(
+                left_rule_array=last_task_rule,
+                right_rule_array=task_data.task_rule,
+            )
+            if compare_status is False:
+                logger.error(
+                    f"规则比对异常! 当前dg_task_id={task_data.dg_task_id} "
+                    f"last_dg_task_id={last_task_data.dg_task_id} "
+                    f"ERROR: {compare_message}"
                 )
-                # Column[Any] 转换为 list[dict]
-                parent_task_rule = cast(
-                    list[dict[str, Any]], parent_task_data.task_rule
-                )
-                compare_status, compare_message, compare_result = compare_task_rule(
-                    left_rule_array=parent_task_rule,
-                    right_rule_array=task_data.task_rule,
-                )
-                if compare_status is False:
-                    logger.error(
-                        f"规则比对异常! 当前task_uuid={task_data.task_uuid} "
-                        f"parent_dg_task_id={task_data.parent_dg_task_id} "
-                        f"parent_rule_name={task_data.parent_rule_name} "
-                        f"ERROR: {compare_message}"
-                    )
-                else:
-                    task_data.user_modified_rules = compare_result
+            else:
+                task_data.user_modified_rules = compare_result
     logger.info(
         f"{task_type_data} ==> client_ip={task_data.client_ip} "
         f"task_uuid={task_data.task_uuid}"
@@ -165,8 +173,6 @@ async def add_task_info(
     )
     # 入库存储
     task_info_data = task_data.model_dump()
-    task_info_data.pop("parent_dg_task_id")
-    task_info_data.pop("parent_rule_name")
     save_status, save_message = save_task_info(
         db_manager=db_manager, task_info_data=task_info_data
     )

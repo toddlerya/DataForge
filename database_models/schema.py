@@ -88,7 +88,7 @@ class TaskDataSchema(BaseModel):
     )
     dg_task_duration: str = Field(default="", description="DG任务耗时")
     user_modified_rules: dict = Field(default={}, description="用户修改的字段规则")
-    env_name: str = Field("", description="环境名称")
+    env_name: str = Field(default="", description="环境名称")
 
 
 class RecommendPanGuFieldSchema(BaseModel):
@@ -240,7 +240,7 @@ class PydanticDataGeniusRule(BaseModel):
     name: str = Field(..., description="规则名称")
     ename: str = Field(..., description="字段英文名称")
     cname: str = Field("", description="字段中文名称")
-    preview: str = Field("", description="字段示例数据预览")
+    preview: str | int | float | list | dict = Field("", description="字段示例数据预览")
     value: str | int | float | list | dict = Field("", description="字段示例数据值")
     args: dict[str, str | list] = Field(
         default_factory=dict, description="规则参数字典，包含生成数据所需的参数。"
