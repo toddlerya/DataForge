@@ -4,8 +4,10 @@
 # @Author   : guoqun X2590
 # @Desc     : 任务录入和查询接口
 
-
-from typing import Any, cast
+import json
+import pathlib
+import uuid
+from copy import deepcopy
 
 from fastapi import APIRouter, Depends
 from loguru import logger
@@ -22,6 +24,9 @@ router = APIRouter(
     tags=["任务管理"],
     responses={404: {"description": "Not Found"}},
 )
+
+
+dg_task_status_message_map = {0: "成功", 1: "异常", -1: "未知"}
 
 
 def compare_task_rule(
@@ -63,28 +68,35 @@ def compare_task_rule(
         if right_matched_elements:
             if len(right_matched_elements) == 1:
                 right_element = right_matched_elements[0]
-                matched_element = {
-                    left_element.ename: {
-                        "befor": left_element.model_dump(),
-                        "after": right_element.model_dump(),
-                        "change": {
-                            "category": {
-                                "befor": left_element.category,
-                                "after": right_element.category,
+                if (
+                    # 规则类别修改了
+                    left_element.category != right_element.category
+                    # 规则参数修改了
+                    or left_element.args != right_element.args
+                    # 规则名称修改了
+                    or left_element.name != right_element.name
+                ):
+                    matched_element = {
+                        left_element.ename: {
+                            "before": left_element.model_dump(),
+                            "after": right_element.model_dump(),
+                            "change": {
+                                "category": {
+                                    "before": left_element.category,
+                                    "after": right_element.category,
+                                },
+                                "args": {
+                                    "before": left_element.args,
+                                    "after": right_element.args,
+                                },
+                                "name": {
+                                    "before": left_element.name,
+                                    "after": right_element.name,
+                                },
                             },
-                            "args": {
-                                "before": left_element.args,
-                                "after": right_element.args,
-                            },
-                            "name": {
-                                "before": left_element.name,
-                                "after": right_element.name,
-                            },
-                        },
+                        }
                     }
-                }
-                logger.debug(f"modify_group.matched_element: {matched_element}")
-                modify_group.append(matched_element)
+                    modify_group.append(matched_element)
                 # 标记已匹配
                 matched_right_ename.add(left_element.ename)
             else:
@@ -108,6 +120,7 @@ def compare_task_rule(
     result["modify_group"] = modify_group
     result["add_group"] = add_group
     result["del_group"] = del_group
+    logger.debug(f"result={json.dumps(result, ensure_ascii=False)}")
     return True, "ok", result
 
 
@@ -117,72 +130,113 @@ async def add_task_info(
 ):
     resp_data = ResponseBaseSchema(description="新增任务信息")
     task_type_data = {"task_type": "HUMAN-CREATE"}
-    logger.debug(f"task.add ==> task_data_json: {task_data_json}")
-    rule_url_path = task_data_json.get("rule_url_path")
-
-    if rule_url_path and "dg_task_plan_" in rule_url_path:
-        # dg_task_plan_存在说明说明是AI-DG任务经过人工修改后新建的任务
-        task_type_data = {"task_type": "AI-HUMAN-MODIFIED"}
-    # TODO: 需要根据DG修改来调整服务接口了,
-    # 只有在DG第一次创建任务是时生成唯一dg_task_id, 后续修改任务规则此dg_task_id不会改变
-    task_data = TaskDataSchema(
-        data_row_count=task_data_json.get("rows", 0),
-        client_ip=task_data_json.get("ip", "127.0.0.1"),
-        task_rule=task_data_json.get("rules", [{}]),
-        dg_task_status=task_data_json.get("code", -1),
-        dg_task_id=task_data_json.get("task_id", ""),
+    logger.debug(
+        f"task.add ==> task_data_json: {json.dumps(task_data_json, ensure_ascii=False)}"
     )
+    rule_url_path = task_data_json.get("rule_url_path", "")
+    rule_name = pathlib.Path(rule_url_path).name.split(".json")[0]
+    ai_task_id = task_data_json.get("ai_task_id", "")
+    dg_task_id = task_data_json.get("task_id", "")
+    data_row_count = task_data_json.get("rows", 0)
+    client_ip = task_data_json.get("ip", "127.0.0.1")
+    current_task_rule = task_data_json.get("rules", [{}])
+    dg_task_status = task_data_json.get("code", -1)
+    dg_task_message = dg_task_status_message_map.get(dg_task_status, "")
+    dg_task_type = task_data_json.get("type_", "")
+    dg_task_duration = task_data_json.get("duration", "") or ""
+    # 只有在DG第一次创建任务是时生成唯一dg_task_id, 后续修改任务规则此dg_task_id不会改变
+    if rule_name and "dg_task_plan_" in rule_name:
+        # dg_task_plan_存在说明说明是AI-DG任务经过人工修改后的DG回调更新的任务
+        task_type_data = {"task_type": "AI-HUMAN-MODIFIED"}
+    if ai_task_id:
+        # 存在ai_task_id说明是AI-DG创建的规则，可能人工修改过
+        task_type_data = {"task_type": "AI-HUMAN-MODIFIED"}
     # 查询数据库中此dg任务id是否存在
-    query_status, query_message, last_task_data = query_task_info_by_cnodition(
+    query_status, query_message, lastest_task_data = query_task_info_by_cnodition(
         db_manager=db_manager,
-        dg_task_id=task_data.dg_task_id,
+        task_uuid=ai_task_id,
+        dg_task_id=dg_task_id,
     )
     if query_status is False:
         logger.error(f"查询当前任务历史记录信息异常: {query_message}")
     else:
-        # 分析对比改动的规则内容
-        if last_task_data and last_task_data.task_rule is not None:
-            logger.info(
-                f"找到上一次任务信息, "
-                f"dg_task_id={last_task_data.dg_task_id} "
-                f"开始分析人工修改规则内容"
-            )
-            # FIXME: 以上一次的任务为基准，来更新任务信息入库
+        if lastest_task_data and lastest_task_data.task_rule is not None:
+            # 更新模式
+            # 以上一次的任务为基准，来更新任务信息入库
             # 需要更新的是task_rule和user_modified_rules信息
             # 但是上一次任务的last_task_data是ORM类型，需要注意处理
-
-            # Column[Any] 转换为 list[dict]
-            last_task_rule = cast(list[dict[str, Any]], last_task_data.task_rule)
+            lastest_task_data_dict = deepcopy(lastest_task_data).to_dict()
+            # 移除数据库的一些字段构建TaskDataSchema对象
+            lastest_task_data_dict.pop("id")
+            lastest_task_data_dict.pop("remark")
+            lastest_task_data_dict.pop("create_time")
+            lastest_task_data_dict.pop("update_time")
+            lastest_task_data_dict["dg_task_type"] = dg_task_type
+            lastest_task_data_dict["update_task_rule"] = current_task_rule
+            task_data = TaskDataSchema(**lastest_task_data_dict)
+            # 更新下client_ip
+            task_data.client_ip = client_ip
+            task_data.data_row_count = data_row_count
+            task_data.dg_task_id = dg_task_id
+            task_data.dg_task_message = dg_task_message
+            logger.info(
+                f"找到已有的任务信息, 更新模式 "
+                f"task_uuid={task_data.task_uuid} "
+                f"dg_task_id={task_data.dg_task_id} "
+                f"开始分析人工修改规则内容"
+            )
+            # 分析对比改动的规则内容
             compare_status, compare_message, compare_result = compare_task_rule(
-                left_rule_array=last_task_rule,
-                right_rule_array=task_data.task_rule,
+                left_rule_array=task_data.task_rule,
+                right_rule_array=task_data.update_task_rule,
             )
             if compare_status is False:
                 logger.error(
-                    f"规则比对异常! 当前dg_task_id={task_data.dg_task_id} "
-                    f"last_dg_task_id={last_task_data.dg_task_id} "
+                    f"规则比对异常! 当前task_uuid={task_data.task_uuid} "
+                    f"dg_task_id={task_data.dg_task_id} "
                     f"ERROR: {compare_message}"
                 )
             else:
                 task_data.user_modified_rules = compare_result
-    logger.info(
-        f"{task_type_data} ==> client_ip={task_data.client_ip} "
-        f"task_uuid={task_data.task_uuid}"
-        f"dg_task_edit_url={task_data.dg_task_edit_url}"
-        f"user_modified_rules={task_data.user_modified_rules}"
-    )
-    # 入库存储
-    task_info_data = task_data.model_dump()
-    save_status, save_message = save_task_info(
-        db_manager=db_manager, task_info_data=task_info_data
-    )
-    if save_status is False:
-        logger.error(save_message)
-        resp_data.code = error_code.DB_INSERT_OR_UPDATE_ERROR.get("code")
-        resp_data.message = (
-            error_code.DB_INSERT_OR_UPDATE_ERROR.get("description", "")
-            + " "
-            + save_message
+            logger.info(
+                f"{task_type_data} ==> client_ip={task_data.client_ip} "
+                f"task_uuid={task_data.task_uuid} "
+                f"dg_task_id={task_data.dg_task_id} "
+                f"dg_task_edit_url={task_data.dg_task_edit_url} "
+                f"user_modified_rules={task_data.user_modified_rules}"
+            )
+        else:
+            # 新增模式的
+            task_uuid = uuid.uuid4().hex
+            logger.info(
+                f"新增任务记录模式 task_uuid={task_uuid} dg_task_id={dg_task_id} "
+            )
+            task_data = TaskDataSchema(
+                task_uuid=task_uuid,
+                table_en_name=task_data_json.get("modelName", ""),
+                data_row_count=data_row_count,
+                client_ip=client_ip,
+                rule_name=rule_name,
+                task_rule=current_task_rule,
+                dg_task_status=dg_task_status,
+                dg_task_message=dg_task_message,
+                dg_task_id=dg_task_id,
+                dg_task_duration=dg_task_duration,
+                dg_task_type=dg_task_type,
+            )
+        # 入库存储
+        task_info_data = task_data.model_dump()
+        logger.debug(f"save to db task_info_data={task_data.model_dump_json()}")
+        save_status, save_message = save_task_info(
+            db_manager=db_manager, task_info_data=task_info_data
         )
+        if save_status is False:
+            logger.error(save_message)
+            resp_data.code = error_code.DB_INSERT_OR_UPDATE_ERROR.get("code")
+            resp_data.message = (
+                error_code.DB_INSERT_OR_UPDATE_ERROR.get("description", "")
+                + " "
+                + save_message
+            )
     resp_data.data = task_type_data
     return resp_data.model_dump()

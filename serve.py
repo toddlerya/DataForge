@@ -20,7 +20,7 @@ class Serve:
             base_path=str(PROJECT_PATH.absolute()),
             log_path="logs",
             log_name="DataForgeServer.log",
-            file_log_level=ENV_LOG_LEVEL,
+            file_log_level="TRACE",
             console_log_level=ENV_LOG_LEVEL,
         ).get_config()
 

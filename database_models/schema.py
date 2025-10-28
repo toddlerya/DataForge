@@ -77,16 +77,20 @@ class TaskDataSchema(BaseModel):
     task_rule: list[dict[str, Any]] = Field(
         default=[{}], description="任务规则配置JSON"
     )
+    dg_task_id: str = Field(default="", description="DG的任务ID")
     dg_task_status: int = Field(
         default=-1, description="DG任务状态: 0正常,1异常,-1未知"
     )
     dg_task_message: str = Field(default="", description="DG任务状态信息")
-    dg_task_id: str = Field(default="", description="DG的任务ID")
     dg_task_edit_url: str = Field(default="", description="DG任务的编辑URL")
     dg_task_rule_data_preview: list[dict] = Field(
         default=[{}], description="DG规则的预览数据"
     )
-    dg_task_duration: str = Field(default="", description="DG任务耗时")
+    dg_task_duration: Optional[str] = Field(default="", description="DG任务耗时")
+    dg_task_type: str = Field(default="", description="DG任务类型")
+    update_task_rule: list[dict[str, Any]] = Field(
+        default=[{}], description="任务更新后的规则配置JSON"
+    )
     user_modified_rules: dict = Field(default={}, description="用户修改的字段规则")
     env_name: str = Field(default="", description="环境名称")
 
@@ -242,7 +246,7 @@ class PydanticDataGeniusRule(BaseModel):
     cname: str = Field("", description="字段中文名称")
     preview: str | int | float | list | dict = Field("", description="字段示例数据预览")
     value: str | int | float | list | dict = Field("", description="字段示例数据值")
-    args: dict[str, str | list] = Field(
+    args: dict[str, str | int | float | dict | list] = Field(
         default_factory=dict, description="规则参数字典，包含生成数据所需的参数。"
     )
 

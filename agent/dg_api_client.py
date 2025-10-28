@@ -253,6 +253,7 @@ def query_dg_task_status(
                         output_filesize = result.get(
                             "output_filesize", "not_found_output_filesize"
                         )
+                        dg_task_type = result.get("_type", "DG任务类型未知")
                         data_genius_plan_edit_url = (
                             f"{DG_SERVER_BASE_URL}/{DG_NEW_TASK}?"
                             f"step=2&"
