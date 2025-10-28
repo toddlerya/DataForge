@@ -14,6 +14,7 @@ from loguru import logger
 from agent.tre_service_configs import (
     TRE_ENGINE_SERVER_BASE_URL,
     TRE_ENGINE_SERVER_RUN_URL,
+    TRE_ENGINE_SERVER_STATUS_URL,
     TRE_ENGINE_SERVER_UPLOAD_URL,
 )
 
@@ -104,7 +105,41 @@ def tre_service_run(task_id: str):
     return message, resp_json
 
 
+def tre_service_status(task_id: str):
+    """查看任务状态"""
+    tre_service_status_url = urljoin(
+        TRE_ENGINE_SERVER_BASE_URL, TRE_ENGINE_SERVER_STATUS_URL
+    )
+    logger.info(f"调用TRE-Service {tre_service_status_url}接口")
+    message = "ok"
+    resp_json = {}
+    with httpx.Client() as client:
+        response = client.get(url=tre_service_status_url, params={"task_id": task_id})
+        if response.status_code != 200:
+            try:
+                resp_json = response.json()
+            except Exception:
+                pass
+            message = (
+                f"请求 {tre_service_status_url} 异常, "
+                f"status_code: {response.status_code} resp_json={resp_json}"
+            )
+            return message, resp_json
+        try:
+            resp_json = response.json()
+        except Exception as err:
+            message = f"获取 {tre_service_status_url} 响应体异常, ERROR: {err}"
+            return message, resp_json
+        if resp_message := resp_json.get("message", ""):
+            if not resp_message.endswith("任务开始处理"):
+                message = (
+                    f"接口 {tre_service_status_url} 响应体message为{resp_message}, "
+                    f"异常请TRE-Service检查"
+                )
+    return message, resp_json
+
+
 if __name__ == "__main__":
-    m, r = tre_service_run(task_id="8afd4fb93814ca96fae6c28858f4be58")
+    m, r = tre_service_status(task_id="8afd4fb93814ca96fae6c28858f4be58")
     print(m)
     print(r)

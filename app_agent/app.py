@@ -472,17 +472,18 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             else:
                 await cl.Message(content="任务启动异常").send()
             return False
-    elif node == "query_sql_data_gen_result":
-        logger.info("[entry] query_sql_data_gen_result")
-        sql_data_gen_result = state.get("sql_data_gen_result")
-        if sql_data_gen_result:
+    elif node == "call_tre_service_status":
+        logger.info("[entry] call_tre_service_status")
+        await cl.Message(content="#### 任务运行进度...").send()
+        step_info = state.get("step_info")
+        if step_info:
             await cl.Message(
-                content=json.dumps(sql_data_gen_result, ensure_ascii=False, indent=2),
+                content=json.dumps(step_info, ensure_ascii=False, indent=2),
                 language="json",
             ).send()
             await cl.Message(content="#### TSML运行中...").send()
         else:
-            await cl.Message(content="TSML测试数据生成异常!").send()
+            await cl.Message(content="#### TSML运行异常...").send()
             return False
     elif node == "query_tsml_run_result":
         logger.info("[entry] query_tsml_run_result")

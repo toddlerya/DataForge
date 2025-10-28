@@ -356,6 +356,7 @@ class TSMLState(CommonState):
     prepare_tre_files_status: PrepareTREFilesStatusSchema
     tre_task_id: Optional[str]
     status_url: Optional[str]
+    step_info: dict
     tsml_parse_result: dict
     sql_data_gen_result: dict
     tsml_run_result: dict

@@ -20,7 +20,11 @@ from agent.state import (
     TSMLState,
     TSMLUserIntentSchema,
 )
-from agent.tre_service_api_client import tre_service_run, tre_service_upload_file
+from agent.tre_service_api_client import (
+    tre_service_run,
+    tre_service_status,
+    tre_service_upload_file,
+)
 
 
 def validate_tsml_input_args(state: TSMLState):
@@ -128,6 +132,7 @@ def call_tre_service_run(state: TSMLState):
         run_message, run_resp_data = tre_service_run(task_id=task_id)
         logger.trace(f"run_message={run_message} run_resp_data={run_resp_data}")
         if run_message != "ok":
+            # TODO: 此处还需要考虑重复提交任务的情况的
             state["messages"].append(AIMessage(content=run_message))
         if run_resp_data:
             state["status_url"] = run_resp_data.get("status_url")
@@ -136,52 +141,29 @@ def call_tre_service_run(state: TSMLState):
     return state
 
 
-def parse_tsml_by_tsml_test_engine(state: TSMLState):
-    """调用tsml测试引擎服务解析tsml文件"""
-    tre_export_file_info = state.get("tre_export_file_info")
-    if tre_export_file_info:
-        # 上传文件
-        logger.info("模拟请求tsml测试引擎.")
-        # 获取响应
-        logger.info("模拟获取响应结果")
-        tsml_parse_result = {
-            "model_name": "特定域名",
-            "model_desc": "重点人特定域名离线分析模型",
-            "model_category": "9999",
-            "model_code": "3201_11_10375",
-            "gen_data_sqls": {
-                "zdr_dict_tab": "SELECT create_time, create_userid, create_userorg, "
-                "dict_id, dict_name, dict_name_simplify, dict_pid, dict_type, level, "
-                "modify_time, remark, sort, status FROM zdr_dict_tab;",
-                "relation_nostatus": "SELECT dept_id, entity_id, model_id, "
-                "rule_id, rule_name, rule_type, userid FROM relation_nostatus;",
-            },
-        }
-        state["tsml_parse_result"] = tsml_parse_result
-    return state
+def should_call_tre_status(state: TSMLState):
+    status_url = state.get("status_url")
+    if status_url:
+        return "call_tre_service_status"
+    else:
+        return "wait_human_upload_tre_file"
 
 
-def query_sql_data_gen_result(state: TSMLState):
-    session_id = state.get("session_id")
-    if session_id:
-        # 使用任务uuid查询是否生成完成了
-        sql_data_gen_result = {"zdr_dict_tab": 1000, "relation_nostatus": 2000}
-        state["sql_data_gen_result"] = sql_data_gen_result
-    return state
-
-
-def query_tsml_run_result(state: TSMLState):
-    session_id = state.get("session_id")
-    if session_id:
-        # 使用任务uuid查询是否生成完成了
-        tsml_run_result = {
-            "summary": "TSML运行结果概要....",
-            "stauts": "成功",
-            "input": 1000,
-            "output": 2000,
-            "report": f"http://tsml.test.engine/report/{session_id}.html",
-        }
-        state["tsml_run_result"] = tsml_run_result
+def call_tre_service_status(state: TSMLState):
+    """调用run接口"""
+    if task_id := state.get("tre_task_id"):
+        logger.info(f"task_id={task_id}")
+        status_message, status_resp_data = tre_service_status(task_id=task_id)
+        logger.trace(
+            f"status_message={status_message} status_resp_data={status_resp_data}"
+        )
+        if status_message != "ok":
+            # TODO: 此处还需要考虑重复提交任务的情况的
+            state["messages"].append(AIMessage(content=status_message))
+        if status_resp_data:
+            state["step_info"] = status_resp_data.get("step_info", {})
+    else:
+        logger.error(f"没有获取到task_id: {task_id}")
     return state
 
 
@@ -189,8 +171,8 @@ tsml_builder = StateGraph(TSMLState)
 tsml_builder.add_node("wait_human_upload_tre_file", wait_human_upload_tre_file)
 tsml_builder.add_node("analyze_tsml_intent", analyze_tsml_intent)
 tsml_builder.add_node("upload_tre_files_node", upload_tre_files_node)
-tsml_builder.add_node("should_call_tre_run", should_call_tre_run)
 tsml_builder.add_node("call_tre_service_run", call_tre_service_run)
+tsml_builder.add_node("call_tre_service_status", call_tre_service_status)
 
 tsml_builder.add_conditional_edges(
     START,
@@ -204,7 +186,12 @@ tsml_builder.add_conditional_edges(
     should_call_tre_run,
     ["call_tre_service_run", "wait_human_upload_tre_file"],
 )
-tsml_builder.add_edge("call_tre_service_run", END)
+tsml_builder.add_conditional_edges(
+    "call_tre_service_run",
+    should_call_tre_status,
+    ["call_tre_service_status", "wait_human_upload_tre_file"],
+)
+tsml_builder.add_edge("call_tre_service_status", END)
 
 memory = InMemorySaver()
 tsml_graph = tsml_builder.compile(checkpointer=memory)
