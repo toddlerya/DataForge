@@ -85,3 +85,14 @@ def query_task_info_by_cnodition(
         return False, message, None
     else:
         return True, "ok", result
+
+
+if __name__ == "__main__":
+    s, m, r = query_task_info_by_cnodition(
+        db_manager=DatabaseManager(),
+        task_uuid="de35d50b89da4bf5ab5fa58839f015c9",
+        # dg_task_id="3de29d1c-ef6f-4530-b698-3269a139d0fb",
+    )
+    print(s)
+    print(m)
+    print(r)

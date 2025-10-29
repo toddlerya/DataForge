@@ -152,10 +152,13 @@ async def add_task_info(
         # 存在ai_task_id说明是AI-DG创建的规则，可能人工修改过
         task_type_data = {"task_type": "AI-HUMAN-MODIFIED"}
     # 查询数据库中此dg任务id是否存在
+    query_condition = {}
+    if ai_task_id:
+        query_condition = {"task_uuid": ai_task_id}
+    else:
+        query_condition = {"dg_task_id": dg_task_id}
     query_status, query_message, lastest_task_data = query_task_info_by_cnodition(
-        db_manager=db_manager,
-        task_uuid=ai_task_id,
-        dg_task_id=dg_task_id,
+        db_manager=db_manager, **query_condition
     )
     if query_status is False:
         logger.error(f"查询当前任务历史记录信息异常: {query_message}")
