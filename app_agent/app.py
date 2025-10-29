@@ -6,6 +6,7 @@
 
 import asyncio
 import json
+import time
 from typing import cast
 
 import chainlit as cl
@@ -27,6 +28,7 @@ from agent.state import (
     TableMetadataSchema,
     TREExportFileSchema,
 )
+from agent.tre_service_api_client import tre_service_status
 from common.initialization import init_env, setup_logging
 from config import DG_PLAN_PATH, PROJECT_PATH
 from utils.log import LogManager, TracedLogger
@@ -460,6 +462,8 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
         logger.info("[entry] call_tre_service_run")
         await cl.Message(content="#### 任务开始处理...").send()
         status_url = state.get("status_url")
+        tre_task_id = state.get("tre_task_id")
+        cl.user_session.set("tre_task_id", tre_task_id)
         logger.info(f"status_url={status_url}")
         if status_url:
             await cl.Message(content="任务启动成功").send()
@@ -474,17 +478,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             return False
     elif node == "call_tre_service_status":
         logger.info("[entry] call_tre_service_status")
-        await cl.Message(content="#### 任务运行进度...").send()
-        step_info = state.get("step_info")
-        if step_info:
-            await cl.Message(
-                content=json.dumps(step_info, ensure_ascii=False, indent=2),
-                language="json",
-            ).send()
-            await cl.Message(content="#### TSML运行中...").send()
-        else:
-            await cl.Message(content="#### TSML运行异常...").send()
-            return False
+        await cl.Message(content="#### TSML运行中, 请等待...").send()
     elif node == "query_tsml_run_result":
         logger.info("[entry] query_tsml_run_result")
         tsml_run_result = state.get("tsml_run_result")
@@ -632,6 +626,61 @@ async def handle_interrupt(run_config: RunnableConfig, state) -> bool:  # noqa: 
                         node=node, state=state, run_config=run_config
                     )
             return True
+    # ==== tsml任务状态轮询中断 =====
+    elif interrupt_value == "tsml_task_end?":
+        wait_result = {}
+        tre_task_id = cl.user_session.get("tre_task_id")
+        max_wait_loop_count = 60 * 5
+        wait_loop_count = 0
+        # step_name = cl.Message(content="当前运行步骤: ")
+        # await step_name.send()
+        step_message = cl.Message(content="{}", language="json")
+        await step_message.send()
+        if tre_task_id:
+            while True:
+                status_message, status_resp_data = tre_service_status(
+                    task_id=tre_task_id
+                )
+                if status_message != "ok":
+                    wait_result["status_message"] = status_message
+                if status_resp_data:
+                    wait_result["task_status"] = status_resp_data.get("task_status", "")
+                    wait_result["now_step"] = status_resp_data.get("now_step", "")
+                    wait_result["step_info"] = status_resp_data.get("step_info", {})
+                    wait_result["completed"] = status_resp_data.get("completed", False)
+                    wait_result["task_error"] = status_resp_data.get("error", "")
+                if wait_loop_count >= max_wait_loop_count:
+                    break
+                if (
+                    wait_result["task_error"]
+                    or wait_result["completed"]
+                    or wait_result["task_status"] == "failed"
+                ):
+                    break
+                # 更新
+                # step_name.content = f"当前运行步骤: {wait_result['now_step']}"
+                # await step_name.update()
+                step_message.content = wait_result["step_info"]
+                await step_message.update()
+                # 计数器累加 等待
+                wait_loop_count += 1
+                # await asyncio.sleep(10)
+                time.sleep(10)
+        logger.info(f"wait_result: {wait_result}")
+        cl.user_session.set("wait_result", wait_result)
+        resume_map = wait_result
+        # 继续运行
+        async for event in main_graph.astream(
+            Command(resume=resume_map),
+            run_config,
+            stream_mode="updates",
+            subgraphs=True,
+        ):
+            event = cast(tuple[tuple, dict], event)
+            for node, state in event[1].items():
+                logger.trace(f"current_node={node} current_state={state}")
+                await handle_graph_event(node=node, state=state, run_config=run_config)
+        return True
     return False
 
 

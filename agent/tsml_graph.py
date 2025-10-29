@@ -146,7 +146,7 @@ def should_call_tre_status(state: TSMLState):
     if status_url:
         return "call_tre_service_status"
     else:
-        return "wait_human_upload_tre_file"
+        return END
 
 
 def call_tre_service_status(state: TSMLState):
@@ -158,12 +158,48 @@ def call_tre_service_status(state: TSMLState):
             f"status_message={status_message} status_resp_data={status_resp_data}"
         )
         if status_message != "ok":
-            # TODO: 此处还需要考虑重复提交任务的情况的
             state["messages"].append(AIMessage(content=status_message))
         if status_resp_data:
+            state["task_status"] = status_resp_data.get("task_status", "")
+            state["now_step"] = status_resp_data.get("now_step", "")
             state["step_info"] = status_resp_data.get("step_info", {})
+            state["completed"] = status_resp_data.get("completed", False)
+            state["task_error"] = status_resp_data.get("error", "")
     else:
         logger.error(f"没有获取到task_id: {task_id}")
+    return state
+
+
+def wait_task_done(state: TSMLState):
+    wait_result: dict = interrupt("tsml_task_end?")
+    logger.info(f"resume wait_result: {wait_result}")
+    status_message = wait_result.get("status_message")
+    if status_message:
+        state["messages"].append(AIMessage(content=status_message))
+    state["task_status"] = wait_result.get("task_status", "")
+    state["now_step"] = wait_result.get("now_step", "")
+    state["step_info"] = wait_result.get("step_info", {})
+    state["completed"] = wait_result.get("completed", False)
+    state["task_error"] = wait_result.get("error", "")
+    return state
+
+
+def done_route(state: TSMLState):
+    completed = state.get("completed", False)
+    state = state.get("state", "")
+    if state != "failed" and completed:
+        return "finished"
+    if state == "failed":
+        return "error_exit"
+    else:
+        return END
+
+
+def error_exit(state: TSMLState):
+    return state
+
+
+def finished(state: TSMLState):
     return state
 
 
@@ -173,6 +209,9 @@ tsml_builder.add_node("analyze_tsml_intent", analyze_tsml_intent)
 tsml_builder.add_node("upload_tre_files_node", upload_tre_files_node)
 tsml_builder.add_node("call_tre_service_run", call_tre_service_run)
 tsml_builder.add_node("call_tre_service_status", call_tre_service_status)
+tsml_builder.add_node("wait_task_done", wait_task_done)
+tsml_builder.add_node("error_exit", error_exit)
+tsml_builder.add_node("finished", finished)
 
 tsml_builder.add_conditional_edges(
     START,
@@ -189,9 +228,14 @@ tsml_builder.add_conditional_edges(
 tsml_builder.add_conditional_edges(
     "call_tre_service_run",
     should_call_tre_status,
-    ["call_tre_service_status", "wait_human_upload_tre_file"],
+    ["call_tre_service_status", END],
 )
-tsml_builder.add_edge("call_tre_service_status", END)
+tsml_builder.add_edge("call_tre_service_status", "wait_task_done")
+tsml_builder.add_conditional_edges(
+    "wait_task_done", done_route, ["error_exit", "finished", END]
+)
+tsml_builder.add_edge("error_exit", END)
+tsml_builder.add_edge("finished", END)
 
 memory = InMemorySaver()
 tsml_graph = tsml_builder.compile(checkpointer=memory)

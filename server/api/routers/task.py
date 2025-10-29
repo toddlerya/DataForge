@@ -120,6 +120,9 @@ def compare_task_rule(
     result["modify_group"] = modify_group
     result["add_group"] = add_group
     result["del_group"] = del_group
+    if result["add_group"] == result["del_group"] == result["modify_group"] == []:
+        # 没有变化置为空
+        result = {}
     logger.debug(f"result={json.dumps(result, ensure_ascii=False)}")
     return True, "ok", result
 
