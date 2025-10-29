@@ -135,7 +135,7 @@ async def add_task_info(
     )
     rule_url_path = task_data_json.get("rule_url_path", "")
     rule_name = pathlib.Path(rule_url_path).name.split(".json")[0]
-    ai_task_id = task_data_json.get("ai_task_id", "")
+    ai_task_id = task_data_json.get("third_ai_task_id", "")
     dg_task_id = task_data_json.get("task_id", "")
     data_row_count = task_data_json.get("rows", 0)
     client_ip = task_data_json.get("ip", "127.0.0.1")
@@ -213,7 +213,9 @@ async def add_task_info(
             )
             task_data = TaskDataSchema(
                 task_uuid=task_uuid,
-                table_en_name=task_data_json.get("modelName", ""),
+                table_en_name=task_data_json.get("modelName", "").replace(
+                    "测试部仿真测试环境-", ""
+                ),
                 data_row_count=data_row_count,
                 client_ip=client_ip,
                 rule_name=rule_name,
