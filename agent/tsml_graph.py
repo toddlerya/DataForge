@@ -4,6 +4,7 @@
 # @Author   : guoqun X2590
 # @Desc     :
 
+import asyncio
 import pathlib
 from typing import Optional
 
@@ -149,11 +150,11 @@ def should_call_tre_status(state: TSMLState):
         return END
 
 
-def call_tre_service_status(state: TSMLState):
+async def call_tre_service_status(state: TSMLState):
     """调用run接口"""
     if task_id := state.get("tre_task_id"):
         logger.info(f"task_id={task_id}")
-        status_message, status_resp_data = tre_service_status(task_id=task_id)
+        status_message, status_resp_data = await tre_service_status(task_id=task_id)
         logger.trace(
             f"status_message={status_message} status_resp_data={status_resp_data}"
         )
@@ -167,32 +168,24 @@ def call_tre_service_status(state: TSMLState):
             state["task_error"] = status_resp_data.get("error", "")
     else:
         logger.error(f"没有获取到task_id: {task_id}")
+    state["wait_loop_count"] = 0
     return state
 
 
-def wait_task_done(state: TSMLState):
-    wait_result: dict = interrupt("tsml_task_end?")
-    logger.info(f"resume wait_result: {wait_result}")
-    status_message = wait_result.get("status_message")
-    if status_message:
-        state["messages"].append(AIMessage(content=status_message))
-    state["task_status"] = wait_result.get("task_status", "")
-    state["now_step"] = wait_result.get("now_step", "")
-    state["step_info"] = wait_result.get("step_info", {})
-    state["completed"] = wait_result.get("completed", False)
-    state["task_error"] = wait_result.get("error", "")
-    return state
-
-
-def done_route(state: TSMLState):
+async def wait_done_route(state: TSMLState):
+    wait_loop_count = state.get("wait_loop_count", 0)
     completed = state.get("completed", False)
-    state = state.get("state", "")
-    if state != "failed" and completed:
+    task_status = state.get("task_status", "")
+    if task_status != "failed" and completed:
         return "finished"
-    if state == "failed":
+    if task_status == "failed":
         return "error_exit"
     else:
-        return END
+        await asyncio.sleep(30)
+        if wait_loop_count >= 10:
+            return "error_exit"
+        state["wait_loop_count"] += 1
+        return "call_tre_service_status"
 
 
 def error_exit(state: TSMLState):
@@ -200,6 +193,12 @@ def error_exit(state: TSMLState):
 
 
 def finished(state: TSMLState):
+    step_info = state.get("step_info", {})
+    step7_data = step_info.get("step7", {})
+    if step7_data.get("status") == "已完成":
+        result = step7_data.get("result", {})
+        state["job_result_status"] = result.get("job_info", {}).get("job_result_status")
+        state["report_url"] = result.get("job_info", {}).get("report_url")
     return state
 
 
@@ -209,7 +208,6 @@ tsml_builder.add_node("analyze_tsml_intent", analyze_tsml_intent)
 tsml_builder.add_node("upload_tre_files_node", upload_tre_files_node)
 tsml_builder.add_node("call_tre_service_run", call_tre_service_run)
 tsml_builder.add_node("call_tre_service_status", call_tre_service_status)
-tsml_builder.add_node("wait_task_done", wait_task_done)
 tsml_builder.add_node("error_exit", error_exit)
 tsml_builder.add_node("finished", finished)
 
@@ -230,9 +228,10 @@ tsml_builder.add_conditional_edges(
     should_call_tre_status,
     ["call_tre_service_status", END],
 )
-tsml_builder.add_edge("call_tre_service_status", "wait_task_done")
 tsml_builder.add_conditional_edges(
-    "wait_task_done", done_route, ["error_exit", "finished", END]
+    "call_tre_service_status",
+    wait_done_route,
+    ["error_exit", "finished", "call_tre_service_status"],
 )
 tsml_builder.add_edge("error_exit", END)
 tsml_builder.add_edge("finished", END)

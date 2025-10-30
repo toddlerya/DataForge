@@ -105,7 +105,7 @@ def tre_service_run(task_id: str):
     return message, resp_json
 
 
-def tre_service_status(task_id: str):
+async def tre_service_status(task_id: str):
     """查看任务状态"""
     tre_service_status_url = urljoin(
         TRE_ENGINE_SERVER_BASE_URL, TRE_ENGINE_SERVER_STATUS_URL
@@ -140,6 +140,8 @@ def tre_service_status(task_id: str):
 
 
 if __name__ == "__main__":
-    m, r = tre_service_status(task_id="8afd4fb93814ca96fae6c28858f4be58")
+    import asyncio
+
+    m, r = asyncio.run(tre_service_status(task_id="8afd4fb93814ca96fae6c28858f4be58"))
     print(m)
     print(r)
