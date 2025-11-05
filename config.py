@@ -57,6 +57,7 @@ PROJECT_PATH = pathlib.Path(__file__).parent
 SAVE_DATA_PATH = PROJECT_PATH.joinpath("data").absolute()
 DG_PLAN_PATH = SAVE_DATA_PATH.joinpath("dg_plan").absolute()
 DG_PAYLOAD_PATH = SAVE_DATA_PATH.joinpath("dg_payload").absolute()
+FMDB_INSERT_SQL_PATH = SAVE_DATA_PATH.joinpath("fmdb_insert_sql").absolute()
 GEN_TABLE_MODELS_BASE_PATH = SAVE_DATA_PATH.joinpath("gen_table_models").absolute()
 GEN_TABLE_MODELS_TEMP_PATH = GEN_TABLE_MODELS_BASE_PATH.joinpath("temp").absolute()
 GEN_TABLE_MODELS_DATA_PATH = GEN_TABLE_MODELS_BASE_PATH.joinpath("data").absolute()

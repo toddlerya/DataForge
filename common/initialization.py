@@ -13,6 +13,7 @@ from config import (
     DG_PAYLOAD_PATH,
     DG_PLAN_PATH,
     ENV_LOG_LEVEL,
+    FMDB_INSERT_SQL_PATH,
     GEN_TABLE_MODELS_DATA_PATH,
     GEN_TABLE_MODELS_TEMP_PATH,
     SAVE_DATA_PATH,
@@ -50,6 +51,7 @@ def init_env():
         SAVE_DATA_PATH,
         DG_PLAN_PATH,
         DG_PAYLOAD_PATH,
+        FMDB_INSERT_SQL_PATH,
         GEN_TABLE_MODELS_DATA_PATH,
         GEN_TABLE_MODELS_TEMP_PATH,
         CONF_DATA_PATH,
@@ -59,3 +61,7 @@ def init_env():
         if status is False:
             logger.error(message)
             sys.exit(1)
+
+
+if __name__ == "__main__":
+    init_env()
