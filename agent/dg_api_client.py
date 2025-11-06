@@ -273,6 +273,7 @@ def query_dg_task_status(
                         state["data_genius_plan_output_url"] = output_url
                         state["data_genius_plan_output_filesize"] = output_filesize
                         state["data_genius_plan_edit_url"] = data_genius_plan_edit_url
+                        state["dg_task_type"] = dg_task_type
                         # 更新任务信息
                         task_data.dg_task_status = 0
                         task_data.dg_task_message = "成功"

@@ -196,6 +196,7 @@ class DataGenBaseState(CommonState):
     data_genius_plan_output_url: str
     data_genius_plan_output_filesize: str
     data_genius_plan_edit_url: str
+    dg_task_type: str
     error_messages: Annotated[List[AnyMessage], add_messages]
     task_data: TaskDataSchema
     env_name: str
