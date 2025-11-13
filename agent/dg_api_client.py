@@ -297,7 +297,7 @@ def query_dg_task_status(
                     else:
                         # DG任务结果不是成功
                         task_data.dg_task_status = 1
-                        task_data.dg_task_message = result.get("status_name")
+                        task_data.dg_task_message = f"【{result.get('status_name')}】DG异常请联系DG管理员（严铖杰）"
                         state["task_data"] = task_data
                         return state
             time.sleep(2)

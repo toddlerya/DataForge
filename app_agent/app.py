@@ -396,6 +396,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                 PydanticDataGeniusPlan, pydantic_data_genius_plan
             )
             data_genius_plan_task_id = state.get("data_genius_plan_task_id")
+            data_genius_task_message = state.get("dg_task_message")
             data_genius_plan_edit_url = state.get("data_genius_plan_edit_url")
             data_genius_plan_run_duration = state.get("data_genius_plan_run_duration")
             data_genius_plan_output_filesize = state.get(
@@ -406,6 +407,11 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
             if query_data_genius_task_error:
                 done_message = query_data_genius_task_error
                 logger.error(query_data_genius_task_error)
+                await cl.Message(content=query_data_genius_task_error).send()
+                return True
+            if not data_genius_plan_task_id and data_genius_task_message:
+                logger.warning(data_genius_task_message)
+                await cl.Message(content=data_genius_task_message).send()
                 return True
             else:
                 done_message = (
@@ -418,7 +424,7 @@ async def handle_graph_event(node: str, state: dict, run_config: RunnableConfig)
                     f"[{data_genius_plan_task_id}]({data_genius_plan_edit_url})"
                 )
                 logger.info(done_message)
-            await cl.Message(content=done_message).send()
+                await cl.Message(content=done_message).send()
         else:
             logger.error(
                 f"pydantic_data_genius_plan为空: value={pydantic_data_genius_plan}"
