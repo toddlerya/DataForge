@@ -7,7 +7,6 @@
 
 import base64
 import csv
-import datetime
 import glob
 import hashlib
 import json
@@ -15,12 +14,12 @@ import os
 import pathlib
 import shutil
 import tarfile
-from typing import Tuple, Union, TextIO
+from typing import TextIO, Tuple, Union
 from xml.etree import ElementTree
 
-from ruamel.yaml import YAML
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
+from ruamel.yaml import YAML
 
 from utils.log import logger
 from utils.time import timestamp2_datetime
@@ -48,12 +47,12 @@ def create_dir(dir_path: str, parents: bool = True) -> Tuple[bool, str]:
 
 
 @logger.catch
-def load_yaml_from_file(yaml_file_path: str) -> tuple[str, dict]:
+def load_yaml_from_file(yaml_file_path: pathlib.Path) -> tuple[str, list[dict]]:
     """
     读取yaml文件解析为dict
 
     Args:
-        yaml_file_path (str): yaml文件路径
+        yaml_file_path (pathlib.Path): yaml文件路径
 
     Returns:
         tuple[str, dict]: 读取解析成功, message="ok"
@@ -63,15 +62,15 @@ def load_yaml_from_file(yaml_file_path: str) -> tuple[str, dict]:
         with open(yaml_file_path, mode="r", encoding="utf-8") as r:
             try:
                 yaml = YAML(typ="base")
-                # 避免ruamel自动将时间日期字符串转为datetime对象，
-                config = yaml.load(r)
-                return message, config
+                # 使用 load_all 来读取多个文档
+                documents = list(yaml.load_all(r))
+                return message, documents
             except Exception as err:
                 message = f"载入yaml数据失败: {yaml_file_path} 错误信息: {err}"
-                return message, {}
+                return message, [{}]
     except Exception as err:
         message = f"打开yaml文件{yaml_file_path}失败: {err}"
-        return message, {}
+        return message, [{}]
 
 
 @logger.catch

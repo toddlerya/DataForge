@@ -1,0 +1,213 @@
+{
+	"info": {
+		"_postman_id": "db6aa8a8-2024-4b98-bab8-79f5de7a608e",
+		"name": "DataForge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "data_gen_agent/set_intent",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_input\": \"数据库表名称: massdata.ADM_REL_MOBILE 期望生成数据条数: massdata.ADM_REL_MOBILE: 5\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{host}}:25702/data_gen_agent/set_intent",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "25702",
+					"path": [
+						"data_gen_agent",
+						"set_intent"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "data_gen_agent/human_intent_feedback",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"human_intent_feedback\": \"正确\",\r\n    \"session_id\": \"70708ee406d244229b14a9114f4e9294\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{host}}:25702/data_gen_agent/human_intent_feedback",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "25702",
+					"path": [
+						"data_gen_agent",
+						"human_intent_feedback"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "data_gen_agent/run",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"table_en_names\": [\r\n        \"massdata.ADM_REL_MOBILE\"\r\n    ],\r\n    \"table_data_count\": {\r\n        \"massdata.ADM_REL_MOBILE\": 100\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{host}}:25702/data_gen_agent/run",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "25702",
+					"path": [
+						"data_gen_agent",
+						"run"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sql_mode_data_gen_agent/run",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"sql\": \"SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134 FROM massdata.DWS_BEH_ANA_VPN\",\r\n  \"data_count\": 100,\r\n  \"fields_info\": {\r\n      \"MD_ID\": {\r\n          \"cn_name\": \"md5计算唯一ID\",\r\n          \"field_type\": \"string\"\r\n      }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{host}}:25702/sql_mode_data_gen_agent/run",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "25702",
+					"path": [
+						"sql_mode_data_gen_agent",
+						"run"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sql_mode_data_gen_agent/set_intent",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"user_input\": \"SQL内容(必填): select node_22.MD_ID as F1131,node_22.AUTH_TYPE as F1132,node_22.AUTH_ACCOUNT as F1133,node_22.VPN_TYPE as F1134 from massdata.DWS_BEH_ANA_VPN as node_22 期望生成数据条数(必填): 100\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{host}}:25702/sql_mode_data_gen_agent/set_intent",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "25702",
+					"path": [
+						"sql_mode_data_gen_agent",
+						"set_intent"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sql_mode_data_gen_agent/human_intent_feedback",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"human_intent_feedback\": \"正确\",\r\n    \"session_id\": \"87bf3ebc20ae4e29a2c1993c6ee4d66b\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{host}}:25702/sql_mode_data_gen_agent/human_intent_feedback",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"port": "25702",
+					"path": [
+						"sql_mode_data_gen_agent",
+						"human_intent_feedback"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "8ca0e3fd-b6d6-400e-b7e2-6d9632df8f3f",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "59c94137-c403-45ef-8d0d-75c9ca3c3cc1",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "ceeaa82e-0dab-43ea-9d60-5efccfc23926",
+			"key": "host",
+			"value": "10.1.23.57"
+		}
+	],
+	"protocolProfileBehavior": {}
+}

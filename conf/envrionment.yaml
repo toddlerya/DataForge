@@ -1,0 +1,27 @@
+---
+status: 启用
+env_name: 测试部仿真测试环境
+apollo_web_ip: 172.21.4.30
+tre_domain_data_bdp_web_ip: 172.16.29.12
+---
+status: 禁用
+env_name: 重庆深度搜索预警
+other_configs:
+ postgresql:
+   host: 172.16.43.102
+   port: 5432
+   database: intelligenceAnalysisAssistant
+   username: postgres
+   password: postgres
+ mysql:
+   host: 172.16.43.102
+   port: 3306
+   database: intelligenceAnalysisAssistant
+   username: root
+   password: mysql   
+---
+status: 启用
+env_name: 日喀则原始表
+other_configs:
+  excel:
+    name: 日喀则原始表信息.xlsx

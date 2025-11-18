@@ -1,0 +1,36 @@
+@hostname = 172.16.150.178
+@port = 25702
+@host = {{hostname}}:{{port}}
+
+### 
+POST /data_gen_agent/set_intent HTTP/1.1
+Host: {{host}}
+Content-Type: application/json
+
+{
+    "user_input": "数据库表名称: massdata.ADM_REL_MOBILE 期望生成数据条数: massdata.ADM_REL_MOBILE: 5"
+}
+
+###
+POST /data_gen_agent/human_intent_feedback HTTP/1.1
+Host: {{host}}
+Content-Type: application/json
+
+{
+    "human_intent_feedback": "正确",
+    "session_id": "497a5a799fe7403ebdf91248dc29df73"
+}
+
+### 直接运行
+POST /data_gen_agent/run HTTP/1.1
+Host: {{host}}
+Content-Type: application/json
+
+{
+    "table_en_names": [
+        "massdata.ADM_REL_MOBILE"
+    ],
+    "table_data_count": {
+        "massdata.ADM_REL_MOBILE": 100
+    }
+}

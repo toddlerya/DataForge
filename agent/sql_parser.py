@@ -5,7 +5,7 @@
 # @FileName : sql_parser.py
 # @Project  : DataForge
 import re
-from typing import Dict, List
+from typing import Optional
 
 import sqlglot
 from sqlglot import exp, parse_one
@@ -30,8 +30,8 @@ def build_alias_context(query_expr: exp.Query | exp.Expression) -> dict:
 
 
 def trace_column_origin(
-        column_expr: exp.Column, alias_content: dict
-) -> tuple[str, str] or None:
+    column_expr: exp.Column, alias_content: dict
+) -> Optional[tuple[str, str]]:
     """
     递归追踪一个字段表达式，直到找到最终的物理表
     :param column_expr: 要追踪的字段表达式(e.g., a.col1)
@@ -185,16 +185,14 @@ def parse_simple_select(sql: str) -> tuple[bool, str, dict]:
         m = re.search(pattern, sql, flags=re.IGNORECASE)
         if m and m.group(1):
             comment = m.group(1).lstrip("--").strip()
-        columns.append({
-            "en_name": col_name,
-            "alias_name": alias_name,
-            "comment": comment
-        })
+        columns.append(
+            {"en_name": col_name, "alias_name": alias_name, "comment": comment}
+        )
     return True, "ok", {real_table: columns}
 
 
 if __name__ == "__main__":
-    demo_sql_1 = """select 
+    demo_sql_1 = """select
                 a.ID as ID, -- ID
                 a.UPLOAD_AREA_CODE as UPLOAD_AREA_CODE, -- 上报地市行政区划代码
                 a.ISP_TYPE as ISP_TYPE, -- 运营商信息代码
@@ -235,12 +233,12 @@ if __name__ == "__main__":
                 a.MAIN_FILE_PATH as MAIN_FILE_PATH, -- 全文路径
                 a.PASSWORD as PASSWORD -- 密码
              from  massdata.NB_MASS_RESOURCE_ARTICLE a where a.CAPTURE_TIME>=UNIX_TIMESTAMP()-1*24*3600 AND
-             a.APP_TYPE='100000595'       and a.AUTH_ACCOUNT<>''"""
+             a.APP_TYPE='100000595'       and a.AUTH_ACCOUNT<>''"""  # noqa: E501
 
-    demo_sql_2 = """select F859 as F2079, F860 as F2085, F861 as F2091, F862 as F2097, STR_SRC_IP as F2103, F863 as F2109, STR_DST_IP as F2115, F864 as F2121, F865 as F2127, F866 as F2133, F867 as F2139, F868 as F2145, F869 as F2151, F870 as F2157, F871 as F2163, F872 as F2169, F873 as F2175, F874 as F2181, F875 as F2187, F876 as F2193, F877 as F2199, PASSWORD as F2205, TITLE as 
-F2211, ARTICLE_ID as F2217, CONTENT_S as F2223, F878 as F2229, F879 as F2235 from massdata.NB_MASS_RESOURCE_REGISTER"""
+    demo_sql_2 = """select F859 as F2079, F860 as F2085, F861 as F2091, F862 as F2097, STR_SRC_IP as F2103, F863 as F2109, STR_DST_IP as F2115, F864 as F2121, F865 as F2127, F866 as F2133, F867 as F2139, F868 as F2145, F869 as F2151, F870 as F2157, F871 as F2163, F872 as F2169, F873 as F2175, F874 as F2181, F875 as F2187, F876 as F2193, F877 as F2199, PASSWORD as F2205, TITLE as
+F2211, ARTICLE_ID as F2217, CONTENT_S as F2223, F878 as F2229, F879 as F2235 from massdata.NB_MASS_RESOURCE_REGISTER"""  # noqa: E501
 
-    demo_sql_3 = "select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE, NICKNAME, REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT, REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE, REGISIP_REGIONAL_CODE, PACKAGENAME, CAPTURE_TIME, ACTIONTYPE, ACTIONTIME from XY_BF_ACCOUNT"
+    demo_sql_3 = "select MD_ID, ACCOUNTNAME, USERNUM, USERID, MOBILE, NICKNAME, REGIS_TIME, REGISIP, REGISIPID, REGISIP_LOCATION, REGISIPPORT, REGISIP_PROVINCIAL_CODE, REGISIP_CITY_CODE, REGISIP_COUNTRY_CODE, REGISIP_REGIONAL_CODE, PACKAGENAME, CAPTURE_TIME, ACTIONTYPE, ACTIONTIME from XY_BF_ACCOUNT"  # noqa: E501
 
     import json
 

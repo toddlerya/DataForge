@@ -3,34 +3,79 @@ config:
   flowchart:
     curve: linear
 ---
-graph LR;
+graph TD;
         __start__([<p>__start__</p>]):::first
-        mapping_agent(mapping_agent)
+        analyze_intent(analyze_intent)
+        retry_analyze_intent(retry_analyze_intent)
         __end__([<p>__end__</p>]):::last
-        __start__ --> intent_agent___start__;
-        intent_agent___end__ --> mapping_agent;
-        mapping_agent --> gen_fake_data_agent___start__;
-        gen_fake_data_agent___end__ --> __end__;
-        subgraph intent_agent
-        intent_agent___start__(<p>__start__</p>)
-        intent_agent_analyze_agent(analyze_agent)
-        intent_agent_confirm(confirm)
-        intent_agent___end__(<p>__end__</p>)
-        intent_agent___start__ --> intent_agent_analyze_agent;
-        intent_agent_analyze_agent --> intent_agent_confirm;
-        intent_agent_confirm -.-> intent_agent_analyze_agent;
-        intent_agent_confirm -.-> intent_agent___end__;
+        __start__ --> analyze_intent;
+        analyze_intent -.-> expolore_graph___start__;
+        analyze_intent -.-> meta_mode_data_gen_graph___start__;
+        analyze_intent -.-> sql_mode_data_gen_graph___start__;
+        meta_mode_data_gen_graph___end__ -.-> process_dg_graph_dg_rule_processor;
+        meta_mode_data_gen_graph___end__ -.-> retry_analyze_intent;
+        retry_analyze_intent --> analyze_intent;
+        sql_mode_data_gen_graph___end__ -.-> process_dg_graph_dg_rule_processor;
+        sql_mode_data_gen_graph___end__ -.-> retry_analyze_intent;
+        analyze_intent -.-> __end__;
+        expolore_graph___end__ --> __end__;
+        process_dg_graph_save_task_info2db --> __end__;
+        subgraph expolore_graph
+        expolore_graph___start__(<p>__start__</p>)
+        expolore_graph_tool_node(tool_node)
+        expolore_graph_explore_chat(explore_chat)
+        expolore_graph_filter_and_summarize_data(filter_and_summarize_data)
+        expolore_graph_summary_node(summary_node)
+        expolore_graph___end__(<p>__end__</p>)
+        expolore_graph___start__ --> expolore_graph_explore_chat;
+        expolore_graph_explore_chat -.-> expolore_graph_filter_and_summarize_data;
+        expolore_graph_explore_chat -.-> expolore_graph_tool_node;
+        expolore_graph_filter_and_summarize_data --> expolore_graph_summary_node;
+        expolore_graph_tool_node --> expolore_graph_explore_chat;
+        expolore_graph_explore_chat -.-> expolore_graph___end__;
+        expolore_graph_summary_node --> expolore_graph___end__;
         end
-        subgraph gen_fake_data_agent
-        gen_fake_data_agent___start__(<p>__start__</p>)
-        gen_fake_data_agent_gen_fake_data(gen_fake_data)
-        gen_fake_data_agent_handle_retry(handle_retry)
-        gen_fake_data_agent___end__(<p>__end__</p>)
-        gen_fake_data_agent___start__ --> gen_fake_data_agent_gen_fake_data;
-        gen_fake_data_agent_gen_fake_data -. &nbsp;max_retries_reached&nbsp; .-> gen_fake_data_agent_handle_retry;
-        gen_fake_data_agent_handle_retry -. &nbsp;again&nbsp; .-> gen_fake_data_agent_gen_fake_data;
-        gen_fake_data_agent_gen_fake_data -.-> gen_fake_data_agent___end__;
-        gen_fake_data_agent_gen_fake_data -. &nbsp;again&nbsp; .-> gen_fake_data_agent_gen_fake_data;
+        subgraph meta_mode_data_gen_graph
+        meta_mode_data_gen_graph___start__(<p>__start__</p>)
+        meta_mode_data_gen_graph_analyze_meta_intent(analyze_meta_intent)
+        meta_mode_data_gen_graph_meta_intent_human_feedback_node(meta_intent_human_feedback_node)
+        meta_mode_data_gen_graph_query_table_raw_field_info(query_table_raw_field_info)
+        meta_mode_data_gen_graph_rag_table_field_info(rag_table_field_info)
+        meta_mode_data_gen_graph___end__(<p>__end__</p>)
+        meta_mode_data_gen_graph___start__ -.-> meta_mode_data_gen_graph_analyze_meta_intent;
+        meta_mode_data_gen_graph___start__ -.-> meta_mode_data_gen_graph_query_table_raw_field_info;
+        meta_mode_data_gen_graph_analyze_meta_intent --> meta_mode_data_gen_graph_meta_intent_human_feedback_node;
+        meta_mode_data_gen_graph_meta_intent_human_feedback_node -.-> meta_mode_data_gen_graph_query_table_raw_field_info;
+        meta_mode_data_gen_graph_query_table_raw_field_info -.-> meta_mode_data_gen_graph_rag_table_field_info;
+        meta_mode_data_gen_graph_query_table_raw_field_info -.-> meta_mode_data_gen_graph___end__;
+        meta_mode_data_gen_graph_rag_table_field_info --> meta_mode_data_gen_graph___end__;
+        end
+        subgraph sql_mode_data_gen_graph
+        sql_mode_data_gen_graph___start__(<p>__start__</p>)
+        sql_mode_data_gen_graph_analyze_sql_intent(analyze_sql_intent)
+        sql_mode_data_gen_graph_sql_intent_human_feedback_node(sql_intent_human_feedback_node)
+        sql_mode_data_gen_graph_sql_parse_to_table_info(sql_parse_to_table_info)
+        sql_mode_data_gen_graph_rag_sql_table_field_info(rag_sql_table_field_info)
+        sql_mode_data_gen_graph___end__(<p>__end__</p>)
+        sql_mode_data_gen_graph___start__ -.-> sql_mode_data_gen_graph_analyze_sql_intent;
+        sql_mode_data_gen_graph___start__ -.-> sql_mode_data_gen_graph_sql_parse_to_table_info;
+        sql_mode_data_gen_graph_analyze_sql_intent --> sql_mode_data_gen_graph_sql_intent_human_feedback_node;
+        sql_mode_data_gen_graph_sql_intent_human_feedback_node -.-> sql_mode_data_gen_graph_sql_parse_to_table_info;
+        sql_mode_data_gen_graph_sql_parse_to_table_info -.-> sql_mode_data_gen_graph_rag_sql_table_field_info;
+        sql_mode_data_gen_graph_rag_sql_table_field_info --> sql_mode_data_gen_graph___end__;
+        sql_mode_data_gen_graph_sql_parse_to_table_info -.-> sql_mode_data_gen_graph___end__;
+        end
+        subgraph process_dg_graph
+        process_dg_graph_dg_rule_processor(dg_rule_processor)
+        process_dg_graph_save_dg_plan2json(save_dg_plan2json)
+        process_dg_graph_create_dg_task(create_dg_task)
+        process_dg_graph_query_dg_task_status(query_dg_task_status)
+        process_dg_graph_save_task_info2db(save_task_info2db)
+        process_dg_graph_create_dg_task --> process_dg_graph_query_dg_task_status;
+        process_dg_graph_dg_rule_processor -.-> process_dg_graph_save_dg_plan2json;
+        process_dg_graph_query_dg_task_status --> process_dg_graph_save_task_info2db;
+        process_dg_graph_save_dg_plan2json -.-> process_dg_graph_create_dg_task;
+        process_dg_graph_save_dg_plan2json -.-> process_dg_graph_save_task_info2db;
         end
         classDef default fill:#f2f0ff,line-height:1.2
         classDef first fill-opacity:0

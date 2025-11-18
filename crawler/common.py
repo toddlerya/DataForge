@@ -6,13 +6,32 @@
 # @Project  : DataForge
 
 
-from typing import List, Dict
+from typing import Dict, List
 
 from loguru import logger
 
-from database_models.schema import TableRawFieldSchema, TableMetaDataSchema
+from database_models.schema import TableMetaDataSchema, TableRawFieldSchema
 from database_models.sys_enum import MetaDataSource
-from config import pangu_field_type_map
+
+pangu_field_type_map = {
+    -1: "string",
+    1: "string",
+    2: "int",
+    3: "byte",
+    4: "long",
+    5: "short",
+    6: "double",
+    7: "decimal",
+    9: "date",
+    10: "timestamp",
+    11: "binary",
+    18: "float",
+    20: "array",
+    21: "array<string>",
+    22: "array<int>",
+    23: "array<long>",
+    24: "array<float>",
+}
 
 
 def table_metadata_verify2model(
@@ -27,7 +46,7 @@ def table_metadata_verify2model(
     Returns:
 
     """
-    table_fields_slice = list()
+    table_fields_slice = []
     for field in table_metadata_fields:
         if source == MetaDataSource.data_scope:
             field_model = TableRawFieldSchema(

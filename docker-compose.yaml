@@ -1,7 +1,55 @@
-version: "3"
+x-common-envs: &common-envs
+  TZ: Asia/Shanghai
+  LOG_LEVEL: INFO
+  SQLALCHEMY_ECHO: "0"
+  DATA_EXPIRED_DAY: "30"
+  SERVER_HOST: "10.1.2.132"
+  SERVER_PORT: "25702"
+  APOLLO_WEB_IP: "172.21.5.130"
+  APOLLO_WEB_PORT: "8070"
+  INNER_DB_HOST: DataForgeDB
+
+x-common-volumes: &common-volumes
+  - /etc/localtime:/etc/localtime:ro
+  - /etc/timezone:/etc/timezone:ro
+  # 数据目录
+  - ./data:/app/data
+  - ./logs:/app/logs
+  # 代码目录
+  - ./agent:/app/agent
+  - ./apollo:/app/apollo
+  - ./bdp:/app/bdp
+  - ./common:/app/common
+  - ./conf:/app/conf
+  - ./crawler:/app/crawler
+  - ./cruds:/app/cruds
+  - ./database_models:/app/database_models
+  - ./environment:/app/environment
+  - ./migrations:/app/migrations
+  - ./public:/app/public
+  - ./server:/app/server
+  - ./tasks:/app/tasks
+  - ./utils:/app/utils
+  - ./__init__.py:/app/__init__.py
+  - ./.env:/app/.env
+  - ./alembic.ini:/app/alembic.ini
+  - ./config.py:/app/config.py
+  - ./serve.py:/app/serve.py
+  # - ./.chainlit:/app/.chainlit
+  - ./app_data_gen:/app/app_data_gen
+  - ./app_fmdb_insert_sql_gen:/app/app_fmdb_insert_sql_gen
+  - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
+  - ./app_table_gen:/app/app_table_gen
+  - ./app_agent:/app/app_agent
+  - ./public:/app/app_agent/public
+
+x-common-user-privileged: &common-user-privileged
+  user: "1000:1000"
+  privileged: true
 
 services:
   db:
+    <<: *common-user-privileged
     image: postgres:14.2
     container_name: DataForgeDB
     hostname: DataForgeDB
@@ -12,205 +60,150 @@ services:
       - "5432:5432"
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - ./postgresql/data:/var/lib/postgresql/data
       - ./postgresql/conf/postgresql.conf:/etc/postgresql/postgresql.conf
     command:
-      - 'postgres'
-      - '-c'
-      - 'config_file=/etc/postgresql/postgresql.conf'
+      - "postgres"
+      - "-c"
+      - "config_file=/etc/postgresql/postgresql.conf"
     environment:
       POSTGRES_DB: data_forge
       # 请务必修改密码
       POSTGRES_USER: data_forge
       POSTGRES_PASSWORD: data_forge_2590
 
+  crond_task:
+    <<: *common-user-privileged
+    image: llm_server_py313_env:1.0.0
+    container_name: DataForgeCrondTask
+    hostname: DataForgeCrondTask
+    restart: unless-stopped
+    working_dir: /app
+    command: bash -c "python -m tasks.crond_task"
+    networks:
+      harbor_net:
+    depends_on:
+      - db
+    volumes: *common-volumes
+    environment:
+      <<: *common-envs
+
   server:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: DataForgeServer
     hostname: DataForgeServer
     restart: unless-stopped
-    privileged: true
     working_dir: /app
-    command: bash -c "python -m serve"
+    command: bash -c "alembic upgrade head && python -m serve"
     networks:
       harbor_net:
     ports:
       - "25702:25702"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
-      - ./app_data_gen:/app/app_data_gen
-      - ./app_table_gen:/app/app_table_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./server:/app/server
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./serve.py:/app/serve.py
-      - ./.env:/app/.env
+    depends_on:
+      - db
+      - crond_task
+    volumes: *common-volumes
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      # 部署环境的服务器IP
-      - SERVER_HOST=10.1.2.132
-      - SERVER_PORT=25702
-      - APOLLO_WEB_IP=172.21.5.130
-      - APOLLO_WEB_PORT=8070
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
+
+  data_agent_chat:
+    <<: *common-user-privileged
+    image: llm_server_py313_env:1.0.0
+    container_name: DFAgentApp
+    hostname: DFAgentApp
+    restart: unless-stopped
+    working_dir: /app
+    command: bash -c "python -m app_agent.run"
+    networks:
+      harbor_net:
+    ports:
+      - "9800:9800"
+    depends_on:
+      - db
+      - crond_task
+    volumes: *common-volumes
+    environment:
+      <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_agent
 
   data_gen_chat:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: DFDataGenApp
     hostname: DFDataGenApp
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m app_data_gen.run"
     networks:
       harbor_net:
     ports:
       - "9801:9801"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
-      - ./app_data_gen:/app/app_data_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./.env:/app/.env
-      - ./.chainlit:/app/.chainlit
+    depends_on:
+      - db
+      - crond_task
+    volumes: *common-volumes
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_data_gen
 
   table_gen_chat:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: DFTableGenApp
     hostname: DFTableGenApp
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m app_table_gen.run"
     networks:
       harbor_net:
     ports:
       - "9802:9802"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
-      - ./app_table_gen:/app/app_table_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./.env:/app/.env
-      - ./.chainlit:/app/.chainlit
+    depends_on:
+      - db
+      - crond_task
+    volumes: *common-volumes
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_table_gen
 
   sql_mode_data_gen_chat:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: SQLModeDFDataGenApp
     hostname: DFDataGenApp
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m app_sql_mode_data_gen.run"
     networks:
       harbor_net:
     ports:
       - "9803:9803"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
-      - ./app_sql_mode_data_gen:/app/app_sql_mode_data_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./.env:/app/.env
-      - ./.chainlit:/app/.chainlit
+    depends_on:
+      - db
+      - crond_task
+    volumes: *common-volumes
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      - INNER_DB_HOST=DataForgeDB
-
+      <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_sql_mode_data_gen
 
   fmdb_insert_sql_gen_chat:
+    <<: *common-user-privileged
     image: llm_server_py313_env:1.0.0
     container_name: FMDBInsertSQLGenApp
     hostname: FMDBInsertSQLGenApp
     restart: unless-stopped
-    privileged: true
     working_dir: /app
     command: bash -c "python -m app_fmdb_insert_sql_gen.run"
     networks:
       harbor_net:
     ports:
       - "9804:9804"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./data:/app/data
-      - ./database:/app/database
-      - ./logs:/app/logs
-      - ./database_models:/app/database_models
-      - ./agent:/app/agent
-      - ./app_fmdb_insert_sql_gen:/app/app_fmdb_insert_sql_gen
-      - ./cruds:/app/cruds
-      - ./common:/app/common
-      - ./utils:/app/utils
-      - ./config.py:/app/config.py
-      - ./.env:/app/.env
-      - ./.chainlit:/app/.chainlit
+    volumes: *common-volumes
     environment:
-      - TZ=Asia/Shanghai
-      # 日志级别
-      - LOG_LEVEL=INFO
-      - SQLALCHEMY_ECHO=0
-      # 数据默认保留时间
-      - DATA_EXPIRED_DAY=30
-      - INNER_DB_HOST=DataForgeDB
+      <<: *common-envs
+      CHAINLIT_APP_ROOT: /app/app_fmdb_insert_sql_gen
 
 #  caddy:
 #    image: caddy:2-alpine
@@ -231,10 +224,6 @@ services:
 #    environment:
 #      - TZ=Asia/Shanghai
 
-
-
 networks:
   harbor_net:
     external: true
-
-

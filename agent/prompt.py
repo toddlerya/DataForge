@@ -13,9 +13,10 @@ from langchain.prompts import (
 # 定义模板
 data_intent_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是数仓测试专家，你的任务如下\n"
-    "1. 识别出数据库表名称(可以多张表，对应table_en_names)\n"
-    # "2. 期望表约束条件(每张表可以有或者没有约束条件，对应table_conditions)\n"
-    "2. 期望生成数据条数(每张表都有条数，对应table_data_count)\n"
+    "1. 识别出数据库表名称(对应table_en_name)\n"
+    "2. 期望生成数据条数(对应data_count)\n"
+    "3. 环境名称(对应env_name), 若用户没提供环境名称则填写空字符串\n"
+    "4. 是否创建任务(对应dont_run_dg_task), 若用户不需要创建任务则填写true, 否则填写false\n"
     "按照要求输出结构化数据。"
 )
 
@@ -32,6 +33,7 @@ sql_mode_data_intent_system_prompt = SystemMessagePromptTemplate.from_template(
     "你是SQL专家，你的任务如下\n"
     "1. 识别出数据库表名称用户提供的SQL内容, 对应sql\n"
     "2. 期望生成数据条数, 对应data_count\n"
+    "3. 是否创建任务(对应dont_run_dg_task), 若用户不需要创建任务则填写true, 否则填写false\n"
     "按照要求输出结构化数据。"
 )
 
@@ -220,4 +222,41 @@ table_fields_fill_human_prompt = HumanMessagePromptTemplate.from_template(
 
 table_fields_fill_prompt = ChatPromptTemplate.from_messages(
     [table_fields_fill_system_prompt, table_fields_fill_human_prompt]
+)
+
+
+explore_chat_system_prompt = SystemMessagePromptTemplate.from_template(
+    "你是测试数据智能助手, 根据用户的问题, 选择合适的工具进行调用。"
+    "若没有合适的工具可以调用, 请告诉用户你不暂时还不具备这个能力, 无需进行其他回答。"
+)
+
+expolore_chat_human_prompt = HumanMessagePromptTemplate.from_template(
+    "用户的问题: \n{question}"
+)
+
+expolore_chat_prompt = ChatPromptTemplate.from_messages(
+    [explore_chat_system_prompt, expolore_chat_human_prompt]
+)
+
+
+# 定义模板
+main_intent_system_prompt = SystemMessagePromptTemplate.from_template(
+    "你是测试数据智能助手, 分析用户的输入, 识别出以下信息\n"
+    "用户任务需要使用的子图(对应graph_name). \n"
+    "- 如果用于期望查看对接了多少表,有些特征有关的表这种问题则填写expolore_graph\n"
+    "- 如果是基于提供的明确表名称构造测试数据则填写meta_mode_data_gen_graph\n"
+    "- 如果是基于提供的SQL构造测试数据则填写sql_mode_data_gen_graph\n"
+    "- 如果要运行tsml文件则填写tsml_graph\n"
+    "- 如果都不是则填写unkown\n"
+    "- 没有第6种情况, 只能从给定的清单"
+    "中[meta_mode_data_gen_graph,sql_mode_data_gen_graph,expolore_graph,tsml_graph,unkown]5选1\n"
+    "按照要求输出结构化数据。"
+)
+
+main_intent_human_prompt = HumanMessagePromptTemplate.from_template(
+    "分析如下信息并结构化输出: {user_input}\n"
+)
+
+main_intent_prompt = ChatPromptTemplate.from_messages(
+    [main_intent_system_prompt, main_intent_human_prompt]
 )

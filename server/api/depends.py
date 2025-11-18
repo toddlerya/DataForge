@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/8/22 17:13 
+# @Time     : 2025/8/22 17:13
 # @Author   : guoqun X2590
 # @FileName : depends.py.py
 # @Project  : DataForge
 
 import uuid
 
-from loguru import logger
-
 from fastapi import HTTPException
+from loguru import logger
 
 from config import (
     SQLALCHEMY_AUTO_COMMIT,
@@ -17,8 +16,9 @@ from config import (
     SQLALCHEMY_ECHO,
     SQLALCHEMY_URL,
 )
-from utils.log import TracedLogger
 from utils.db import Database
+from utils.db_manager import DatabaseManager
+from utils.log import TracedLogger
 
 
 @logger.catch(reraise=True)
@@ -33,6 +33,20 @@ def get_db():
         yield db
     finally:
         db.session.close()
+
+
+@logger.catch(reraise=True)
+def get_db_manager():
+    db_manager = DatabaseManager(
+        url=SQLALCHEMY_URL,
+        echo=SQLALCHEMY_ECHO,
+        auto_flush=SQLALCHEMY_AUTO_FLUSH,
+        auto_commit=SQLALCHEMY_AUTO_COMMIT,
+    )
+    try:
+        yield db_manager
+    finally:
+        db_manager.close()
 
 
 # 异步事务依赖项

@@ -8,16 +8,14 @@ import asyncio
 from pathlib import Path
 
 import chainlit as cl
-
 from dotenv import load_dotenv
+from langchain_core.runnables.config import RunnableConfig
 from loguru import logger
 
-from config import PROJECT_PATH, GEN_TABLE_MODELS_TEMP_PATH
-from agent.table_graph import table_gen_graph
 from agent.state import TableGenUserIntentSchema
-
+from agent.table_graph import table_gen_graph
 from common.initialization import init_env, setup_logging
-
+from config import GEN_TABLE_MODELS_TEMP_PATH, PROJECT_PATH
 from utils.log import LogManager, TracedLogger
 
 log_config = LogManager(
@@ -72,7 +70,7 @@ async def process_step(event, graph):
         logger.debug(f"node: {node} state: {state} ")
 
         if node == "analyze_table_intent":
-            logger.info(f"[process] analyze_table_intent")
+            logger.info("[process] analyze_table_intent")
             user_intent: TableGenUserIntentSchema = state.get("user_intent")
             await cl.Message(
                 author="AI",
@@ -84,7 +82,7 @@ async def process_step(event, graph):
                 content="上述意图识别结果是否正确？若不正确请调整输入信息再次尝试意图识别；若正确，请输入“正确”，将开始数据生成任务。",
                 timeout=300,
             ).send()
-            if res:
+            if res and "output" in res:
                 res_text = res["output"].strip()
                 logger.info(f"human_intent_feedback: {res_text}")
                 cl.user_session.set("human_intent_feedback", res_text)
@@ -95,9 +93,7 @@ async def process_step(event, graph):
                 )
                 start_time = asyncio.get_event_loop().time()
                 cl.user_session.set("start_time", start_time)
-
                 await cl.Message(content="正在准备素材表数据...").send()
-
         elif node == "material_table_group_strategy":
             logger.info("[process] material_table_group_strategy")
             end_time = asyncio.get_event_loop().time()
@@ -139,7 +135,7 @@ async def process_step(event, graph):
             else:
                 await cl.Message(
                     author="Assistant",
-                    content=f"已存储特征表计划，准备生成特征表",
+                    content="已存储特征表计划，准备生成特征表",
                 ).send()
 
         elif node == "gen_dimension_table_config":
@@ -154,7 +150,7 @@ async def process_step(event, graph):
             logger.info("[process] save_dimension_table_config")
             await cl.Message(
                 author="Assistant",
-                content=f"已存储特征表配置",
+                content="已存储特征表配置",
             ).send()
 
         elif node == "archive_table_data":
@@ -180,8 +176,8 @@ async def process_step(event, graph):
                 ).send()
 
         elif node == "END":
-            elapsed_time = cl.user_session.get("end_time") - cl.user_session.get(
-                "start_time"
+            elapsed_time = cl.user_session.get("end_time", 0) - cl.user_session.get(
+                "start_time", 0
             )
             cost_msg = f"{elapsed_time: .2f} 秒"
             final_message = (
@@ -193,42 +189,52 @@ async def process_step(event, graph):
 
 @cl.on_message
 async def main(message: cl.Message):
+    session_id = cl.context.session.id
     # 如果没有初始化trace_uuid则初始化trace_token
     if traced_logger.get_trace_uuid() is None:
-        trace_token = traced_logger.set_trace_uuid(trace_uuid=cl.context.session.id)
+        trace_token = traced_logger.set_trace_uuid(trace_uuid=session_id)
         cl.user_session.set("trace_token", trace_token)
 
     logger.info(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} message: {message.content}"
+        f"session_id={session_id} ip={cl.user_session.get('client_ip')} "
+        f"message: {message.content}"
     )
-    config = {
-        "configurable": {"thread_id": cl.context.session.id},
-        "recursion_limit": 50,
-    }
-    cl.user_session.set("configs", config)
+    run_config = RunnableConfig(
+        configurable={"thread_id": session_id},
+        recursion_limit=50,
+    )
+    cl.user_session.set("configs", run_config)
 
-    current_state = table_gen_graph.get_state(config)
+    current_state = table_gen_graph.get_state(run_config)
     logger.debug(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} current_state: {current_state}"
+        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
+        f"current_state: {current_state}"
     )
     if not current_state.values.get("user_input"):
         init_state = {
             "user_input": message.content.strip(),
             "max_retries": 5,
-            "session_id": cl.context.session.id,
+            "session_id": session_id,
             "client_ip": cl.user_session.get("client_ip"),
             "session_temp_data_path": GEN_TABLE_MODELS_TEMP_PATH.joinpath(
                 cl.context.session.id
             ),
         }
-        async for event in table_gen_graph.astream(init_state, config):
+        async for event in table_gen_graph.astream(init_state, run_config):
             await process_step(event, table_gen_graph)
 
-    async for step_output in table_gen_graph.astream(None, config):
+    async for step_output in table_gen_graph.astream(None, run_config):
         await process_step(step_output, table_gen_graph)
 
     # 完成会话清空trace_uuid
-    traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
+    trace_token = cl.user_session.get("trace_token")
+    if trace_token is None:
+        logger.warning(
+            f"session_id={cl.context.session.id} trace_token not found, skipping reset."
+        )
+    else:
+        # 这里 Pylance 知道 trace_token 是 Token 类型，且不是 None
+        traced_logger.reset_trace_uuid(trace_token)
 
 
 if __name__ == "__main__":

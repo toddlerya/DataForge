@@ -5,40 +5,36 @@
 # @Author  :   toddlerya
 # @Desc    :   None
 
+
+from pathlib import Path
 from typing import (
     Annotated,
     ClassVar,
     Dict,
     List,
+    Literal,
+    Optional,
     Set,
     TypedDict,
+    Union,
 )
-from pathlib import Path
 
-from langchain_core.messages import AnyMessage
+from langchain_core.messages import AnyMessage, BaseMessage
 from langgraph.graph.message import add_messages
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from database_models.schema import (TableRawFieldSchema,
-                                    GenTableFieldSchema,
-                                    RecommendPanGuDictSchema,
-                                    PydanticDataGeniusRule)
 from agent.dg_configs import DG_FIELD_CATEGORY_CONFIG
-
-
-class DataGenUserIntentSchema(BaseModel):
-    table_en_names: List[str] = Field(..., description="表英文名称, 不可为空")
-    # table_conditions: Dict[str, str] = Field(
-    #     {},
-    #     description="表字段的约束条件，key为表名，value为条件表达式字符串",
-    # )
-    table_data_count: Dict[str, int] = Field(
-        ...,
-        description="表期望生成的数据条数，key为表名，value为正整数",
-    )
+from database_models.schema import (
+    GenTableFieldSchema,
+    PydanticDataGeniusRule,
+    RecommendPanGuDictSchema,
+    TableRawFieldSchema,
+    TaskDataSchema,
+)
 
 
 class TableMetadataSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_en_name: str = Field(
         description="表英文名称", alias="table_en_name", default=""
     )
@@ -48,6 +44,7 @@ class TableMetadataSchema(BaseModel):
     raw_fields_info: List[TableRawFieldSchema] = Field(
         description="原始字段信息", alias="raw_fields_info", default=[]
     )
+    source: str = Field(default="", description="来源")
 
 
 class DGCategoryConfig:
@@ -59,15 +56,17 @@ init_dg_category_config = DGCategoryConfig()
 
 class PydanticDataGeniusCategoryRecommendation(BaseModel):
     """
-    用于定义LLM输出的结构，包含推荐的类别、置信度分数和推荐理由。
+    用于定义LLM输出的结构, 包含推荐的类别、置信度分数和推荐理由。
     """
 
-    category: str = Field(description=f"推荐的类别名称，必须在允许的类别列表中。")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    category: str = Field(description="推荐的类别名称，必须在允许的类别列表中。")
     score: int = Field(ge=0, le=100, description="置信度分数，0-100之间")
     reason: str = Field(description="推荐理由说明")
 
     # 类变量，存储允许的类别
-    _allowed_categories: ClassVar[Set[str]] = None
+    _allowed_categories: ClassVar[Optional[Set[str]]] = None
 
     @classmethod
     def get_allowed_categories(cls) -> Set[str]:
@@ -77,7 +76,9 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
             # 直接遍历字典列表，提取 category 字段
             for item in init_dg_category_config.DG_FIELD_CATEGORY_CONFIG:
                 if isinstance(item, dict) and "category" in item:
-                    all_categories.add(item["category"])
+                    category = item["category"]
+                    if isinstance(category, str):
+                        all_categories.add(item["category"])
             cls._allowed_categories = all_categories
         return cls._allowed_categories
 
@@ -92,13 +93,16 @@ class PydanticDataGeniusCategoryRecommendation(BaseModel):
         allowed = cls.get_allowed_categories()
         if v not in allowed:
             raise ValueError(
-                f"category '{v}' is not in allowed categories: {', '.join(sorted(allowed))}"
+                f"category '{v}' is not in allowed categories: "
+                f"{', '.join(sorted(allowed))}"
             )
         return v
 
 
 class PydanticDataGeniusPlan(BaseModel):
     """DataGenius 输出的计划 Pydantic模型"""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     rule_name: str = Field(
         default="DataGenius规则配置名称json文件名",
@@ -124,45 +128,22 @@ class PydanticDataGeniusPlan(BaseModel):
     cols: int = Field(1, gt=0, description="需要生成的列数")
 
 
-class DataGenState(TypedDict):
-    messages: Annotated[List[AnyMessage], add_messages]
-    user_input: str
+class CommonState(TypedDict):
+    messages: Annotated[List[AnyMessage | BaseMessage], add_messages]
     session_id: str
     client_ip: str
-    user_intent: DataGenUserIntentSchema
-    human_intent_feedback: str
-    table_metadata_array: list[TableMetadataSchema]
-    table_metadata_error: list[str]
-    DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
-    table_dict_category_code_map: dict[str, str]
-    table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
-    pydantic_data_genius_plan: PydanticDataGeniusPlan
-    data_genius_headers: dict
-    data_genius_task_id: str
-    create_data_genius_task_error: str
-    query_data_genius_task_error: str
-    data_genius_plan_task_id: str
-    data_genius_plan_run_duration: str
-    data_genius_plan_output_url: str
-    data_genius_plan_output_filesize: str
-    data_genius_plan_edit_url: str
-    error_message: Annotated[List[AnyMessage], add_messages]
     max_retries: int
-    pre_heat_mode: bool
-
-
-class DataGenSQLModeUserIntentSchema(BaseModel):
-    sql: str = Field(..., min_length=15, description="SQL内容")
-    data_count: int = Field(..., ge=1, description="期望数据条数")
 
 
 class SQLModeFieldSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     en_name: str = Field(..., min_length=1, description="字段英文名称")
     alias_name: str = Field("", description="字段别名")
     comment: str = Field("", description="字段注释")
 
 
 class SQLModeTableInfoSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_en_name: str = Field(
         description="表英文名称", alias="table_en_name", default=""
     )
@@ -171,20 +152,40 @@ class SQLModeTableInfoSchema(BaseModel):
     )
 
 
-class SQLModeDataGenState(TypedDict):
-    messages: Annotated[List[AnyMessage], add_messages]
+class DataGenUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    table_en_name: str = Field(..., description="表英文名称, 不可为空")
+    data_count: int = Field(..., ge=1, le=2147483647, description="期望数据条数")
+    # TODO: 考虑让env_name是枚举类型，根据数据库信息动态更新
+    env_name: str = Field(default="", description="环境名称")
+    dont_run_dg_task: bool = Field(
+        default=False, description="只进行AI推荐不创建DG任务"
+    )
+
+
+class DataGenSQLModeUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    sql: str = Field(..., min_length=15, description="SQL内容")
+    data_count: int = Field(..., ge=1, le=2147483647, description="期望数据条数")
+    env_name: str = Field(default="", description="环境名称")
+    dont_run_dg_task: bool = Field(
+        default=False, description="只进行AI推荐不创建DG任务"
+    )
+
+
+# 基类：公共字段
+class DataGenBaseState(CommonState):
     user_input: str
-    session_id: str
-    client_ip: str
-    user_intent: DataGenSQLModeUserIntentSchema
     human_intent_feedback: str
-    table_info_error: str
-    table_info_data: SQLModeTableInfoSchema
+    user_intent: Union[DataGenUserIntentSchema, DataGenSQLModeUserIntentSchema]
     table_metadata_info: TableMetadataSchema
     table_metadata_error: list[str]
     DG_FIELD_CATEGORY_CONFIG: list[dict[str, str]]
     table_dict_category_code_map: dict[str, str]
     table_dictkey_map: dict[str, list[RecommendPanGuDictSchema]]
+    rag_done: bool
     pydantic_data_genius_plan: PydanticDataGeniusPlan
     data_genius_headers: dict
     data_genius_task_id: str
@@ -195,11 +196,26 @@ class SQLModeDataGenState(TypedDict):
     data_genius_plan_output_url: str
     data_genius_plan_output_filesize: str
     data_genius_plan_edit_url: str
-    error_message: Annotated[List[AnyMessage], add_messages]
-    max_retries: int
+    dg_task_type: str
+    error_messages: Annotated[List[AnyMessage], add_messages]
+    task_data: TaskDataSchema
+    env_name: str
+    mode: Literal[1, 2]
+    pre_heat_mode: bool
+    dont_run_dg_task: bool
+
+
+class MetaModeDataGenState(DataGenBaseState):
+    pass
+
+
+class SQLModeDataGenState(DataGenBaseState):
+    table_info_error: str
+    table_info_data: SQLModeTableInfoSchema
 
 
 class TableGenUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     categories: List[str] = Field(
         ..., description="期望生成的表类别, 例如: 人员属性,上网行为,位置轨迹等"
     )
@@ -211,6 +227,7 @@ class TableGenUserIntentSchema(BaseModel):
 
 
 class GenSourceTableMetadataSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_en_name: str = Field(description="表英文名称", default="")
     table_cn_name: str = Field(description="表中文名称", default="")
     source_fields_info: List[GenTableFieldSchema] = Field(
@@ -219,6 +236,7 @@ class GenSourceTableMetadataSchema(BaseModel):
 
 
 class StructuredDimensionMappingSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     recommend_category: str = Field(..., description="LLM推荐的表类别")
     recommend_dimension_table_en_name: str = Field(
         ..., description="LLM推荐的特征表英文名称"
@@ -240,16 +258,18 @@ class StructuredDimensionMappingSchema(BaseModel):
 
 
 class StructuredTranslateTableEnameSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     table_ename: str = Field(
         ..., description="表英文名称", pattern="^[A-Z][A-Z_]+[A-Z]$"
     )
 
 
 class DimensionTableFieldsRecommendation(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     material_table_en_name: str = Field(default="", description="素材表英文名称")
     material_table_cn_name: str = Field(default="", description="素材表中文名称")
     field_en_name_slice: List[str] = Field(
-        description=f"推荐的字段名称清单，必须在允许的字段列表中",
+        description="推荐的字段名称清单，必须在允许的字段列表中",
         min_length=5,
         max_length=500,
     )
@@ -259,6 +279,7 @@ class DimensionTableFieldsRecommendation(BaseModel):
 
 
 class DimensionTableFillFieldResult(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     recommend_category: str = Field(..., description="LLM推荐的表类别")
     dimension_table_en_name: str = Field(..., description="特征表英文名")
     dimension_table_cn_name: str = Field(..., description="特征表中文名")
@@ -270,30 +291,103 @@ class DimensionTableFillFieldResult(BaseModel):
     )
 
 
-class TableGenState(TypedDict):
-    messages: Annotated[List[AnyMessage], add_messages]
+class TableGenState(CommonState):
     user_input: str
-    session_id: str
-    client_ip: str
     user_intent: TableGenUserIntentSchema
     human_intent_feedback: str
     material_table_groups: List[List[Dict]]
     mapping_dimension_table_info_slice: List[StructuredDimensionMappingSchema]
     dimension_table_config_slice: List[DimensionTableFillFieldResult]
-    max_retries: int
     session_temp_data_path: Path
     create_session_temp_data_path_message: str
     session_archive_file_path: Path
     archive_message: str
 
 
+class ExploreState(CommonState):
+    question: str
+    tool_name: str
+    tool_args: dict
+    tool_call_result: str | list[str | dict]
+    summarize_tool_call_result: list[dict]
+    summary: str | list[str | dict]
+
+
+class AppUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    sub_graph_name: str = Field(
+        ..., description="需要调用的子图的名称, 必须是已知的子图之一"
+    )
+    user_input: str = Field(..., description="用户意图输入文本")
+
+
+class ChainLitFileInfoSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    name: str = Field(..., description="文件名称")
+    # thread_id: str = Field(..., description="thread_id")
+    # chainlit_key: str = Field(..., description="chainlit_key")
+    file_id: str = Field(..., description="文件ID")
+    # path=.files/{thread_id}/{chainlit_key}.bin
+    path: str = Field(..., description="文件路径")
+
+
+class TREExportFileSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    tre_tsml_file_info: Optional[ChainLitFileInfoSchema]
+    tre_sql_file_info: Optional[ChainLitFileInfoSchema]
+
+
+class TSMLUserIntentSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    tre_export_file_info: TREExportFileSchema = Field(..., description="TRE导出的文件")
+    plans: list[str] = Field(..., description="计划")
+
+
+class PrepareTREFilesStatusSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    sql_uploaded: bool = Field(False, description="SQL文件是否上传")
+    tsml_uploaded: bool = Field(False, description="TSML文件是否上传")
+    ready_to_run: bool = Field(False, description="是否准备好运行")
+
+
+class TSMLState(CommonState):
+    user_input: str
+    tsml_user_intent: TSMLUserIntentSchema
+    tre_export_file_info: TREExportFileSchema
+    prepare_tre_files_status: PrepareTREFilesStatusSchema
+    tre_task_id: Optional[str]
+    status_url: Optional[str]
+    wait_loop_count: int
+    step_info: dict
+    task_status: str
+    completed: bool
+    task_error: str
+    now_step: str
+    job_result_status: str
+    report_url: str
+
+
+class MainAppState(DataGenBaseState):
+    main_user_intent: AppUserIntentSchema
+    next_sub_graph_name: str
+    # 与子图共用的状态，定义了才能传递
+    tre_export_file_info: Optional[TREExportFileSchema]
+    user_input: str
+    human_intent_feedback: str
+    dont_run_dg_task: bool
+
+
 if __name__ == "__main__":
     # 初始验证
     try:
-        test1 = PydanticDataGeniusCategoryRecommendation(category="sports", score=90, reason="初始配置不包含 sports")
+        test1 = PydanticDataGeniusCategoryRecommendation(
+            category="sports", score=90, reason="初始配置不包含 sports"
+        )
         print(id(test1))
     except ValueError as e:
-        print("初始验证失败:", e)  # 输出: category 'sports' is not in allowed categories...
+        print(
+            "初始验证失败:", e
+        )  # 输出: category 'sports' is not in allowed categories...
 
     # 动态更新配置
     init_dg_category_config.DG_FIELD_CATEGORY_CONFIG.append({"category": "sports"})
@@ -302,9 +396,7 @@ if __name__ == "__main__":
     # 再次验证
     try:
         instance = PydanticDataGeniusCategoryRecommendation(
-            category="sports",
-            score=90,
-            reason="现在配置包含 sports"
+            category="sports", score=90, reason="现在配置包含 sports"
         )
         print(id(instance))
 
@@ -313,3 +405,6 @@ if __name__ == "__main__":
         print("验证成功:", instance.category)  # 输出: sports
     except ValueError as e:
         print("验证失败:", e)
+
+    print(hasattr(MetaModeDataGenState, "metadata_gen"))
+    print("metadata_gen" in MetaModeDataGenState.__annotations__)

@@ -9,13 +9,13 @@ import asyncio
 import chainlit as cl
 import pandas as pd
 from dotenv import load_dotenv
+from langchain_core.runnables.config import RunnableConfig
 from loguru import logger
 
 from agent.sql_mode_data_graph import sql_mode_data_gen_graph
 from agent.state import DataGenSQLModeUserIntentSchema, PydanticDataGeniusPlan
 from common.initialization import init_env, setup_logging
-from config import PROJECT_PATH, DG_PLAN_PATH
-
+from config import DG_PLAN_PATH, PROJECT_PATH
 from utils.log import LogManager, TracedLogger
 
 log_config = LogManager(
@@ -46,17 +46,17 @@ async def start_chat():
     text_content = f"""{cl.user_session.get("client_ip")}，您好！我是您的测试数据生成助手\n\n
 请输入你的SELECT SQL语句，期望生成的数据条数。\n
 ====输入内容示例====\n
-SQL内容(必填): 
+SQL内容(必填):
 SELECT MD_ID AS F1131, AUTH_TYPE AS F1132, AUTH_ACCOUNT AS F1133, VPN_TYPE AS F1134, SERVER_IP AS F1135, SERVER_PORT AS F1136, FIRST_TIME AS F1137, LAST_TIME AS F1138, CCOUNT AS F1139, DCOUNT AS F1140, DETAIL AS F1141, DATA_COLOR_ID AS F1142, adsl AS F1144 FROM massdata.DWS_BEH_ANA_VPN
 期望生成数据条数(必填): 100
-"""
+"""  # noqa: E501
     elements = [cl.Text(name="说明", content=text_content, display="inline")]
     await cl.Message(
         author="Assistant", content="请输入测试数据构造需求", elements=elements
     ).send()
 
 
-async def process_step(event, graph):
+async def process_step(event, graph):  # noqa: C901
     """
     辅助函数，用于处理和显示Langgraph的每一步
     Args:
@@ -69,8 +69,8 @@ async def process_step(event, graph):
     for node, state in event.items():
         logger.debug(f"node: {node} state: {state} ")
 
-        if node == "analyze_intent":
-            logger.info(f"[process] analyze_intent")
+        if node == "analyze_data_intent":
+            logger.info("[process] analyze_data_intent")
             user_intent: DataGenSQLModeUserIntentSchema = state.get("user_intent")
             await cl.Message(
                 author="AI",
@@ -82,7 +82,7 @@ async def process_step(event, graph):
                 content="上述意图识别结果是否正确？若不正确请调整输入信息再次尝试意图识别；若正确，请输入“正确“或”Y”，将开始数据生成任务。",
                 timeout=300,
             ).send()
-            if res:
+            if res and "output" in res:
                 res_text = res["output"].strip()
                 logger.info(f"human_intent_feedback: {res_text}")
                 cl.user_session.set("human_intent_feedback", res_text)
@@ -228,9 +228,17 @@ async def process_step(event, graph):
             await cl.Message(author="Assistant", content=done_message).send()
 
         elif node == "END":
-            elapsed_time = cl.user_session.get("end_time") - cl.user_session.get(
-                "start_time"
-            )
+            start_time = cl.user_session.get("start_time") or 0.0
+            end_time = cl.user_session.get("end_time") or 0.0
+            # 确保是 float 类型
+            if isinstance(start_time, (int, float)) and isinstance(
+                end_time, (int, float)
+            ):
+                elapsed_time = end_time - start_time
+                logger.info(f"Total execution time: {elapsed_time:.2f} seconds")
+            else:
+                logger.warning("Invalid time values in session.")
+                elapsed_time = 0.0
             cost_msg = f"{elapsed_time: .2f} 秒"
             final_message = (
                 f"本次任务运行完成，总计耗时: {cost_msg}, 如需再次使用请开启新会话."
@@ -241,41 +249,52 @@ async def process_step(event, graph):
 
 @cl.on_message
 async def main(message: cl.Message):
+    session_id = cl.context.session.id
     # 如果没有初始化trace_uuid则初始化trace_token
     if traced_logger.get_trace_uuid() is None:
-        trace_token = traced_logger.set_trace_uuid(trace_uuid=cl.context.session.id)
+        trace_token = traced_logger.set_trace_uuid(trace_uuid=session_id)
         cl.user_session.set("trace_token", trace_token)
 
     logger.info(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} message: {message.content}"
+        f"session_id={session_id} ip={cl.user_session.get('client_ip')} "
+        f"message: {message.content}"
     )
-    config = {
-        "configurable": {"thread_id": cl.context.session.id},
-        "recursion_limit": 50,
-    }
-    cl.user_session.set("configs", config)
+    run_config = RunnableConfig(
+        configurable={"thread_id": session_id},
+        recursion_limit=50,
+    )
+    cl.user_session.set("configs", run_config)
 
-    current_state = sql_mode_data_gen_graph.get_state(config)
+    current_state = sql_mode_data_gen_graph.get_state(run_config)
 
     logger.debug(
-        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} current_state: {current_state}"
+        f"session_id={cl.context.session.id} ip={cl.user_session.get('client_ip')} "
+        f"current_state: {current_state}"
     )
     if not current_state.values.get("user_input"):
         init_state = {
             "user_input": message.content.strip(),
             "table_info_error": "",
             "max_retries": 5,
-            "session_id": cl.context.session.id,
+            "session_id": session_id,
             "client_ip": cl.user_session.get("client_ip"),
         }
-        async for event in sql_mode_data_gen_graph.astream(init_state, config):
+        async for event in sql_mode_data_gen_graph.astream(init_state, run_config):
             await process_step(event, sql_mode_data_gen_graph)
 
-    async for step_output in sql_mode_data_gen_graph.astream(None, config):
+    async for step_output in sql_mode_data_gen_graph.astream(None, run_config):
         await process_step(step_output, sql_mode_data_gen_graph)
 
     # 完成会话清空trace_uuid
-    traced_logger.reset_trace_uuid(cl.user_session.get("trace_token"))
+    trace_token = cl.user_session.get("trace_token")
+    if trace_token is None:
+        logger.warning(
+            f"session_id={cl.context.session.id} trace_token not found, skipping reset."
+        )
+    else:
+        # 这里 Pylance 知道 trace_token 是 Token 类型，且不是 None
+        traced_logger.reset_trace_uuid(trace_token)
+
 
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit

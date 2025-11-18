@@ -1,39 +1,115 @@
 #!/usr/bin/env python
 # coding: utf-8
-# @Time     : 2025/8/25 14:42 
+# @Time     : 2025/8/25 14:42
 # @Author   : guoqun X2590
 # @FileName : dg_api_client.py
 # @Project  : DataForge
 
-import json
 import time
+from copy import deepcopy
+from typing import Any, Union
 from urllib.parse import urljoin
-from typing import Union
 
 import httpx
-
+from langchain_core.messages import ToolMessage
 from loguru import logger
 
-from config import DG_PLAN_PATH, DG_PAYLOAD_PATH
-from agent.state import (
-    DataGenState,
-    SQLModeDataGenState,
-    DataGenUserIntentSchema,
-    DataGenSQLModeUserIntentSchema,
-    TableMetadataSchema
-)
-
 from agent.dg_configs import (
-    DG_SERVER_BASE_URL,
+    BLACK_DG_RULE_CATEGORY_NAMES,
+    DG_FIELD_CATEGORY_CONFIG,
     DG_GENERATE_TASK_URL,
-    DG_TASK_HISTORY,
     DG_NEW_TASK,
+    DG_RULE_CATEGORY,
+    DG_RULE_PREVIEW,
+    DG_SERVER_BASE_URL,
+    DG_TASK_HISTORY,
 )
+from agent.state import MetaModeDataGenState, SQLModeDataGenState, TableMetadataSchema
+from config import DG_PAYLOAD_PATH
+from cruds.task import save_task_info
+from utils.db_manager import DatabaseManager
 from utils.file import save_dict2jl
 
 
-def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
-                   ) -> Union[SQLModeDataGenState, DataGenState]:
+def fetch_dg_rule_category() -> tuple[bool, str, list[dict[str, Any]]]:
+    """获取DG规则类别
+
+    Returns:
+        tuple[bool, str, list[dict[str,Any]]]: _description_
+    """
+    logger.info("获取DG规则类别")
+    rule_cagetory_url = urljoin(DG_SERVER_BASE_URL, DG_RULE_CATEGORY)
+    message = "ok"
+    # 默认兜底逻辑
+    data = []
+    message = "ok"
+    with httpx.Client() as client:
+        response = client.get(rule_cagetory_url)
+    if response.status_code != 200:
+        message = f"请求{rule_cagetory_url}异常, status_code: {response.status_code}"
+        return False, message, data
+    try:
+        resp_json = response.json()
+    except Exception as err:
+        message = f"获取{rule_cagetory_url}响应体异常, ERROR: {err}"
+        return False, message, data
+    if flag := resp_json.get("flag") is True:
+        raw_data: dict[str, list[dict]] = resp_json.get("data", data)
+        # 将DG规则类别展平
+        black_set = set(BLACK_DG_RULE_CATEGORY_NAMES)
+        for categories in raw_data.values():
+            # 剔除部分DG规则，避免干扰字典项
+            categories = [
+                item
+                for item in deepcopy(categories)
+                if item.get("category") not in black_set
+            ]
+            data.extend(categories)
+    else:
+        message = f"接口{rule_cagetory_url}响应体flag为{flag}, 异常请DG检查"
+        # 兜底为默认的DG规则清单
+        logger.warning("实时获取DG规则异常, 使用内置的兜底DG规则")
+        data = deepcopy(DG_FIELD_CATEGORY_CONFIG)
+    return flag, message, data
+
+
+def dg_rule_data_preview(
+    rule_data: list[dict[str, Any]],
+) -> tuple[bool, str, list[dict[str, Any]]]:
+    """
+    调用DG的规则预览接口查看规则的预览数据
+
+    Args:
+        rule_data (list[dict[str, Any]]): _description_
+
+    Returns:
+        tuple[bool, str, list[dict[str, Any]]]: _description_
+    """
+    logger.info("获取DG规则预览数据")
+    rule_preview_url = urljoin(DG_SERVER_BASE_URL, DG_RULE_PREVIEW)
+    message = "ok"
+    data = [{}]
+    with httpx.Client() as client:
+        response = client.post(rule_preview_url, json=rule_data)
+    if response.status_code != 200:
+        message = f"请求{rule_preview_url}异常, status_code: {response.status_code}"
+        return False, message, data
+    try:
+        resp_json = response.json()
+    except Exception as err:
+        message = f"获取{rule_preview_url}响应体异常, ERROR: {err}"
+        return False, message, data
+    if flag := resp_json.get("flag") is True:
+        data = resp_json.get("data", data)
+    else:
+        message = f"接口{rule_preview_url}响应体flag为{flag}, 异常请DG检查"
+
+    return flag, message, data
+
+
+def create_dg_task(
+    state: Union[SQLModeDataGenState, MetaModeDataGenState],
+) -> Union[SQLModeDataGenState, MetaModeDataGenState]:
     """
     创建人DataGenius任务
     Args:
@@ -42,17 +118,21 @@ def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
     Returns:
 
     """
+    logger.info("创建DG任务")
     pydantic_data_genius_plan = state.get("pydantic_data_genius_plan")
-    user_intent = state["user_intent"]
     client_ip = state["client_ip"]
     state["data_genius_headers"] = {"SPECIFIEDIP": client_ip}
     data_genius_headers = state["data_genius_headers"]
-    if isinstance(user_intent, DataGenUserIntentSchema):
-        table_en_name = user_intent.table_en_names[0]
-    else:
-        table_en_name = state.get("table_metadata_info").table_en_name
+    table_metadata_info: TableMetadataSchema | None = state.get("table_metadata_info")
+    if table_metadata_info is None:
+        error = "state的table_metadata_info为None, 无法获取table_en_name"
+        logger.error(error)
+        state["error_messages"].append(ToolMessage(error))
+        return state
+    table_en_name = table_metadata_info.table_en_name
     logger.info(
-        f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name} data_genius_headers: {data_genius_headers}"
+        f"创建DataGenius任务, 任务名称: {pydantic_data_genius_plan.rule_name} "
+        f"data_genius_headers: {data_genius_headers}"
     )
     pydantic_data_genius_plan_dict = pydantic_data_genius_plan.model_dump()
     payload = {
@@ -115,14 +195,19 @@ def create_dg_task(state: Union[SQLModeDataGenState, DataGenState]
         else:
             info = resp_json.get("info")
             logger.error(f"创建任务异常{create_task_url}, info: {info}")
+            # TODO: 如果发现异常，不应该再查询了，需要加个节点
             state["create_data_genius_task_error"] = (
                 f"创建任务异常{create_task_url}, error: {info}"
             )
+    task_data = state["task_data"]
+    task_data.task_payload = payload
+    state["task_data"] = task_data
     return state
 
 
-def query_dg_task_status(state: Union[SQLModeDataGenState, DataGenState]
-                         ) -> Union[SQLModeDataGenState, DataGenState]:
+def query_dg_task_status(
+    state: Union[SQLModeDataGenState, MetaModeDataGenState],
+) -> Union[SQLModeDataGenState, MetaModeDataGenState]:
     """
     查询当前任务状态
     Args:
@@ -136,6 +221,8 @@ def query_dg_task_status(state: Union[SQLModeDataGenState, DataGenState]
     query_task_url = urljoin(DG_SERVER_BASE_URL, DG_TASK_HISTORY)
     payload = {"limit": 10}
     data_genius_headers = state["data_genius_headers"]
+    logger.info(f"data_genius_headers: {data_genius_headers}")
+    task_data = state["task_data"]
     with httpx.Client() as client:
         for _ in range(60):
             response = client.get(
@@ -148,6 +235,8 @@ def query_dg_task_status(state: Union[SQLModeDataGenState, DataGenState]
                 state["query_data_genius_task_error"] = (
                     f"请求{query_task_url}异常, status_code: {response.status_code}"
                 )
+                task_data.dg_task_status = 1
+                state["task_data"] = task_data
                 return state
             resp_json = response.json()
             for result in resp_json.get("results", [{}]):
@@ -164,6 +253,7 @@ def query_dg_task_status(state: Union[SQLModeDataGenState, DataGenState]
                         output_filesize = result.get(
                             "output_filesize", "not_found_output_filesize"
                         )
+                        dg_task_type = result.get("_type", "DG任务类型未知")
                         data_genius_plan_edit_url = (
                             f"{DG_SERVER_BASE_URL}/{DG_NEW_TASK}?"
                             f"step=2&"
@@ -183,6 +273,72 @@ def query_dg_task_status(state: Union[SQLModeDataGenState, DataGenState]
                         state["data_genius_plan_output_url"] = output_url
                         state["data_genius_plan_output_filesize"] = output_filesize
                         state["data_genius_plan_edit_url"] = data_genius_plan_edit_url
+                        state["dg_task_type"] = dg_task_type
+                        # 更新任务信息
+                        task_data.dg_task_status = 0
+                        task_data.dg_task_message = "成功"
+                        task_data.dg_task_id = task_id
+                        task_data.dg_task_edit_url = data_genius_plan_edit_url
+
+                        # 调用 DG的genius/get-preview接口，
+                        # 获取响应的data结果作为预览数据
+                        get_preview_status, get_preview_message, preview_data = (
+                            dg_rule_data_preview(rule_data=task_data.task_rule)
+                        )
+                        if get_preview_status:
+                            task_data.dg_task_rule_data_preview = preview_data
+                        else:
+                            logger.error(get_preview_message)
+                        task_data.dg_task_duration = duration
+                        state["task_data"] = task_data
+                        return state
+                    elif result.get("status_name") == "执行中":
+                        continue
+                    else:
+                        # DG任务结果不是成功
+                        task_data.dg_task_status = 1
+                        task_data.dg_task_message = f"【{result.get('status_name')}】DG异常请联系DG管理员（严铖杰）"
+                        state["task_data"] = task_data
                         return state
             time.sleep(2)
+        # 等到超时了，dg也没给结果
+        task_data.dg_task_status = 1
+        state["task_data"] = task_data
+        return state
     return state
+
+
+def save_task_info2db(
+    state: Union[SQLModeDataGenState, MetaModeDataGenState],
+) -> Union[SQLModeDataGenState, MetaModeDataGenState]:
+    """存储任务信息到数据库
+
+    Args:
+        state (Union[SQLModeDataGenState, DataGenState]): _description_
+
+    Returns:
+        Union[SQLModeDataGenState, DataGenState]: _description_
+    """
+    logger.info("存储任务信息到数据库")
+    task_data = state["task_data"]
+    mode = state.get("mode")
+    logger.info(f"gen mode: {mode}")
+    task_data.mode = mode
+    db_manager = DatabaseManager()
+    save_status, save_message = save_task_info(
+        db_manager=db_manager, task_info_data=task_data.model_dump()
+    )
+    if save_status is False:
+        logger.error(save_message)
+    db_manager.close()
+    # 清理state
+    return {"user_intent": None}  # type: ignore
+
+
+if __name__ == "__main__":
+    import json
+
+    s, m, d = fetch_dg_rule_category()
+    print(s)
+    print(m)
+    print(json.dumps(d, ensure_ascii=False))
