@@ -34,7 +34,7 @@ class Apollo:
         )
         self.APOLLO_CREATE_APP_PAYLOAD = {"appId": "Polaris", "name": "北极星"}
         self.APOLLO_CREATE_AUTHORIZATION_HEADER = {
-            "Authorization": "f1ae5a2e2f6967719f0b7b360a62bd36b146e42b"
+            "Authorization": ""
         }
         self.APOLLO_FETCH_URL = (
             f"https://{self.ip}:{self.port}"
